@@ -6201,6 +6201,8 @@ function linkImportsToGameLog(){
     {dateVal:'2026-04-18',opp:'Central Nebraska Baseball 12U',us:3,them:4,loc:'A'},
   ];
   var changed=false;
+  // Only seed if no data was loaded from KV (fresh install)
+  if(!_kvSynced){
   seedGames.forEach(function(sg){
     // Check if this exact game already exists
     var exists=gameLog.find(function(g){
@@ -6217,6 +6219,7 @@ function linkImportsToGameLog(){
     }
   });
   if(changed) save();
+  } // end if(!_kvSynced)
   linkImportsToGameLog();
   renderAll();updateApiKeyUI();
   });
