@@ -5097,21 +5097,26 @@ function kvSet(key,value){
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({key:key,value:value})
-  }).catch(function(){});
+  }).then(function(r){return r.json();}).catch(function(e){console.error('kvSet error',key,e);});
 }
 
 function kvSave(){
   if(!_isVercel) return;
-  kvSet('sba_games_v2', importedGames);
-  kvSet('sba_gl_v2', gameLog);
-  kvSet('sba_roster_v1', rosterOverrides);
-  kvSet('sba_notes_v1', _pdCoachNotes);
-  kvSet('sba_lineup_v2', lineupOrder);
-  if(gcSchedule&&gcSchedule.length) kvSet('sba_schedule', gcSchedule);
+  var saves=[
+    kvSet('sba_games_v2', importedGames),
+    kvSet('sba_gl_v2', gameLog),
+    kvSet('sba_roster_v1', rosterOverrides),
+    kvSet('sba_notes_v1', _pdCoachNotes),
+    kvSet('sba_lineup_v2', lineupOrder)
+  ];
+  if(gcSchedule&&gcSchedule.length) saves.push(kvSet('sba_schedule', gcSchedule));
   var icsUrl=localStorage.getItem('sba_ics_url');
   var icsLast=localStorage.getItem('sba_ics_last');
-  if(icsUrl) kvSet('sba_ics_url', icsUrl);
-  if(icsLast) kvSet('sba_ics_last', icsLast);
+  if(icsUrl) saves.push(kvSet('sba_ics_url', icsUrl));
+  if(icsLast) saves.push(kvSet('sba_ics_last', icsLast));
+  Promise.all(saves)
+    .then(function(){console.log('KV saved: games='+importedGames.length+', gl='+gameLog.length);})
+    .catch(function(e){console.error('KV save error:',e);});
 }
 
 function kvLoad(callback){
