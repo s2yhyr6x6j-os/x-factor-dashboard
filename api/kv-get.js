@@ -15,11 +15,17 @@ export default async function handler(req, res) {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await r.json();
-    // Upstash returns { result: value } — value may be a JSON string
     let value = data.result;
+
+    // Upstash returns the value as stored — may be a JSON string needing parsing
     if (typeof value === 'string') {
       try { value = JSON.parse(value); } catch(e) {}
+      // If still a string, try one more parse (double-stringified)
+      if (typeof value === 'string') {
+        try { value = JSON.parse(value); } catch(e) {}
+      }
     }
+
     return res.status(200).json({ value });
   } catch (err) {
     return res.status(500).json({ error: err.message });
