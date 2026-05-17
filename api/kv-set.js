@@ -10,14 +10,17 @@ export default async function handler(req, res) {
 
   const url = process.env.KV_REST_API_URL;
   const token = process.env.KV_REST_API_TOKEN;
-
   if (!url || !token) return res.status(500).json({ error: 'KV not configured' });
 
   try {
+    // Store as plain string — value is already JSON stringified by client
     const r = await fetch(`${url}/set/${encodeURIComponent(key)}`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(value)
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'value=' + encodeURIComponent(typeof value === 'string' ? value : JSON.stringify(value))
     });
     const data = await r.json();
     return res.status(200).json({ ok: true, result: data.result });
