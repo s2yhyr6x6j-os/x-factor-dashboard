@@ -5099,6 +5099,12 @@ function kvLoad(callback){
       var r=parse(vals[2]); if(r) rosterOverrides=r;
       var n=parse(vals[3]); if(n) _pdCoachNotes=n;
       var l=parse(vals[4]); if(l) lineupOrder=l;
+      // Safety guards — ensure arrays
+      if(!Array.isArray(importedGames)) importedGames=[];
+      if(!Array.isArray(gameLog)) gameLog=[];
+      if(!Array.isArray(lineupOrder)) lineupOrder=[];
+      if(typeof rosterOverrides!=='object'||Array.isArray(rosterOverrides)) rosterOverrides={};
+      if(typeof _pdCoachNotes!=='object'||Array.isArray(_pdCoachNotes)) _pdCoachNotes={};
       _kvSynced=true;
       console.log('KV loaded: games='+importedGames.length+', gl='+gameLog.length);
     }catch(e){console.error('KV load error',e);}
