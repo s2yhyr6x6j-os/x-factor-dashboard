@@ -4476,7 +4476,7 @@ function ppDrop(e){
 
 function askSkipper(name){
   var apiKey=getApiKey();
-  if(!apiKey){alert('Set your API key in Upload to use Ask Skipper.');return;}
+  if(!apiKey&&!(window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&window.location.protocol==='https:')){alert('Set your API key in Upload to use Ask Skipper.');return;}
   var players=getPlayers();
   var p=players.find(function(x){return x.name===name;});
   if(!p)return;
@@ -4777,7 +4777,7 @@ function injectKnownGames(){
 
 function generateAllInsights(){
   var apiKey=getApiKey();
-  if(!apiKey){alert('Set your Anthropic API key in the Upload page first.');return;}
+  if(!apiKey&&!(window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&window.location.protocol==='https:')){alert('Set your Anthropic API key in the Upload page first.');return;}
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
   if(!players.length){alert('No player data found. Upload the season CSV first.');return;}
@@ -5083,7 +5083,8 @@ function processUploadFile(file){
   var isPDF=file.name.toLowerCase().endsWith('.pdf');
   if(isPDF){
     var apiKey=getApiKey();
-    if(!apiKey){
+    var _isVercel=(window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&window.location.protocol==='https:');
+    if(!apiKey&&!_isVercel){
       status.className='up-status err';
       status.textContent='❌ Enter your Anthropic API key above to parse PDF boxscores.';
       return;
