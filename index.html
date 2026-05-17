@@ -5077,12 +5077,11 @@ function kvSet(key,value){
 
 function kvSave(){
   if(!_isVercel) return;
-  // Save all critical data to KV
-  kvSet('sba_games_v2', JSON.stringify(importedGames));
-  kvSet('sba_gl_v2', JSON.stringify(gameLog));
-  kvSet('sba_roster_v1', JSON.stringify(rosterOverrides));
-  kvSet('sba_notes_v1', JSON.stringify(_pdCoachNotes));
-  kvSet('sba_lineup_v2', JSON.stringify(lineupOrder));
+  kvSet('sba_games_v2', importedGames);
+  kvSet('sba_gl_v2', gameLog);
+  kvSet('sba_roster_v1', rosterOverrides);
+  kvSet('sba_notes_v1', _pdCoachNotes);
+  kvSet('sba_lineup_v2', lineupOrder);
 }
 
 function kvLoad(callback){
@@ -5090,11 +5089,16 @@ function kvLoad(callback){
   var keys=['sba_games_v2','sba_gl_v2','sba_roster_v1','sba_notes_v1','sba_lineup_v2'];
   Promise.all(keys.map(kvGet)).then(function(vals){
     try{
-      if(vals[0]) importedGames=JSON.parse(vals[0]);
-      if(vals[1]) gameLog=JSON.parse(vals[1]);
-      if(vals[2]) rosterOverrides=JSON.parse(vals[2]);
-      if(vals[3]) _pdCoachNotes=JSON.parse(vals[3]);
-      if(vals[4]) lineupOrder=JSON.parse(vals[4]);
+      function parse(v){
+        if(!v) return null;
+        if(typeof v==='string'){try{return JSON.parse(v);}catch(e){return null;}}
+        return v;
+      }
+      var g=parse(vals[0]); if(g) importedGames=g;
+      var gl=parse(vals[1]); if(gl) gameLog=gl;
+      var r=parse(vals[2]); if(r) rosterOverrides=r;
+      var n=parse(vals[3]); if(n) _pdCoachNotes=n;
+      var l=parse(vals[4]); if(l) lineupOrder=l;
       _kvSynced=true;
       console.log('KV loaded: games='+importedGames.length+', gl='+gameLog.length);
     }catch(e){console.error('KV load error',e);}
