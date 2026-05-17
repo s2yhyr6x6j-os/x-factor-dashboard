@@ -13,14 +13,15 @@ export default async function handler(req, res) {
   if (!url || !token) return res.status(500).json({ error: 'KV not configured' });
 
   try {
-    // Store as plain string — value is already JSON stringified by client
+    // Upstash REST API: POST /set/key with value as raw body
+    const val = typeof value === 'string' ? value : JSON.stringify(value);
     const r = await fetch(`${url}/set/${encodeURIComponent(key)}`, {
       method: 'POST',
-      headers: { 
+      headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/json'
       },
-      body: 'value=' + encodeURIComponent(typeof value === 'string' ? value : JSON.stringify(value))
+      body: JSON.stringify(val)
     });
     const data = await r.json();
     return res.status(200).json({ ok: true, result: data.result });
