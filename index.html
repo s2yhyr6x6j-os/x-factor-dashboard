@@ -5082,11 +5082,16 @@ function kvSave(){
   kvSet('sba_roster_v1', rosterOverrides);
   kvSet('sba_notes_v1', _pdCoachNotes);
   kvSet('sba_lineup_v2', lineupOrder);
+  if(gcSchedule&&gcSchedule.length) kvSet('sba_schedule', gcSchedule);
+  var icsUrl=localStorage.getItem('sba_ics_url');
+  var icsLast=localStorage.getItem('sba_ics_last');
+  if(icsUrl) kvSet('sba_ics_url', icsUrl);
+  if(icsLast) kvSet('sba_ics_last', icsLast);
 }
 
 function kvLoad(callback){
   if(!_isVercel){callback();return;}
-  var keys=['sba_games_v2','sba_gl_v2','sba_roster_v1','sba_notes_v1','sba_lineup_v2'];
+  var keys=['sba_games_v2','sba_gl_v2','sba_roster_v1','sba_notes_v1','sba_lineup_v2','sba_schedule','sba_ics_url','sba_ics_last'];
   Promise.all(keys.map(kvGet)).then(function(vals){
     try{
       function parse(v){
@@ -5099,6 +5104,11 @@ function kvLoad(callback){
       var r=parse(vals[2]); if(r) rosterOverrides=r;
       var n=parse(vals[3]); if(n) _pdCoachNotes=n;
       var l=parse(vals[4]); if(l) lineupOrder=l;
+      var sc=parse(vals[5]); if(sc&&Array.isArray(sc)){
+        gcSchedule=sc.map(function(e){return{summary:e.summary,date:new Date(e.date),location:e.location};});
+      }
+      var iu=vals[6]; if(iu){try{localStorage.setItem('sba_ics_url',iu);}catch(e){}}
+      var il=vals[7]; if(il){try{localStorage.setItem('sba_ics_last',il);}catch(e){}}
       // Safety guards — ensure arrays
       if(!Array.isArray(importedGames)) importedGames=[];
       if(!Array.isArray(gameLog)) gameLog=[];
@@ -5107,6 +5117,7 @@ function kvLoad(callback){
       if(typeof _pdCoachNotes!=='object'||Array.isArray(_pdCoachNotes)) _pdCoachNotes={};
       _kvSynced=true;
       console.log('KV loaded: games='+importedGames.length+', gl='+gameLog.length);
+      if(gcSchedule.length) renderNextGame();
     }catch(e){console.error('KV load error',e);}
     callback();
   }).catch(function(){callback();});
@@ -6237,4 +6248,4 @@ function linkImportsToGameLog(){
 </script>
 
 </body>
-</html> 
+</html>
