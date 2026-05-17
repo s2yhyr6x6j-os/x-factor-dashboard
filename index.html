@@ -177,8 +177,8 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
   .page{max-width:100%}
   #page-roster.page.active,#page-games.page.active{width:90%!important;margin:0 auto}
 
-  .stat-kpi-val{font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .stat-kpi-front,.stat-kpi-back{padding:10px 6px}
+  .stat-kpi-val{font-size:18px;white-space:nowrap}
+  .stat-kpi-front,.stat-kpi-back{padding:8px 4px}
   /* Page titles */
   .pit-page-title{font-size:18px}
   .pit-page-sub{font-size:11px;margin-bottom:16px}
@@ -1448,7 +1448,10 @@ body.light-mode .ics-input{background:#f3f4f6}
       <div class="sc-body" id="sc-pane-preview">
         <div class="sc-preview-card" id="sc-preview-card">
           <div class="sc-card-topbar">
-            <div class="sc-card-brand">⚾ Dugout</div>
+            <div class="sc-card-brand">
+              <div style="width:28px;height:28px;background:var(--red);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;color:#fff;font-weight:700;flex-shrink:0">SBA</div>
+              <span>SBA Red 12U</span>
+            </div>
             <div class="sc-card-season">Season Stats</div>
           </div>
           <div class="sc-card-hero">
@@ -4717,8 +4720,15 @@ function parseIcs(text){
     if(!summary||!dtstart) return;
     var ds=dtstart.replace(/Z$/,'');
     var d=null;
-    if(ds.length>=15) d=new Date(ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8)+'T'+ds.slice(9,11)+':'+ds.slice(11,13)+':00');
-    else if(ds.length>=8) d=new Date(ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8)+'T00:00:00');
+    if(ds.length>=15){
+      // If original had Z (UTC), convert to local time
+      var isUTC=dtstart.trim().slice(-1)==='Z';
+      if(isUTC){
+        d=new Date(ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8)+'T'+ds.slice(9,11)+':'+ds.slice(11,13)+':00Z');
+      } else {
+        d=new Date(ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8)+'T'+ds.slice(9,11)+':'+ds.slice(11,13)+':00');
+      }
+    } else if(ds.length>=8) d=new Date(ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8)+'T00:00:00');
     if(d&&!isNaN(d)) events.push({summary:summary,date:d,location:location});
   });
   return events.sort(function(a,b){return a.date-b.date;});
