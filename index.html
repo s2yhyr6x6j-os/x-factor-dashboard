@@ -5053,6 +5053,55 @@ function callClaude(body){
   }
 }
 
+
+// ── KV SYNC ──
+var _isVercel=(window.location.hostname!=='localhost'&&
+               window.location.hostname!=='127.0.0.1'&&
+               window.location.protocol==='https:');
+var _kvSynced=false;
+
+function kvGet(key){
+  return fetch('/api/kv-get?key='+encodeURIComponent(key))
+    .then(function(r){return r.json();})
+    .then(function(d){return d.value||null;})
+    .catch(function(){return null;});
+}
+
+function kvSet(key,value){
+  return fetch('/api/kv-set',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({key:key,value:value})
+  }).catch(function(){});
+}
+
+function kvSave(){
+  if(!_isVercel) return;
+  // Save all critical data to KV
+  kvSet('sba_games_v2', JSON.stringify(importedGames));
+  kvSet('sba_gl_v2', JSON.stringify(gameLog));
+  kvSet('sba_roster_v1', JSON.stringify(rosterOverrides));
+  kvSet('sba_notes_v1', JSON.stringify(_pdCoachNotes));
+  kvSet('sba_lineup_v2', JSON.stringify(lineupOrder));
+}
+
+function kvLoad(callback){
+  if(!_isVercel){callback();return;}
+  var keys=['sba_games_v2','sba_gl_v2','sba_roster_v1','sba_notes_v1','sba_lineup_v2'];
+  Promise.all(keys.map(kvGet)).then(function(vals){
+    try{
+      if(vals[0]) importedGames=JSON.parse(vals[0]);
+      if(vals[1]) gameLog=JSON.parse(vals[1]);
+      if(vals[2]) rosterOverrides=JSON.parse(vals[2]);
+      if(vals[3]) _pdCoachNotes=JSON.parse(vals[3]);
+      if(vals[4]) lineupOrder=JSON.parse(vals[4]);
+      _kvSynced=true;
+      console.log('KV loaded: games='+importedGames.length+', gl='+gameLog.length);
+    }catch(e){console.error('KV load error',e);}
+    callback();
+  }).catch(function(){callback();});
+}
+
 function renderOptRecs(){}
 
 function confirmDeletePlayer(name){
@@ -6130,7 +6179,10 @@ function linkImportsToGameLog(){
   var batEl=document.getElementById('batTrendChart');
   if(spEl)ro.observe(spEl.parentElement);
   if(batEl)ro.observe(batEl.parentElement);
-  load();fixPitchingData();loadRosterOverrides();loadCoachNotes();loadTheme();loadIcsSettings();
+  load();loadTheme();
+  // Load from KV first (cross-device sync), then proceed with init
+  kvLoad(function(){
+    fixPitchingData();loadRosterOverrides();loadCoachNotes();loadIcsSettings();
   // Always ensure all known season games exist in the game log
   var seedGames=[
     {dateVal:'2026-05-10',opp:'Brandon Valley Black 12U',us:2,them:6,loc:'H'},
@@ -6167,8 +6219,9 @@ function linkImportsToGameLog(){
   if(changed) save();
   linkImportsToGameLog();
   renderAll();updateApiKeyUI();
+  });
 })();
 </script>
 
 </body>
-</html> 
+</html>
