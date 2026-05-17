@@ -2569,6 +2569,13 @@ function load(){
 function saveApiKey(val){try{localStorage.setItem(LS.apikey,val.trim());updateApiKeyUI();}catch(e){}}
 function getApiKey(){try{return localStorage.getItem(LS.apikey)||'';}catch(e){return '';}}
 function updateApiKeyUI(){
+  // Hide API key input when on Vercel (key is server-side)
+  var isVercel=window.location.hostname!=='localhost'&&
+               window.location.hostname!=='127.0.0.1'&&
+               window.location.protocol==='https:';
+  var keySection=document.getElementById('api-key-section');
+  if(keySection) keySection.style.display=isVercel?'none':'block';
+  if(isVercel) return; // no need to check key
   var key=getApiKey();
   var inp=document.getElementById('api-key-input');
   var sts=document.getElementById('api-key-status');
@@ -4474,11 +4481,7 @@ function askSkipper(name){
   var p=players.find(function(x){return x.name===name;});
   if(!p)return;
   var msg='Why is '+name+' (OBP '+p.obp.toFixed(3)+', QAB% '+p.qab_pct.toFixed(1)+'%, AVG '+p.avg.toFixed(3)+') in this spot in the lineup? Give a 2-sentence coach explanation.';
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,messages:[{role:'user',content:msg}]})
-  }).then(function(r){return r.json();}).then(function(d){
+  callClaude({model:'claude-sonnet-4-6',max_tokens:200,messages:[{role:'user',content:msg}]}).then(function(d){
     var text=d.content&&d.content[0]&&d.content[0].text;
     if(text) alert('Skipper on '+name+':\n\n'+text);
   }).catch(function(){alert('Could not reach Skipper — check your API key.');});
@@ -4806,11 +4809,7 @@ function generateAllInsights(){
     var prompt=buildPrompt(p);
     btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;animation:spin .7s linear infinite"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> '+p.name.split(' ')[0]+'… ('+done+'/'+total+')';
 
-    fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
-    }).then(function(r){return r.json();})
+    callClaude({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
     .then(function(data){
       var raw=data.content&&data.content[0]&&data.content[0].text;
       if(!raw) throw new Error('No response');
@@ -5028,6 +5027,32 @@ function nativeShare(){
   }
 }
 
+
+// ── API HELPER ──
+// Uses Vercel serverless proxy when hosted, direct API when local
+function callClaude(body){
+  var isVercel=window.location.hostname!=='localhost'&&
+               window.location.hostname!=='127.0.0.1'&&
+               window.location.protocol==='https:';
+  if(isVercel){
+    return fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    }).then(function(r){return r.json();});
+  } else {
+    var apiKey=getApiKey();
+    if(!apiKey) return Promise.reject(new Error('No API key set'));
+    return fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,
+               'anthropic-version':'2023-06-01',
+               'anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify(body)
+    }).then(function(r){return r.json();});
+  }
+}
+
 function renderOptRecs(){}
 
 function confirmDeletePlayer(name){
@@ -5126,15 +5151,7 @@ Rules:
 - The "num" field in pitching MUST match the jersey number from the batting section for the same player
 - If a value is missing use 0. Return only the JSON object.`;
 
-    fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
+    callClaude({
         model:'claude-opus-4-20250514',
         max_tokens:2000,
         messages:[{
@@ -5145,8 +5162,6 @@ Rules:
           ]
         }]
       })
-    })
-    .then(function(r){return r.json();})
     .then(function(data){
       clearInterval(_dotAnim);
       if(data.error){callback(null,'API error: '+data.error.message);return;}
@@ -5894,7 +5909,8 @@ function setInsFocus(focus,btn){
 function regenerateInsights(){
   var name=window._pdCurrentPlayer;if(!name)return;
   var apiKey=getApiKey();
-  if(!apiKey){alert('Set your Anthropic API key in the Upload page to use AI insights.');return;}
+  var isVercel=window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&window.location.protocol==='https:';
+  if(!apiKey&&!isVercel){alert('Set your Anthropic API key in the Upload page to use AI insights.');return;}
   var players=getPlayers();
   var p=players.find(function(x){return x.name===name;});if(!p)return;
   var btn=document.getElementById('pd-regen-btn');
@@ -5960,11 +5976,7 @@ function regenerateInsights(){
 
   var prompt='You are writing coaching insight cards for a 12U baseball player named '+firstName+'. Match this exact voice — punchy title, specific numbers, baseball context, age comparison. Never vague.\n\nPLAYER: '+name+' | '+p.gp+' games\nBATTING: AVG '+p.avg.toFixed(3)+' (team '+teamAvgAVG.toFixed(3)+') | OBP '+p.obp.toFixed(3)+' (team '+teamAvgOBP.toFixed(3)+') | OPS '+p.ops.toFixed(3)+' | QAB% '+p.qab_pct.toFixed(1)+'% (team '+teamAvgQAB.toFixed(1)+'%) | PA '+p.pa+' | H '+p.h+' | BB '+p.bb+' | K '+p.so+' | HR '+p.hr+' | RBI '+p.rbi+' | SB '+p.sb+' | BB/K '+(p.so>0?(p.bb/p.so).toFixed(2):'—')+(recentGamesDetail?'\nRecent: '+recentGamesDetail:'')+(recentAVG!==null&&earlyAVG!==null?'\nTrend: .'+Math.round(recentAVG*1000)+' AVG recent vs .'+Math.round(earlyAVG*1000)+' AVG early':'')+'\n'+(p.pit?'PITCHING ('+pitGamesCount+' games'+(totalPitches?', '+totalPitches+' pitches':'')+'):  S% '+p.pit.sp.toFixed(1)+'% (team '+teamAvgSP.toFixed(1)+'%) | FPS% '+p.pit.fps.toFixed(1)+'% (team '+teamAvgFPS.toFixed(1)+'%) | K '+p.pit.k+' in '+p.pit.ip.toFixed(1)+' IP ('+kper9+' K/9) | BB '+p.pit.bb+' | K/BB '+kbb_pit+' | WHIP '+p.pit.whip.toFixed(2)+' | FIP '+fip+'\n':'')+(gameNotes?'\nCOACH NOTES: '+gameNotes:'')+(customContext?'\nCONTEXT: '+customContext:'')+'\n\nTHRESHOLDS (only praise stats meeting these):\nBatting: OBP≥.450 | AVG≥.400 | OPS≥.800 | QAB%≥60 | BB/K≥0.75 | SB≥5\nPitching: S%≥60 | FPS%≥60 | WHIP≤1.5 | K/BB≥1.5 | K/9≥6.0 | NEVER praise ERA\n\nEXACT VOICE EXAMPLES:\n"Dominating on the Mound" — With 25 strikeouts in just 15.1 innings, Dayton is averaging 1.6 K\'s per inning. His K/BB ratio of 3.57 shows he\'s missing bats while maintaining control — a rare combo at this age. [badge: 3.57 K/BB]\n"Pounding the Zone" — At 63.4% strike rate and 73% first-pitch strike rate, Nixon is well above team averages (60.8% S%, 61.3% FPS%). He attacks the zone and gets ahead of hitters — a huge advantage at this level. [badge: 63.4% S%]\n"Quality At-Bats Machine ↗" — Nixon posts a 73.9% QAB rate, crushing the team average of 58.2%. He consistently puts together competitive at-bats — working counts, making hard contact, and avoiding easy outs. [badge: 73.9% QAB%]\n"Elite Plate Discipline ↗" — Griffin\'s .500 OBP is outstanding — he\'s getting on base half the time he steps up. With 10 walks in 48 PA, he\'s showing mature pitch recognition well above the team average (.453 OBP). [badge: .500 OBP]\n"Perfect on the Basepaths ↗" — Nixon is 11-for-11 on stolen base attempts — 100% success rate. His speed and instincts make him a constant threat once he reaches base. [badge: 11/11 SB]\n\nRULES: Title = specific + punchy, add ↗ if trending up. Sentence 1 = key stat vs team avg. Sentence 2 = baseball meaning. Sentence 3 = age context. 2-3 praise insights. Pitchers lead with pitching. Focus = 1 area, 3 bullets, 2 drills with measurable targets. Plan = 2 drills.\n\nReturn ONLY valid JSON:\n{"celebrate":{"title":"What '+firstName+' Is Doing Well","insights":[{"badge_val":"val","badge_lbl":"lbl","title":"Title","text":"2-3 sentences with exact stats"}]},"focus":{"title":"Specific Stat Area","bullets":["exact stat + observation","why it matters at 12U","data point"],"drills":[{"name":"Drill","duration":"10m","goal":"measurable goal","instructions":"step-by-step with a number to hit"},{"name":"Drill 2","duration":"8m","goal":"goal","instructions":"steps"}]},"plan":{"title":"Practice Plan","drills":[{"name":"Drill","duration":"10m","goal":"goal","instructions":"steps"},{"name":"Drill 2","duration":"8m","goal":"goal","instructions":"steps"}]}}';
 
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
-  }).then(function(r){return r.json();})
+  callClaude({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
   .then(function(data){
     var raw=data.content&&data.content[0]&&data.content[0].text;
     if(!raw) throw new Error('No response');
