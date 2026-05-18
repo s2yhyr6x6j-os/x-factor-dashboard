@@ -3309,6 +3309,16 @@ function saveRosterEdit(){
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   closeRosterEdit();
   renderRoster();
+  // If player detail is open for this player, refresh position badges immediately
+  if(window._pdCurrentPlayer===rosterEditTarget){
+    var ov2=rosterOverrides[rosterEditTarget]||{};
+    var posBadgesEl=document.getElementById('pd-pos-badges');
+    if(posBadgesEl){
+      var badgeHtml=buildPosBadges(ov2,false);
+      posBadgesEl.innerHTML=badgeHtml;
+      posBadgesEl.style.display=badgeHtml?'flex':'none';
+    }
+  }
 }
 
 function removeFromRoster(){
