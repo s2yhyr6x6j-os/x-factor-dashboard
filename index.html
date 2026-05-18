@@ -434,9 +434,9 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .gl-card-wrap.expanded .gl-chevron{transform:rotate(180deg);color:var(--sub)}
 .gl-chevron svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;display:block}
 /* Box score slide-down */
-.gl-boxscore{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);background:var(--bg1);border:1px solid var(--border);border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px}
+.gl-boxscore{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);background:var(--bg1)}
 body.light-mode .gl-boxscore{background:#fff;}
-.gl-card-wrap.expanded .gl-boxscore{max-height:2000px}
+.gl-card-wrap.expanded .gl-boxscore{max-height:2000px;border: 1px solid var(--border);border-bottom-left-radius: 12px;border-bottom-right-radius: 12px;}
 .gl-page-title{font-size:22px;font-weight:700;color:var(--hdr);margin-bottom:16px}
 .del-btn{display:none}
 /* Box score inner content */
