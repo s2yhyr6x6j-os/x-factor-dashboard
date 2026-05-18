@@ -3175,9 +3175,9 @@ function renderRoster(){
         var _need=_lastPG.np>=66?4:_lastPG.np>=51?3:_lastPG.np>=36?2:_lastPG.np>=21?1:0;
         pitchAvail=_days<_need
           ?'<span class="roster-pitch-avail warn">⏱ '+(_need-_days)+'d rest</span>'
-          :'<span class="roster-pitch-avail ok">💪 Arm Rested</span>';
+          :'<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
       } else {
-        pitchAvail='<span class="roster-pitch-avail ok">💪 Arm Rested</span>';
+        pitchAvail='<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
       }
     }
     var trend='';
