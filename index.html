@@ -3307,11 +3307,12 @@ function saveRosterEdit(){
     tags:{batting:[].concat(reTags.batting),pitching:[].concat(reTags.pitching),general:[].concat(reTags.general)}
   };
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  var savedTarget=rosterEditTarget;
   closeRosterEdit();
   renderRoster();
   // If player detail is open for this player, refresh position badges immediately
-  if(window._pdCurrentPlayer===rosterEditTarget){
-    var ov2=rosterOverrides[rosterEditTarget]||{};
+  if(window._pdCurrentPlayer===savedTarget){
+    var ov2=rosterOverrides[savedTarget]||{};
     var posBadgesEl=document.getElementById('pd-pos-badges');
     if(posBadgesEl){
       var badgeHtml=buildPosBadges(ov2,false);
