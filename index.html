@@ -2285,25 +2285,24 @@ body.light-mode .ics-input{background:#f3f4f6}
 
   <!-- Stat Pro Insights -->
   <div class="pd-section" id="pd-sec-insights">
-    <div class="pd-insights-hdr">
+    <div class="pd-insights-hdr" onclick="togglePdSection('pd-sec-insights')" style="cursor:pointer">
       <div>
         <div class="pd-sec-title">🎯 Stat Pro Insights</div>
         <div class="pd-sec-sub" id="pd-insights-when"></div>
       </div>
-      <div class="pd-insights-toggle">
-        <label class="pd-toggle-switch" id="pd-insights-toggle-wrap" style="display:none">
-          <input type="checkbox" id="pd-insights-toggle" onchange="toggleInsightsView(this.checked)">
-          <span class="pd-toggle-slider"></span>
-        </label>
+      <div class="pd-insights-toggle" onclick="event.stopPropagation()">
         <button class="pd-regen-btn" id="pd-regen-btn" onclick="regenerateInsights()">Generate</button>
+        <span class="pd-sec-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
       </div>
     </div>
-    <div class="pd-insight-tabs" id="pd-insight-tabs" style="display:none">
-      <button class="pd-ins-tab active" onclick="setInsightTab('celebrate',this)">Praise</button>
-      <button class="pd-ins-tab" onclick="setInsightTab('focus',this)">Focus Next</button>
-      <button class="pd-ins-tab" onclick="setInsightTab('plan',this)">Practice Plan</button>
+    <div id="pd-insights-collapse">
+      <div class="pd-insight-tabs" id="pd-insight-tabs" style="display:none">
+        <button class="pd-ins-tab active" onclick="setInsightTab('celebrate',this)">Praise</button>
+        <button class="pd-ins-tab" onclick="setInsightTab('focus',this)">Focus Next</button>
+        <button class="pd-ins-tab" onclick="setInsightTab('plan',this)">Practice Plan</button>
+      </div>
+      <div id="pd-insights-body" style="display:none"></div>
     </div>
-    <div id="pd-insights-body" style="display:none"></div>
   </div>
 
   <!-- Strike % Trend (pitchers) -->
@@ -6077,9 +6076,6 @@ function buildInsights(p){
     var hasCached=loadCachedInsights(window._pdCurrentPlayer);
     if(hasCached){
       if(btn) btn.innerHTML='Regenerate';
-      // Show toggle, default to expanded
-      if(toggleWrap) toggleWrap.style.display='flex';
-      if(toggleEl) toggleEl.checked=true;
       if(tabsEl) tabsEl.style.display='flex';
       if(bodyEl) bodyEl.style.display='block';
     }
@@ -6179,14 +6175,13 @@ function regenerateInsights(){
     try{localStorage.setItem('sba_insights_'+name.replace(/\s+/g,'_'),JSON.stringify(stored));console.log('Saved insights for',name);}catch(e){console.error('Save failed',e);}
     document.getElementById('pd-insights-when').textContent='Generated: Today'+(customContext?' · with your context':'');
     // Show toggle and expand
-    var toggleWrap2=document.getElementById('pd-insights-toggle-wrap');
-    var toggleEl2=document.getElementById('pd-insights-toggle');
     var tabsEl2=document.getElementById('pd-insight-tabs');
     var bodyEl2=document.getElementById('pd-insights-body');
-    if(toggleWrap2) toggleWrap2.style.display='flex';
-    if(toggleEl2) toggleEl2.checked=true;
     if(tabsEl2) tabsEl2.style.display='flex';
     if(bodyEl2) bodyEl2.style.display='block';
+    // Ensure section is expanded
+    var secEl=document.getElementById('pd-sec-insights');
+    if(secEl) secEl.classList.remove('collapsed');
     renderInsightTab();
     var btn2=document.getElementById('pd-regen-btn');if(btn2)btn2.innerHTML='Regenerate';
   })
