@@ -3100,11 +3100,16 @@ function buildPosBadges(ov, small){
   var positions=ov.positions||{};
   var posOrder=['P','C','1B','2B','3B','SS','LF','CF','RF','DH'];
   var POS_ORDER_MAP={primary:0,canplay:1,learning:2};
-  var filtered=posOrder.filter(function(pos){
-    var st=positions[pos];return st&&st!=='never'&&st!=='';
-  }).sort(function(a,b){
-    return (POS_ORDER_MAP[positions[a]]||3)-(POS_ORDER_MAP[positions[b]]||3);
+  // Separate into groups then concat — guarantees primary first
+  var primary=[],canplay=[],learning=[];
+  posOrder.forEach(function(pos){
+    var st=positions[pos];
+    if(!st||st==='never'||st==='') return;
+    if(st==='primary') primary.push(pos);
+    else if(st==='canplay') canplay.push(pos);
+    else if(st==='learning') learning.push(pos);
   });
+  var filtered=primary.concat(canplay).concat(learning);
   if(!filtered.length) return '';
   return filtered.map(function(pos){
     var st=positions[pos];
