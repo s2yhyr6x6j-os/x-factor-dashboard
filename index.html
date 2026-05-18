@@ -1072,9 +1072,9 @@ body.light-mode .ics-input{background:#f3f4f6}
 /* ── POSITION BADGES (player detail) ── */
 .pd-pos-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pd-pos-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;font-weight:600;color:var(--hdr)}
-.pd-pos-badge.primary{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35);color:#fbbf24}
-.pd-pos-badge.canplay{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25);color:#4ade80}
-.pd-pos-badge.learning{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25);color:#60a5fa}
+.pd-pos-badge.primary{background:#1e2939;border-color:#364153;color:#d1d5dc}
+.pd-pos-badge.canplay{background:#1e2939;border-color:#364153;color:#d1d5dc}
+.pd-pos-badge.learning{background:#1e2939;border-color:#364153;color:#d1d5dc}
 .pd-pos-badge span{font-size:13px}
 
 
@@ -1089,7 +1089,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-hdr-sub{font-size:13px;color:var(--sub);margin-top:2px}
 .sc-close{background:none;border:none;color:var(--sub);cursor:pointer;font-size:20px;padding:0;line-height:1;margin-top:-2px}
 .sc-close:hover{color:var(--hdr)}
-.sc-tabs{display:flex;gap:0;padding:16px 20px 0;border-bottom:1px solid var(--border);margin-bottom:0}
+.sc-tabs{display:flex;gap:0;padding:12px 20px 0;border-bottom:1px solid var(--border);margin-bottom:0}
 .sc-tab{background:none;border:none;font-family:var(--ff);font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:6px;transition:all .15s}
 .sc-tab.active{background:rgba(255,255,255,.1);color:var(--hdr)}
 .sc-tab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -1098,7 +1098,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 /* Preview card */
 .sc-preview-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
 .sc-card-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
-.sc-card-brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--hdr)}
+.sc-card-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--hdr)}
 .sc-card-season{font-size:11px;color:var(--sub)}
 .sc-card-hero{padding:14px 16px 12px}
 .sc-card-name{font-size:22px;font-weight:800;color:var(--hdr);line-height:1.1}
@@ -1479,7 +1479,7 @@ body.light-mode .ics-input{background:#f3f4f6}
             Share
           </button>
         </div>
-        <span class="sc-disable" onclick="alert('Link sharing requires Vercel deployment.')">Disable this link</span>
+        <div style="text-align:center;font-size:11px;color:var(--sub);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">Powered by X-Factor Baseball ⚾</div>
       </div>
 
       <!-- EDIT TAB -->
@@ -5559,11 +5559,16 @@ function openPlayer(name){
     var positions=ov.positions||{};
     var posOrder=['P','C','1B','2B','3B','SS','LF','CF','RF','DH'];
     var POS_ICON_MAP={primary:'⭐',canplay:'⭐',learning:'📘'};
-    var badgeHtml=posOrder.filter(function(pos){
+    // Sort: primary first, then canplay, then learning
+    var posOrder2=posOrder.filter(function(pos){
       var st=positions[pos];return st&&st!=='never'&&st!=='';
-    }).map(function(pos){
+    }).sort(function(a,b){
+      var order={primary:0,canplay:1,learning:2};
+      return (order[positions[a]]||3)-(order[positions[b]]||3);
+    });
+    var badgeHtml=posOrder2.map(function(pos){
       var st=positions[pos];
-      var icon=st==='primary'?'⭐':st==='canplay'?'⭐':'📘';
+      var icon=st==='primary'?'⭐':st==='canplay'?'<span style="color:#4ade80">✓</span>':'📘';
       return '<div class="pd-pos-badge '+st+'"><span>'+icon+'</span>'+pos+'</div>';
     }).join('');
     posBadgesEl.innerHTML=badgeHtml;
