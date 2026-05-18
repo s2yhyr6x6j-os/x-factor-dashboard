@@ -5086,7 +5086,7 @@ var _isVercel=(window.location.hostname!=='localhost'&&
 var _kvSynced=false;
 
 function kvGet(key){
-  return fetch('/api/kv-get?key='+encodeURIComponent(key))
+  return fetch('/api/kv-get?key='+encodeURIComponent(key)+'&t='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){return d.value||null;})
     .catch(function(){return null;});
