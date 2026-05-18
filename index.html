@@ -177,7 +177,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
   .page{max-width:100%}
   #page-roster.page.active,#page-games.page.active{width:90%!important;margin:0 auto}
 
-  .stat-kpi-val{font-size:18px;white-space:nowrap}
+  .stat-kpi-val{font-size:16px;white-space:nowrap;transform:translateZ(0)}
   .stat-kpi-front,.stat-kpi-back{padding:8px 4px}
   /* Page titles */
   .pit-page-title{font-size:18px}
@@ -336,7 +336,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .stat-kpi-back-def{font-size:10px;color:var(--sub);line-height:1.55;text-align:left;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .stat-kpi-cell.expanded .stat-kpi-back-def{display:block;overflow:visible;-webkit-line-clamp:unset}
-.stat-kpi-val{font-size:32px;font-weight:700;color:var(--green);line-height:1}
+.stat-kpi-val{font-size:32px;font-weight:700;color:var(--green);line-height:1;transform:translateZ(0);-webkit-transform:translateZ(0)}
 .stat-kpi-lbl{font-size:11px;color:var(--sub);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
 .stat-kpi-lbl .info{width:15px;height:15px;border-radius:50%;border:1px solid var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--blue);cursor:pointer;flex-shrink:0;transition:all .15s}
 .stat-kpi-lbl .info:hover{background:var(--blue);color:#fff}
@@ -5114,7 +5114,7 @@ function kvSave(){
   var icsLast=localStorage.getItem('sba_ics_last');
   if(icsUrl) saves.push(kvSet('sba_ics_url', icsUrl));
   if(icsLast) saves.push(kvSet('sba_ics_last', icsLast));
-  Promise.all(saves)
+  return Promise.all(saves)
     .then(function(){console.log('KV saved: games='+importedGames.length+', gl='+gameLog.length);})
     .catch(function(e){console.error('KV save error:',e);});
 }
@@ -5394,8 +5394,17 @@ function storeGameImport(result,fileName,status){
     }
   }
   save();linkImportsToGameLog();updateLabels();renderAll();
+  // Show syncing status while KV saves
   status.className='up-status ok';
   status.textContent='✓ '+result.players.length+' players'+(isSeason?' (season totals)':'')+(result.opp?' · vs '+result.opp:'')+(result.usScore!=null?' · '+result.usScore+'-'+result.themScore:'');
+  if(_isVercel){
+    status.textContent+=' · syncing…';
+    kvSave().then(function(){
+      status.textContent=status.textContent.replace(' · syncing…',' · ✓ synced');
+    }).catch(function(){
+      status.textContent=status.textContent.replace(' · syncing…',' · ⚠ sync failed');
+    });
+  }
 }
 
 function renderImportedList(){
