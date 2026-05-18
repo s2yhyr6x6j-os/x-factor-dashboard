@@ -695,6 +695,16 @@ body.light-mode textarea#ins-coach-context{background:#f5f5f5;}
 .pd-note-tab.active{background:var(--blue);border-color:var(--blue);color:#fff}
 .pd-note-list{margin-top:4px}
 .pd-note-empty{font-size:12px;color:var(--sub);text-align:center;padding:16px;opacity:.6}
+
+/* ── INSIGHTS TOGGLE ── */
+.pd-insights-toggle{display:flex;align-items:center;gap:8px}
+.pd-toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0}
+.pd-toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.pd-toggle-slider{position:absolute;inset:0;background:#334155;border-radius:20px;cursor:pointer;transition:background .2s}
+.pd-toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.pd-toggle-switch input:checked + .pd-toggle-slider{background:var(--blue)}
+.pd-toggle-switch input:checked + .pd-toggle-slider:before{transform:translateX(16px)}
+
 .pd-regen-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:background .15s}
 .pd-regen-btn:hover{background:#2563eb}
 .pd-regen-btn:disabled{opacity:.5;cursor:default}
@@ -2280,14 +2290,20 @@ body.light-mode .ics-input{background:#f3f4f6}
         <div class="pd-sec-title">🎯 Stat Pro Insights</div>
         <div class="pd-sec-sub" id="pd-insights-when"></div>
       </div>
-      <button class="pd-regen-btn" id="pd-regen-btn" onclick="regenerateInsights()">Regenerate</button>
+      <div class="pd-insights-toggle">
+        <label class="pd-toggle-switch" id="pd-insights-toggle-wrap" style="display:none">
+          <input type="checkbox" id="pd-insights-toggle" onchange="toggleInsightsView(this.checked)">
+          <span class="pd-toggle-slider"></span>
+        </label>
+        <button class="pd-regen-btn" id="pd-regen-btn" onclick="regenerateInsights()">Generate</button>
+      </div>
     </div>
-    <div class="pd-insight-tabs">
+    <div class="pd-insight-tabs" id="pd-insight-tabs" style="display:none">
       <button class="pd-ins-tab active" onclick="setInsightTab('celebrate',this)">Praise</button>
       <button class="pd-ins-tab" onclick="setInsightTab('focus',this)">Focus Next</button>
       <button class="pd-ins-tab" onclick="setInsightTab('plan',this)">Practice Plan</button>
     </div>
-    <div id="pd-insights-body"></div>
+    <div id="pd-insights-body" style="display:none"></div>
 
   <!-- Strike % Trend (pitchers) -->
   <div class="pd-section" id="pd-sec-sp" class="svg-hidden">
@@ -6035,10 +6051,22 @@ function renderInsightTab(){
   el.innerHTML=renderInsightSection(data,_insightTab==='celebrate')||'<div style="padding:16px 18px;font-size:12px;color:var(--sub)">No insights available.</div>';
 }
 
+
+function toggleInsightsView(show){
+  document.getElementById('pd-insight-tabs').style.display=show?'flex':'none';
+  document.getElementById('pd-insights-body').style.display=show?'block':'none';
+}
+
 function buildInsights(p){
   _pdInsights=null;
   var bodyEl=document.getElementById('pd-insights-body');
-  if(bodyEl) bodyEl.innerHTML='';
+  if(bodyEl){bodyEl.innerHTML='';bodyEl.style.display='none';}
+  var tabsEl=document.getElementById('pd-insight-tabs');
+  if(tabsEl) tabsEl.style.display='none';
+  var toggleWrap=document.getElementById('pd-insights-toggle-wrap');
+  if(toggleWrap) toggleWrap.style.display='none';
+  var toggleEl=document.getElementById('pd-insights-toggle');
+  if(toggleEl) toggleEl.checked=false;
   var btn=document.getElementById('pd-regen-btn');
   var whenEl=document.getElementById('pd-insights-when');
   if(whenEl) whenEl.textContent='';
@@ -6046,7 +6074,14 @@ function buildInsights(p){
   // Load cached insights after a tick to ensure DOM is ready
   setTimeout(function(){
     var hasCached=loadCachedInsights(window._pdCurrentPlayer);
-    if(hasCached&&btn) btn.innerHTML='Regenerate';
+    if(hasCached){
+      if(btn) btn.innerHTML='Regenerate';
+      // Show toggle, default to expanded
+      if(toggleWrap) toggleWrap.style.display='flex';
+      if(toggleEl) toggleEl.checked=true;
+      if(tabsEl) tabsEl.style.display='flex';
+      if(bodyEl) bodyEl.style.display='block';
+    }
   },50);
 }
 
@@ -6142,6 +6177,15 @@ function regenerateInsights(){
     var stored={insights:_pdInsights,generatedAt:now.toISOString(),player:name};
     try{localStorage.setItem('sba_insights_'+name.replace(/\s+/g,'_'),JSON.stringify(stored));console.log('Saved insights for',name);}catch(e){console.error('Save failed',e);}
     document.getElementById('pd-insights-when').textContent='Generated: Today'+(customContext?' · with your context':'');
+    // Show toggle and expand
+    var toggleWrap2=document.getElementById('pd-insights-toggle-wrap');
+    var toggleEl2=document.getElementById('pd-insights-toggle');
+    var tabsEl2=document.getElementById('pd-insight-tabs');
+    var bodyEl2=document.getElementById('pd-insights-body');
+    if(toggleWrap2) toggleWrap2.style.display='flex';
+    if(toggleEl2) toggleEl2.checked=true;
+    if(tabsEl2) tabsEl2.style.display='flex';
+    if(bodyEl2) bodyEl2.style.display='block';
     renderInsightTab();
     var btn2=document.getElementById('pd-regen-btn');if(btn2)btn2.innerHTML='Regenerate';
   })
