@@ -1071,7 +1071,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 
 /* ── POSITION BADGES (player detail) ── */
 .pd-pos-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.pd-pos-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;font-weight:600;color:var(--hdr)}
+.pd-pos-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;font-weight:600;color:var(--hdr)}
 .pd-pos-badge.primary{background:#1e2939;border-color:#364153;color:#d1d5dc}
 .pd-pos-badge.canplay{background:#1e2939;border-color:#364153;color:#d1d5dc}
 .pd-pos-badge.learning{background:#1e2939;border-color:#364153;color:#d1d5dc}
@@ -1089,7 +1089,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-hdr-sub{font-size:13px;color:var(--sub);margin-top:2px}
 .sc-close{background:none;border:none;color:var(--sub);cursor:pointer;font-size:20px;padding:0;line-height:1;margin-top:-2px}
 .sc-close:hover{color:var(--hdr)}
-.sc-tabs{display:flex;gap:0;padding:12px 20px;border-bottom:1px solid var(--border);margin-bottom:0}
+.sc-tabs{display:flex;gap:0;padding:12px 20px 0;border-bottom:1px solid var(--border);margin-bottom:0}
 .sc-tab{background:none;border:none;font-family:var(--ff);font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:6px;transition:all .15s}
 .sc-tab.active{background:rgba(255,255,255,.1);color:var(--hdr)}
 .sc-tab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -4750,7 +4750,7 @@ function renderNextGame(){
   var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var d=next.date;
   var dateStr=days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate();
-  var timeStr=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  var timeStr=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'});
   var summary=next.summary||'';
   // Remove own team name if present (e.g. "SBA Red 12U @ Harrisburg Tigers 12U")
   summary=summary.replace(/SBA Red 12U\s*/gi,'').trim();
