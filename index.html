@@ -5148,6 +5148,12 @@ function kvLoad(callback){
       _kvSynced=true;
       console.log('KV loaded: games='+importedGames.length+', gl='+gameLog.length);
       if(gcSchedule.length) renderNextGame();
+      // Show sync status briefly on screen
+      var msg=document.createElement('div');
+      msg.style.cssText='position:fixed;bottom:20px;right:20px;background:#1e2939;border:1px solid #334155;border-radius:8px;padding:10px 14px;font-size:12px;color:#94a3b8;z-index:9999';
+      msg.textContent='📡 KV: '+importedGames.length+' games, '+gameLog.length+' results';
+      document.body.appendChild(msg);
+      setTimeout(function(){msg.remove();},5000);
     }catch(e){console.error('KV load error',e);}
     callback();
   }).catch(function(){callback();});
