@@ -1,6 +1,8 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { key } = req.query;
@@ -12,15 +14,16 @@ export default async function handler(req, res) {
 
   try {
     const r = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Cache-Control': 'no-store'
+      }
     });
     const data = await r.json();
     let value = data.result;
 
-    // Upstash returns the value as stored — may be a JSON string needing parsing
     if (typeof value === 'string') {
       try { value = JSON.parse(value); } catch(e) {}
-      // If still a string, try one more parse (double-stringified)
       if (typeof value === 'string') {
         try { value = JSON.parse(value); } catch(e) {}
       }
