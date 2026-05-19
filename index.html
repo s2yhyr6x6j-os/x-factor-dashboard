@@ -1087,7 +1087,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:flex-end;justify-content:center}
 .sc-overlay.open{display:flex}
 @media(min-width:480px){.sc-overlay{align-items:center}}
-.sc-modal{background:#0f172a;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+.sc-modal{background:#0f172a;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;height:90vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
 @media(min-width:480px){.sc-modal{border-radius:20px}}
 .sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 20px 0}
 .sc-hdr-title{font-size:16px;font-weight:800;color:var(--hdr)}
@@ -1177,9 +1177,9 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 body.light-mode .re-pos{background:var(--bg1)}
 .re-pos-status{font-size:12px;line-height:1}
 
-.sc-body{flex:1;min-height:0;padding:20px;overflow-y:auto}
+.sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
 .sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
-.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a}
+.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a;position:relative}
 .sc-inner-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
 </style>
 </head>
@@ -1485,7 +1485,7 @@ body.light-mode .re-pos{background:var(--bg1)}
       </div>
 
       <!-- PREVIEW TAB -->
-      <div class="sc-body" id="sc-pane-preview" style="display:flex;flex-direction:column;padding:0;min-height:0;overflow:hidden">
+      <div id="sc-pane-preview" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden">
         <!-- Scrollable card area -->
         <div class="sc-preview-scroll" id="sc-preview-card">
           <!-- Hero card: brand + player name -->
