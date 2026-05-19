@@ -1087,7 +1087,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:flex-end;justify-content:center}
 .sc-overlay.open{display:flex}
 @media(min-width:480px){.sc-overlay{align-items:center}}
-.sc-modal{background:#0f172a;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+.sc-modal{background:#0f172a;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
 @media(min-width:480px){.sc-modal{border-radius:20px}}
 .sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 20px 0}
 .sc-hdr-title{font-size:16px;font-weight:800;color:var(--hdr)}
@@ -1176,6 +1176,10 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .lu-xfactor{font-size:10px;font-weight:700;color:var(--amber);margin-left:5px;vertical-align:middle}
 body.light-mode .re-pos{background:var(--bg1)}
 .re-pos-status{font-size:12px;line-height:1}
+
+.sc-body{flex:1;overflow-y:auto;padding:0}
+.sc-preview-scroll{flex:1;overflow-y:auto;padding:16px 20px 0}
+.sc-preview-footer{padding:16px 20px;border-top:1px solid var(--border);background:#0f172a;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -1480,40 +1484,44 @@ body.light-mode .re-pos{background:var(--bg1)}
       </div>
 
       <!-- PREVIEW TAB -->
-      <div class="sc-body" id="sc-pane-preview">
-        <div class="sc-preview-card" id="sc-preview-card">
-          <div class="sc-card-topbar">
-            <div class="sc-card-brand">
-              <img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain">
-              <span>X-Factor Baseball</span>
+      <div class="sc-body" id="sc-pane-preview" style="display:flex;flex-direction:column;overflow:hidden">
+        <!-- Scrollable card area -->
+        <div class="sc-preview-scroll">
+          <div class="sc-preview-card" id="sc-preview-card">
+            <div class="sc-card-topbar">
+              <div class="sc-card-brand">
+                <img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain">
+                <span>X-Factor Baseball</span>
+              </div>
+              <div class="sc-card-season">Season Stats</div>
             </div>
-            <div class="sc-card-season">Season Stats</div>
+            <div class="sc-card-hero">
+              <div class="sc-card-name" id="sc-card-name">—</div>
+              <div class="sc-card-team">SBA Red · Summer 2026</div>
+            </div>
+            <div id="sc-card-batting-section"></div>
+            <div id="sc-card-pitching-section"></div>
+            <div id="sc-card-note-section"></div>
           </div>
-          <div class="sc-card-hero">
-            <div class="sc-card-name" id="sc-card-name">—</div>
-            <div class="sc-card-team">SBA Red · Summer 2026</div>
+        </div>
+        <!-- Fixed footer: link + share buttons -->
+        <div class="sc-preview-footer">
+          <div class="sc-field-label">Share Link</div>
+          <div class="sc-link-row">
+            <input class="sc-link-input" id="sc-link-input" readonly value="Generate a link to share this card">
           </div>
-          <div id="sc-card-batting-section"></div>
-          <div id="sc-card-pitching-section"></div>
-          <div id="sc-card-note-section"></div>
+          <div class="sc-link-btns">
+            <button class="sc-link-btn sc-link-btn-copy" onclick="copyShareLink()">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy Link
+            </button>
+            <button class="sc-link-btn sc-link-btn-share" onclick="nativeShare()">
+              <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share
+            </button>
+          </div>
+          <div style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Powered by X-Factor Baseball ⚾</div>
         </div>
-
-        <!-- Link row -->
-        <div class="sc-field-label">Share Link</div>
-        <div class="sc-link-row">
-          <input class="sc-link-input" id="sc-link-input" readonly value="Generate a link to share this card">
-        </div>
-        <div class="sc-link-btns">
-          <button class="sc-link-btn sc-link-btn-copy" onclick="copyShareLink()">
-            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy Link
-          </button>
-          <button class="sc-link-btn sc-link-btn-share" onclick="nativeShare()">
-            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            Share
-          </button>
-        </div>
-        <div style="text-align:center;font-size:11px;color:var(--sub);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">Powered by X-Factor Baseball ⚾</div>
       </div>
 
       <!-- EDIT TAB -->
