@@ -1146,26 +1146,18 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-link-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .sc-disable{display:block;text-align:center;font-size:11px;color:var(--sub);margin-top:10px;cursor:pointer;text-decoration:underline}
 
-
-/* ── ROSTER POSITION BADGES ── */
 .roster-pos-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .roster-pos-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;background:#1e2939;border:1px solid #364153;border-radius:12px;font-size:11px;font-weight:600;color:#d1d5dc}
-/* ── PD POSITION BADGES ── */
-.pd-pos-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.pd-pos-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#1e2939;border:1px solid #364153;border-radius:20px;font-size:12px;font-weight:600;color:#d1d5dc}
-/* ── INSIGHTS TOGGLE ── */
-.pd-insights-toggle{display:flex;align-items:center;gap:8px}
-/* ── LOG TABLE HOVER ── */
 .pd-log-tbl tr:hover{background:rgba(0,0,0,.2)}
 body.light-mode .pd-log-tbl tr:hover{background:#f9f9f9}
-body.light-mode .roster-pos-badge.primary,body.light-mode .roster-pos-badge.canplay,body.light-mode .roster-pos-badge.learning,body.light-mode .pd-pos-badge.canplay,body.light-mode .pd-pos-badge.primary,body.light-mode .pd-pos-badge.learning{background:#f6f3f4;border-color:#ebe6e7;color:#364153}
+body.light-mode .roster-pos-badge,.light-mode .pd-pos-badge{background:#f6f3f4;border-color:#ebe6e7;color:#364153}
 </style>
 </head>
 <body>
 
 <!-- ══ SITE HEADER (always visible — sidebar on desktop, fixed bar on mobile) ══ -->
 <div class="sb-header" id="sb-header">
-  <div class="sb-logo"><img src="/public/x-factor-logo.png" alt="X-Factor" width="40" height="40" style="object-fit:contain"><!--<svg viewBox="0 0 100 105" xmlns="http://www.w3.org/2000/svg" width="40" height="42"><path d="M5 5 L95 5 L95 65 L50 100 L5 65 Z" fill="#1a1a1a" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><line x1="28" y1="22" x2="72" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/><line x1="72" y1="22" x2="28" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/></svg></div>
+  <div class="sb-logo"><svg viewBox="0 0 100 105" xmlns="http://www.w3.org/2000/svg" width="40" height="42"><path d="M5 5 L95 5 L95 65 L50 100 L5 65 Z" fill="#1a1a1a" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><line x1="28" y1="22" x2="72" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/><line x1="72" y1="22" x2="28" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/></svg></div>
   <div class="sb-header-text">
     <div class="sb-team-name">X-FACTOR</div>
     <div class="sb-season">Baseball</div>
@@ -1467,7 +1459,7 @@ body.light-mode .roster-pos-badge.primary,body.light-mode .roster-pos-badge.canp
         <div class="sc-preview-card" id="sc-preview-card">
           <div class="sc-card-topbar">
             <div class="sc-card-brand">
-              <img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain">
+              <div>⚾</div>
               <span>X-Factor Baseball</span>
             </div>
             <div class="sc-card-season">Season Stats</div>
@@ -2527,7 +2519,7 @@ var LS={games:'sba_games_v2',gamelog:'sba_gl_v2',lineup:'sba_lineup_v2',apikey:'
 var importedGames=[],gameLog=[],lineupOrder=[];
 var pendingCSVPlayers=null,pendingCSVFilename=null;
 
-function save(){try{localStorage.setItem(LS.games,JSON.stringify(importedGames));localStorage.setItem(LS.gamelog,JSON.stringify(gameLog));localStorage.setItem(LS.lineup,JSON.stringify(lineupOrder));}catch(e){}kvSave();}
+function save(){try{localStorage.setItem(LS.games,JSON.stringify(importedGames));localStorage.setItem(LS.gamelog,JSON.stringify(gameLog));localStorage.setItem(LS.lineup,JSON.stringify(lineupOrder));}catch(e){}}
 function load(){
   try{
     var g=localStorage.getItem(LS.games);if(g)importedGames=JSON.parse(g);
@@ -5433,7 +5425,6 @@ function storeGameImport(result,fileName,status){
   }
   save();linkImportsToGameLog();updateLabels();renderAll();
   // Show syncing status while KV saves
-  save();linkImportsToGameLog();updateLabels();renderAll();
   status.className='up-status ok';
   status.textContent='✓ '+result.players.length+' players'+(isSeason?' (season totals)':'')+(result.opp?' · vs '+result.opp:'')+(result.usScore!=null?' · '+result.usScore+'-'+result.themScore:'');
   if(_isVercel){
