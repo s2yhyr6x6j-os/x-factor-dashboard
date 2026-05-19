@@ -1100,7 +1100,9 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-tab.active{background:rgba(255,255,255,.1);color:var(--hdr)}
 .sc-tab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
 #sc-pane-preview{flex: 1;display: flex;flex-direction: column;min-height: 0;overflow: hidden;background:#030712;}
-.sc-body{padding:20px}
+.sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
+.sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
+.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a}
 
 /* Preview card */
 .sc-preview-card{margin-bottom:0}
@@ -1183,6 +1185,10 @@ body.light-mode .re-pos{background:var(--bg1)}
 .sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
 .sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a;position:relative}
 .sc-inner-card{background: #101828;border: 1px solid #1e2939;border-radius: 12px;overflow: hidden;margin-bottom: 12px;}
+.sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
+.sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
+.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a}
+.sc-inner-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -1493,9 +1499,7 @@ body.light-mode .re-pos{background:var(--bg1)}
           <!-- Hero card: brand + player name -->
           <div class="sc-inner-card">
             <div class="sc-card-topbar">
-              <div class="sc-card-brand">⚾
-                <span>X-Factor Baseball</span>
-              </div>
+              <div class="sc-card-brand"><img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain"><span>X-Factor Baseball</span></div>
               <div class="sc-card-season">Season Stats</div>
             </div>
             <div class="sc-card-hero">
@@ -1509,7 +1513,7 @@ body.light-mode .re-pos{background:var(--bg1)}
           <div id="sc-card-pitching-section"></div>
           <!-- Coach note card -->
           <div id="sc-card-note-section"></div>
-          <div style="text-align:center;font-size:11px;color:var(--sub);margin:10px 0 20px">Powered by X-Factor Baseball ⚾</div>
+          <div style="text-align:center;font-size:11px;color:var(--sub);margin:10px 0 4px">Powered by X-Factor Baseball ⚾</div>
         </div>
         <!-- Fixed footer: link + share buttons -->
         <div class="sc-preview-footer">
@@ -2855,8 +2859,10 @@ function renderAll(){
 
 function updateLabels(){
   var g=importedGames.filter(function(x){return !x.isSeason;}).length;
-  document.getElementById('gc-label').textContent=g+' game'+(g!==1?'s':'')+' loaded';
-  document.getElementById('gc-badge').textContent=g;
+  var gcLabel=document.getElementById('gc-label');
+  var gcBadge=document.getElementById('gc-badge');
+  if(gcLabel) gcLabel.textContent=g+' game'+(g!==1?'s':'')+' loaded';
+  if(gcBadge) gcBadge.textContent=g;
 }
 
 // ── HOME ──
