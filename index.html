@@ -5039,7 +5039,7 @@ function closeShareCard(){
 }
 
 function setSCTab(tab){
-  document.getElementById('sc-pane-preview').style.display=tab==='preview'?'block':'none';
+  document.getElementById('sc-pane-preview').style.display=tab==='preview'?'flex':'none';
   document.getElementById('sc-pane-edit').style.display=tab==='edit'?'block':'none';
   document.getElementById('sc-tab-preview').classList.toggle('active',tab==='preview');
   document.getElementById('sc-tab-edit').classList.toggle('active',tab==='edit');
