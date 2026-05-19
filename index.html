@@ -1173,6 +1173,11 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 /* Lineup role + xfactor badges */
 .lu-role{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
 .lu-xfactor{font-size:10px;font-weight:700;color:var(--amber);margin-left:5px;vertical-align:middle}
+
+.pd-ins-tab.active{background:#101828;color:#f1f5f9;border-bottom:3px solid #51a2ff}
+.pd-ins-tab:hover{background:rgba(0,0,0,.15)}
+body.light-mode .re-pos{background:var(--bg1)}
+.re-pos-status{font-size:12px;line-height:1}
 </style>
 </head>
 <body>
@@ -3199,9 +3204,9 @@ function renderRoster(){
         var _need=_lastPG.np>=66?4:_lastPG.np>=51?3:_lastPG.np>=36?2:_lastPG.np>=21?1:0;
         pitchAvail=_days<_need
           ?'<span class="roster-pitch-avail warn">⏱ '+(_need-_days)+'d rest</span>'
-          :'<span class="roster-pitch-avail ok">💪 Arm Rested</span>';
+          :'<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
       } else {
-        pitchAvail='<span class="roster-pitch-avail ok">💪 Arm Rested</span>';
+        pitchAvail='<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
       }
     }
     var trend='';
