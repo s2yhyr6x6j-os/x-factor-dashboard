@@ -1101,14 +1101,14 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-body{padding:20px}
 
 /* Preview card */
-.sc-preview-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.sc-preview-card{margin-bottom:0}
 .sc-card-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
 .sc-card-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--hdr)}
 .sc-card-season{font-size:11px;color:var(--sub)}
 .sc-card-hero{padding:14px 16px 12px}
 .sc-card-name{font-size:22px;font-weight:800;color:var(--hdr);line-height:1.1}
 .sc-card-team{font-size:12px;color:var(--sub);margin-top:3px}
-.sc-stat-section{padding:12px 16px;border-top:1px solid var(--border)}
+.sc-stat-section{padding:12px 16px}
 .sc-stat-section-hdr{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .sc-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sc-stat-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
@@ -1177,9 +1177,10 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 body.light-mode .re-pos{background:var(--bg1)}
 .re-pos-status{font-size:12px;line-height:1}
 
-.sc-body{flex:1;overflow-y:auto;padding:0}
-.sc-preview-scroll{flex:1;overflow-y:auto;padding:16px 20px 0}
-.sc-preview-footer{padding:16px 20px;border-top:1px solid var(--border);background:#0f172a;flex-shrink:0}
+.sc-body{flex:1;overflow-y:auto;padding:20px;min-height:0}
+.sc-preview-scroll{flex:1;overflow-y:auto;padding:16px 20px 8px;min-height:0}
+.sc-preview-footer{padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a;flex-shrink:0}
+.sc-inner-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -1484,10 +1485,11 @@ body.light-mode .re-pos{background:var(--bg1)}
       </div>
 
       <!-- PREVIEW TAB -->
-      <div class="sc-body" id="sc-pane-preview" style="display:flex;flex-direction:column;overflow:hidden">
+      <div class="sc-body" id="sc-pane-preview" style="display:flex;flex-direction:column;padding:0;overflow:hidden">
         <!-- Scrollable card area -->
-        <div class="sc-preview-scroll">
-          <div class="sc-preview-card" id="sc-preview-card">
+        <div class="sc-preview-scroll" id="sc-preview-card">
+          <!-- Hero card: brand + player name -->
+          <div class="sc-inner-card">
             <div class="sc-card-topbar">
               <div class="sc-card-brand">
                 <img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain">
@@ -1499,10 +1501,13 @@ body.light-mode .re-pos{background:var(--bg1)}
               <div class="sc-card-name" id="sc-card-name">—</div>
               <div class="sc-card-team">SBA Red · Summer 2026</div>
             </div>
-            <div id="sc-card-batting-section"></div>
-            <div id="sc-card-pitching-section"></div>
-            <div id="sc-card-note-section"></div>
           </div>
+          <!-- Batting card -->
+          <div id="sc-card-batting-section"></div>
+          <!-- Pitching card -->
+          <div id="sc-card-pitching-section"></div>
+          <!-- Coach note card -->
+          <div id="sc-card-note-section"></div>
         </div>
         <!-- Fixed footer: link + share buttons -->
         <div class="sc-preview-footer">
@@ -5079,7 +5084,7 @@ function renderSCPreview(){
 
   var batHtml='';
   if(batStats.length){
-    batHtml='<div class="sc-stat-section"><div class="sc-stat-section-hdr">⚡ BATTING</div><div class="sc-stat-grid">';
+    batHtml='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚡ BATTING</div><div class="sc-stat-grid">';
     batStats.forEach(function(s){
       var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
       batHtml+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
@@ -5087,7 +5092,7 @@ function renderSCPreview(){
         +'<div class="sc-stat-val '+(cls?cls:'')+'" >'+s.val+'</div>'
         +'</div>';
     });
-    batHtml+='</div></div>';
+    batHtml+='</div></div></div>';
   }
   document.getElementById('sc-card-batting-section').innerHTML=batHtml;
 
@@ -5105,7 +5110,7 @@ function renderSCPreview(){
     if(pit.k!==false) pitStats.push({lbl:'Strikeouts',val:String(p.pit.k),key:null});
     if(pit.kbb!==false) pitStats.push({lbl:'K/BB Ratio',val:kbb,key:'kbb'});
     if(pitStats.length){
-      pitHtml='<div class="sc-stat-section"><div class="sc-stat-section-hdr">⚾ PITCHING</div><div class="sc-stat-grid">';
+      pitHtml='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚾ PITCHING</div><div class="sc-stat-grid">';
       pitStats.forEach(function(s){
         var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
         pitHtml+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
@@ -5113,14 +5118,14 @@ function renderSCPreview(){
           +'<div class="sc-stat-val '+(cls?cls:'')+'">'+s.val+'</div>'
           +'</div>';
       });
-      pitHtml+='</div></div>';
+      pitHtml+='</div></div></div>';
     }
   }
   document.getElementById('sc-card-pitching-section').innerHTML=pitHtml;
 
   // Coach note
   document.getElementById('sc-card-note-section').innerHTML=note
-    ?'<div class="sc-coach-note">"'+note+'"</div>':'';
+    ?'<div class="sc-inner-card"><div class="sc-coach-note">"'+note+'"</div></div>':'';
 
   // Generate share link (data URI approach — encode stats as URL params)
   var linkEl=document.getElementById('sc-link-input');
