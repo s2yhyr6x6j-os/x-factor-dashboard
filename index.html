@@ -1177,7 +1177,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 body.light-mode .re-pos{background:var(--bg1)}
 .re-pos-status{font-size:12px;line-height:1}
 
-.sc-body{flex:1;overflow-y:auto;padding:20px;min-height:0}
+.sc-body{flex:1;overflow:hidden;padding:20px;min-height:0}
 .sc-preview-scroll{flex:1;overflow-y:auto;padding:16px 20px 8px;min-height:0}
 .sc-preview-footer{padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a;flex-shrink:0}
 .sc-inner-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
@@ -1485,7 +1485,7 @@ body.light-mode .re-pos{background:var(--bg1)}
       </div>
 
       <!-- PREVIEW TAB -->
-      <div class="sc-body" id="sc-pane-preview" style="display:flex;flex-direction:column;padding:0">
+      <div class="sc-body" id="sc-pane-preview" style="display:flex;flex-direction:column;padding:0;overflow:hidden">
         <!-- Scrollable card area -->
         <div class="sc-preview-scroll" id="sc-preview-card">
           <!-- Hero card: brand + player name -->
