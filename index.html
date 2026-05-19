@@ -1188,7 +1188,7 @@ body.light-mode .pd-pos-badge.learning{background:#f6f3f4;border-color:#ebe6e7;c
 
 <!-- ══ SITE HEADER (always visible — sidebar on desktop, fixed bar on mobile) ══ -->
 <div class="sb-header" id="sb-header">
-  <div class="sb-logo"><img src="https://x-factor-dashboard.vercel.app/logo.png" alt="X-Factor" width="40" height="40" style="object-fit:contain"></div>
+  <div class="sb-logo"><img src="/x-factor-logo.png" alt="X-Factor" width="40" height="40" style="object-fit:contain"></div>
   <div class="sb-header-text">
     <div class="sb-team-name">X-FACTOR</div>
     <div class="sb-season">Baseball</div>
@@ -1490,7 +1490,7 @@ body.light-mode .pd-pos-badge.learning{background:#f6f3f4;border-color:#ebe6e7;c
         <div class="sc-preview-card" id="sc-preview-card">
           <div class="sc-card-topbar">
             <div class="sc-card-brand">
-              <div>⚾</div>
+              <img src="/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain">
               <span>X-Factor Baseball</span>
             </div>
             <div class="sc-card-season">Season Stats</div>
@@ -3202,8 +3202,28 @@ function renderRoster(){
     if(ov.armStr) armNote='<span class="roster-meta-sep">·</span><span class="font-sub">💪 '+ov.armStr+'</span>';
 
     var posBadgesRow=buildPosBadges(ov,true);
+    var ageOpts=['7','8','9','10','11','12','13','14','15','16','17','18'].map(function(a){
+      var pm2=parseInt(a)<=10?75:parseInt(a)<=12?85:parseInt(a)<=16?95:105;
+      return '<option value="'+a+'"'+(String(age)===a?' selected':'')+'>'+a+' ('+pm2+'P max)</option>';
+    }).join('');
+    var inlineEdit='<div class="roster-inline-edit">'
+      +'<div class="re-inline-row">'
+        +'<div class="re-inline-field"><label>First Name</label><input type="text" class="re-il-first" value="'+(ov.firstName||p.name.split(' ')[0])+'"></div>'
+        +'<div class="re-inline-field"><label>Last Name</label><input type="text" class="re-il-last" value="'+(ov.lastName||p.name.split(' ').slice(1).join(' '))+'"></div>'
+        +'<div class="re-inline-field" style="max-width:80px"><label>Jersey #</label><input type="text" class="re-il-num" value="'+(ov.num||p.num||'')+'"></div>'
+        +'<div class="re-inline-field"><label>League Age</label><select class="re-il-age">'+ageOpts+'</select></div>'
+      +'</div>'
+      +'<div class="re-inline-section">Positions</div>'
+      +'<div class="re-pos-grid" id="re-pos-grid-'+esc(p.name)+'"></div>'
+      +'<div class="re-pos-legend"><span>⭐ Primary</span><span style="color:var(--green)">✓ Can play</span><span style="color:var(--blue)">📘 Learning</span><span style="color:#fb7185">🔴 Never</span></div>'
+      +'<div class="re-inline-footer">'
+        +'<button class="re-inline-cancel" onclick="closeInlineEdit(\''+esc(p.name)+'\')">Cancel</button>'
+        +'<button class="re-inline-save" onclick="saveInlineEdit(\''+esc(p.name)+'\')">✓ Save</button>'
+      +'</div>'
+      +'</div>';
 
-    return '<div class="roster-row">'
+    return '<div class="roster-row-wrap" id="rw-'+esc(p.name)+'">'
+      +'<div class="roster-row">'
       +'<div class="roster-num-badge">'+num+'</div>'
       +'<div class="roster-info" onclick="openPlayer(\''+esc(p.name)+'\')" style="cursor:pointer">'
         +'<div class="roster-name">'+dispName+'</div>'
