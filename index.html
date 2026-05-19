@@ -434,9 +434,9 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .gl-card-wrap.expanded .gl-chevron{transform:rotate(180deg);color:var(--sub)}
 .gl-chevron svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;display:block}
 /* Box score slide-down */
-.gl-boxscore{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);background:var(--bg1)}
+.gl-boxscore{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);background:var(--bg1);border:1px solid var(--border);border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px}
 body.light-mode .gl-boxscore{background:#fff;}
-.gl-card-wrap.expanded .gl-boxscore{max-height:2000px;border: 1px solid var(--border);border-bottom-left-radius: 12px;border-bottom-right-radius: 12px;}
+.gl-card-wrap.expanded .gl-boxscore{max-height:2000px}
 .gl-page-title{font-size:22px;font-weight:700;color:var(--hdr);margin-bottom:16px}
 .del-btn{display:none}
 /* Box score inner content */
@@ -630,7 +630,7 @@ body.light-mode .gl-boxscore{background:#fff;}
 .pd-hero-stat-lbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin-top:2px}
 /* Sections */
 .pd-section{margin:0 20px 16px;background:#101828;border:1px solid var(--border);border-radius:14px}
-.pd-sec-hdr,.pd-insights-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;transition:background .15s}
+.pd-sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;transition:background .15s}
 .pd-sec-hdr:hover{background:rgba(255,255,255,.02)}
 .pd-sec-title{font-size:16px;font-weight:700;color:var(--hdr);display:flex;align-items:center;gap:8px}
 .pd-sec-sub{font-size:11px;color:var(--sub);margin-top:2px}
@@ -640,7 +640,7 @@ body.light-mode .gl-boxscore{background:#fff;}
 .pd-sec-body{padding:0 18px 16px}
 .pd-section.collapsed .pd-sec-body{display:none}
 /* Coaching Insights */
-.pd-insights-hdr{margin-bottom:8px}
+.pd-insights-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 4px;margin-bottom:8px}
 .pd-insight-tabs{display:flex;gap:8px;padding:0 18px 12px}
 .pd-ins-tab{font-family:var(--ff);font-size:12px;font-weight:600;padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;transition:all .15s}
 .pd-ins-tab.active{background:var(--hdr);color:var(--bg1);border-color:var(--hdr)}
@@ -773,7 +773,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .pit-kpi-label .info{width:14px;height:14px;border-radius:50%;border:1px solid var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--blue);cursor:pointer;flex-shrink:0;transition:all .15s}
 .pit-kpi-label .info:hover{background:var(--blue);color:#fff}
-.pit-kpi-val{font-size:32px;font-weight:700;color:var(--green);line-height:1}
+.pit-kpi-val{font-size:36px;font-weight:700;color:var(--green);line-height:1}
 .pit-kpi-val.warn{color:var(--amber)}
 .pit-kpi-val.bad{color:#fb7185}
 .pit-kpi-val.urgent{color:var(--red)}
@@ -850,7 +850,7 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 .roster-pos-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .roster-pos-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;background:#1e2939;border:1px solid #364153;border-radius:12px;font-size:11px;font-weight:600;color:#d1d5dc}
 
-.roster-row{display:flex;align-items:center;gap:14px;padding:12px;background:#101828;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:background .15s}
+.roster-row{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:background .15s}
 .roster-row:hover{background:rgba(255,255,255,.02)}
 .roster-num-badge{width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;color:rgba(0,0,0,0.4);flex-shrink:0;}
 .roster-row:hover .roster-num-badge {color: rgba(255, 255, 255, 0.15);}
@@ -1085,7 +1085,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 
 /* ── POSITION BADGES (player detail) ── */
 .pd-pos-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.pd-pos-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;font-weight:600;color:var(--hdr)}
+.pd-pos-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;font-weight:600;color:var(--hdr)}
 .pd-pos-badge.primary{background:#1e2939;border-color:#364153;color:#d1d5dc}
 .pd-pos-badge.canplay{background:#1e2939;border-color:#364153;color:#d1d5dc}
 .pd-pos-badge.learning{background:#1e2939;border-color:#364153;color:#d1d5dc}
@@ -1165,13 +1165,30 @@ body.light-mode .roster-pos-badge.learning,
 body.light-mode .pd-pos-badge.canplay,
 body.light-mode .pd-pos-badge.primary,
 body.light-mode .pd-pos-badge.learning{background:#f6f3f4;border-color:#ebe6e7;color:#364153}
+
+/* ── INLINE ROSTER EDIT ── */
+.roster-inline-edit{display:none;background:#0a1120;border-top:1px solid var(--border);padding:16px 18px;animation:fadeIn .15s ease}
+.roster-row-wrap.editing .roster-inline-edit{display:block}
+.roster-row-wrap.editing .roster-row{background:rgba(59,130,246,.05)}
+.re-inline-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.re-inline-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:100px}
+.re-inline-field label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+.re-inline-field input,.re-inline-field select{font-family:var(--ff);font-size:13px;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--hdr);outline:none;width:100%;box-sizing:border-box}
+.re-inline-field input:focus,.re-inline-field select:focus{border-color:var(--blue)}
+.re-inline-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin:14px 0 8px}
+.re-inline-footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.re-inline-save{font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer}
+.re-inline-save:hover{background:#1d4ed8}
+.re-inline-cancel{font-family:var(--ff);font-size:13px;color:var(--sub);background:none;border:none;cursor:pointer;padding:8px}
+.re-inline-cancel:hover{color:var(--hdr)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
 
 <!-- ══ SITE HEADER (always visible — sidebar on desktop, fixed bar on mobile) ══ -->
 <div class="sb-header" id="sb-header">
-  <div class="sb-logo"><svg viewBox="0 0 100 105" xmlns="http://www.w3.org/2000/svg" width="40" height="42"><path d="M5 5 L95 5 L95 65 L50 100 L5 65 Z" fill="#1a1a1a" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><line x1="28" y1="22" x2="72" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/><line x1="72" y1="22" x2="28" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/></svg></div>
+  <div class="sb-logo"><img src="https://x-factor-dashboard.vercel.app/logo.png" alt="X-Factor" width="40" height="40" style="object-fit:contain"></div>
   <div class="sb-header-text">
     <div class="sb-team-name">X-FACTOR</div>
     <div class="sb-season">Baseball</div>
@@ -2185,7 +2202,7 @@ body.light-mode .pd-pos-badge.learning{background:#f6f3f4;border-color:#ebe6e7;c
   </div>
 
   <!-- API Key Setting -->
-  <div class="api-key-card" style="display:none">
+  <div class="api-key-card">
     <div style="flex:1;min-width:160px">
       <div class="api-key-label">Anthropic API Key</div>
       <div class="api-key-sub">Required for Claude Vision PDF parsing · stored locally only</div>
@@ -2292,11 +2309,11 @@ body.light-mode .pd-pos-badge.learning{background:#f6f3f4;border-color:#ebe6e7;c
     <div class="pd-hero-stats" id="pd-hero-stats"></div>
   </div>
 
-  <!-- X-Factor Insights -->
+  <!-- Stat Pro Insights -->
   <div class="pd-section" id="pd-sec-insights">
     <div class="pd-insights-hdr" onclick="togglePdSection('pd-sec-insights')" style="cursor:pointer">
       <div>
-        <div class="pd-sec-title">🎯 X-Factor Insights</div>
+        <div class="pd-sec-title">🎯 Stat Pro Insights</div>
         <div class="pd-sec-sub" id="pd-insights-when"></div>
       </div>
       <div class="pd-insights-toggle" onclick="event.stopPropagation()">
@@ -3175,9 +3192,9 @@ function renderRoster(){
         var _need=_lastPG.np>=66?4:_lastPG.np>=51?3:_lastPG.np>=36?2:_lastPG.np>=21?1:0;
         pitchAvail=_days<_need
           ?'<span class="roster-pitch-avail warn">⏱ '+(_need-_days)+'d rest</span>'
-          :'<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
+          :'<span class="roster-pitch-avail ok">💪 Arm Rested</span>';
       } else {
-        pitchAvail='<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
+        pitchAvail='<span class="roster-pitch-avail ok">💪 Arm Rested</span>';
       }
     }
     var trend='';
@@ -3199,7 +3216,9 @@ function renderRoster(){
         +'</div>'
         +(posBadgesRow?'<div class="roster-pos-badges">'+posBadgesRow+'</div>':'')
       +'</div>'
-      +'<button class="roster-edit" onclick="openRosterEdit(\''+esc(p.name)+'\',event)" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 1 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      +'<button class="roster-edit" onclick="openInlineEdit(\''+esc(p.name)+'\',event)" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 1 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      +'</div>'
+      +inlineEdit
       +'</div>';
   }).join('');
 }
@@ -3332,6 +3351,7 @@ function saveRosterEdit(){
     tags:{batting:[].concat(reTags.batting),pitching:[].concat(reTags.pitching),general:[].concat(reTags.general)}
   };
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  kvSave();
   var savedTarget=rosterEditTarget;
   closeRosterEdit();
   renderRoster();
@@ -3345,6 +3365,8 @@ function saveRosterEdit(){
       posBadgesEl.style.display=badgeHtml?'flex':'none';
     }
   }
+  // Also close any open inline edit for this player
+  if(_inlineEditTarget===savedTarget) closeInlineEdit(savedTarget);
 }
 
 function removeFromRoster(){
@@ -5224,6 +5246,83 @@ function kvLoad(callback){
     }catch(e){console.error('KV load error',e);}
     callback();
   }).catch(function(){callback();});
+}
+
+
+var _inlineEditTarget=null;
+var _inlineRePositions={};
+
+function openInlineEdit(name,event){
+  if(event) event.stopPropagation();
+  // Close any other open inline edit
+  if(_inlineEditTarget&&_inlineEditTarget!==name) closeInlineEdit(_inlineEditTarget);
+  _inlineEditTarget=name;
+  var wrap=document.getElementById('rw-'+name);
+  if(!wrap) return;
+  wrap.classList.add('editing');
+  // Init position grid
+  var ov=rosterOverrides[name]||{};
+  _inlineRePositions=Object.assign({},ov.positions||{});
+  renderInlinePosGrid(name);
+}
+
+function closeInlineEdit(name){
+  var wrap=document.getElementById('rw-'+(name||_inlineEditTarget));
+  if(wrap) wrap.classList.remove('editing');
+  _inlineEditTarget=null;
+  _inlineRePositions={};
+}
+
+function renderInlinePosGrid(name){
+  var grid=document.getElementById('re-pos-grid-'+name);
+  if(!grid) return;
+  var positions=['P','C','1B','2B','3B','SS','LF','CF','RF','DH'];
+  grid.innerHTML=positions.map(function(pos){
+    var st=_inlineRePositions[pos]||'';
+    var icon=st==='primary'?'⭐':st==='canplay'?'✓':st==='learning'?'📘':st==='never'?'🔴':'—';
+    return '<div class="re-pos '+st+'" onclick="toggleInlinePos(\"'+name+'\",\"'+pos+'\")">'
+      +'<div class="re-pos-status">'+icon+'</div>'
+      +'<div class="re-pos-name">'+pos+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function toggleInlinePos(name,pos){
+  var cycle=['','primary','canplay','learning','never'];
+  var cur=_inlineRePositions[pos]||'';
+  var idx=cycle.indexOf(cur);
+  _inlineRePositions[pos]=cycle[(idx+1)%cycle.length];
+  renderInlinePosGrid(name);
+}
+
+function saveInlineEdit(name){
+  var wrap=document.getElementById('rw-'+name);
+  if(!wrap) return;
+  var first=wrap.querySelector('.re-il-first').value.trim();
+  var last=wrap.querySelector('.re-il-last').value.trim();
+  var num=wrap.querySelector('.re-il-num').value.trim();
+  var age=wrap.querySelector('.re-il-age').value;
+  rosterOverrides[name]=rosterOverrides[name]||{};
+  var ov=rosterOverrides[name];
+  if(first||last) ov.displayName=(first+' '+last).trim();
+  if(num) ov.num=num;
+  if(age) ov.age=parseInt(age);
+  ov.positions=Object.assign({},_inlineRePositions);
+  try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  kvSave();
+  var savedTarget=name;
+  closeInlineEdit(name);
+  renderRoster();
+  // Refresh player detail if open
+  if(window._pdCurrentPlayer===savedTarget){
+    var ov2=rosterOverrides[savedTarget]||{};
+    var posBadgesEl=document.getElementById('pd-pos-badges');
+    if(posBadgesEl){
+      var badgeHtml=buildPosBadges(ov2,false);
+      posBadgesEl.innerHTML=badgeHtml;
+      posBadgesEl.style.display=badgeHtml?'flex':'none';
+    }
+  }
 }
 
 function renderOptRecs(){}
