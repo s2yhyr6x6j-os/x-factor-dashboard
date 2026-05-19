@@ -1087,9 +1087,9 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:flex-end;justify-content:center}
 .sc-overlay.open{display:flex}
 @media(min-width:480px){.sc-overlay{align-items:center}}
-.sc-modal{background:#0f172a;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;height:90vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
-@media(min-width:480px){.sc-modal{border-radius:20px}}
-.sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 20px 0}
+.sc-modal{background:#101828;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;height:90vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+@media(min-width:480px){.sc-modal{border-radius:16px}}
+.sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding: 20px 20px 10px;border-bottom: 1px solid var(--border);}
 .sc-hdr-title{font-size:16px;font-weight:800;color:var(--hdr)}
 .sc-hdr-sub{font-size:12px;color:var(--sub);margin-top:2px}
 .sc-close{background:none;border:none;color:var(--sub);cursor:pointer;font-size:20px;padding:0;line-height:1;margin-top:-2px}
@@ -1098,11 +1098,12 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-tab{background:none;border:none;font-family:var(--ff);font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:6px;transition:all .15s}
 .sc-tab.active{background:rgba(255,255,255,.1);color:var(--hdr)}
 .sc-tab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sc-pane-preview{flex: 1;display: flex;flex-direction: column;min-height: 0;overflow: hidden;background:#030712;}
 .sc-body{padding:20px}
 
 /* Preview card */
 .sc-preview-card{margin-bottom:0}
-.sc-card-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.sc-card-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:#1e2939}
 .sc-card-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--hdr)}
 .sc-card-season{font-size:11px;color:var(--sub)}
 .sc-card-hero{padding:14px 16px 12px}
@@ -1180,7 +1181,7 @@ body.light-mode .re-pos{background:var(--bg1)}
 .sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
 .sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
 .sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a;position:relative}
-.sc-inner-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.sc-inner-card{background: #101828;border: 1px solid #1e2939;border-radius: 12px;overflow: hidden;margin-bottom: 12px;}
 </style>
 </head>
 <body>
@@ -1485,14 +1486,13 @@ body.light-mode .re-pos{background:var(--bg1)}
       </div>
 
       <!-- PREVIEW TAB -->
-      <div id="sc-pane-preview" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden">
+      <div id="sc-pane-preview">
         <!-- Scrollable card area -->
         <div class="sc-preview-scroll" id="sc-preview-card">
           <!-- Hero card: brand + player name -->
           <div class="sc-inner-card">
             <div class="sc-card-topbar">
-              <div class="sc-card-brand">
-                <img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain">
+              <div class="sc-card-brand">⚾
                 <span>X-Factor Baseball</span>
               </div>
               <div class="sc-card-season">Season Stats</div>
@@ -1508,6 +1508,7 @@ body.light-mode .re-pos{background:var(--bg1)}
           <div id="sc-card-pitching-section"></div>
           <!-- Coach note card -->
           <div id="sc-card-note-section"></div>
+          <div style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Powered by X-Factor Baseball ⚾</div>
         </div>
         <!-- Fixed footer: link + share buttons -->
         <div class="sc-preview-footer">
@@ -1525,7 +1526,6 @@ body.light-mode .re-pos{background:var(--bg1)}
               Share
             </button>
           </div>
-          <div style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Powered by X-Factor Baseball ⚾</div>
         </div>
       </div>
 
