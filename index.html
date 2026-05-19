@@ -1146,11 +1146,33 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-link-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .sc-disable{display:block;text-align:center;font-size:11px;color:var(--sub);margin-top:10px;cursor:pointer;text-decoration:underline}
 
+
+/* ── POSITION BADGES ── */
 .roster-pos-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .roster-pos-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;background:#1e2939;border:1px solid #364153;border-radius:12px;font-size:11px;font-weight:600;color:#d1d5dc}
+.pd-pos-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pd-pos-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#1e2939;border:1px solid #364153;border-radius:20px;font-size:12px;font-weight:600;color:#d1d5dc}
+/* 34. Log table hover */
 .pd-log-tbl tr:hover{background:rgba(0,0,0,.2)}
 body.light-mode .pd-log-tbl tr:hover{background:#f9f9f9}
-body.light-mode .roster-pos-badge,.light-mode .pd-pos-badge{background:#f6f3f4;border-color:#ebe6e7;color:#364153}
+/* 35. Light-mode position badge overrides */
+body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3f4;border-color:#ebe6e7;color:#364153}
+/* Insights toggle */
+.pd-insights-toggle{display:flex;align-items:center;gap:8px}
+/* Drill cards */
+.pd-ins-bullets{padding:0 18px 8px;margin:0}
+.pd-ins-bullets li{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:4px}
+.pd-ins-section-title{font-size:15px;font-weight:700;color:var(--hdr);padding:12px 18px 8px}
+.pd-drill-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:8px 18px}
+body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
+.pd-drill-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.pd-drill-name{font-size:14px;font-weight:700;color:var(--hdr)}
+.pd-drill-time{font-size:12px;font-weight:600;color:var(--sub)}
+.pd-drill-goal{font-size:12px;color:var(--sub);font-style:italic;margin-bottom:6px}
+.pd-drill-desc{font-size:13px;color:var(--hdr);line-height:1.6}
+/* Lineup role + xfactor badges */
+.lu-role{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+.lu-xfactor{font-size:10px;font-weight:700;color:var(--amber);margin-left:5px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -1459,7 +1481,7 @@ body.light-mode .roster-pos-badge,.light-mode .pd-pos-badge{background:#f6f3f4;b
         <div class="sc-preview-card" id="sc-preview-card">
           <div class="sc-card-topbar">
             <div class="sc-card-brand">
-              <div>⚾</div>
+              <img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain">
               <span>X-Factor Baseball</span>
             </div>
             <div class="sc-card-season">Season Stats</div>
@@ -2280,19 +2302,24 @@ body.light-mode .roster-pos-badge,.light-mode .pd-pos-badge{background:#f6f3f4;b
 
   <!-- Stat Pro Insights -->
   <div class="pd-section" id="pd-sec-insights">
-    <div class="pd-insights-hdr">
+    <div class="pd-insights-hdr" onclick="togglePdSection('pd-sec-insights')" style="cursor:pointer">
       <div>
         <div class="pd-sec-title">🎯 Stat Pro Insights</div>
         <div class="pd-sec-sub" id="pd-insights-when"></div>
       </div>
-      <button class="pd-regen-btn" id="pd-regen-btn" onclick="regenerateInsights()">Regenerate</button>
+      <div class="pd-insights-toggle" onclick="event.stopPropagation()">
+        <button class="pd-regen-btn" id="pd-regen-btn" onclick="regenerateInsights()">Generate</button>
+        <span class="pd-sec-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
+      </div>
     </div>
-    <div class="pd-insight-tabs">
-      <button class="pd-ins-tab active" onclick="setInsightTab('celebrate',this)">Praise</button>
-      <button class="pd-ins-tab" onclick="setInsightTab('focus',this)">Focus Next</button>
-      <button class="pd-ins-tab" onclick="setInsightTab('plan',this)">Practice Plan</button>
+    <div class="pd-sec-body" style="padding:0">
+      <div class="pd-insight-tabs" id="pd-insight-tabs" style="display:none">
+        <button class="pd-ins-tab active" onclick="setInsightTab('celebrate',this)">Praise</button>
+        <button class="pd-ins-tab" onclick="setInsightTab('focus',this)">Focus Next</button>
+        <button class="pd-ins-tab" onclick="setInsightTab('plan',this)">Practice Plan</button>
+      </div>
+      <div id="pd-insights-body" style="display:none"></div>
     </div>
-    <div id="pd-insights-body"></div>
 
   <!-- Strike % Trend (pitchers) -->
   <div class="pd-section" id="pd-sec-sp" class="svg-hidden">
@@ -2519,7 +2546,7 @@ var LS={games:'sba_games_v2',gamelog:'sba_gl_v2',lineup:'sba_lineup_v2',apikey:'
 var importedGames=[],gameLog=[],lineupOrder=[];
 var pendingCSVPlayers=null,pendingCSVFilename=null;
 
-function save(){try{localStorage.setItem(LS.games,JSON.stringify(importedGames));localStorage.setItem(LS.gamelog,JSON.stringify(gameLog));localStorage.setItem(LS.lineup,JSON.stringify(lineupOrder));}catch(e){}}
+function save(){try{localStorage.setItem(LS.games,JSON.stringify(importedGames));localStorage.setItem(LS.gamelog,JSON.stringify(gameLog));localStorage.setItem(LS.lineup,JSON.stringify(lineupOrder));}catch(e){}kvSave();}
 function load(){
   try{
     var g=localStorage.getItem(LS.games);if(g)importedGames=JSON.parse(g);
@@ -3118,6 +3145,27 @@ function buildPosBadges(ov, small){
   }).join('');
 }
 
+
+function buildPosBadges(ov, small){
+  var positions=ov.positions||{};
+  var posOrder=['P','C','1B','2B','3B','SS','LF','CF','RF','DH'];
+  var primary=[],canplay=[],learning=[];
+  posOrder.forEach(function(pos){
+    var st=positions[pos];
+    if(!st||st==='never'||st==='') return;
+    if(st==='primary') primary.push(pos);
+    else if(st==='canplay') canplay.push(pos);
+    else if(st==='learning') learning.push(pos);
+  });
+  var filtered=primary.concat(canplay).concat(learning);
+  if(!filtered.length) return '';
+  return filtered.map(function(pos){
+    var st=positions[pos];
+    var icon=st==='primary'?'⭐':st==='canplay'?'<span style="color:#4ade80">✓</span>':'📘';
+    return '<div class="'+(small?'roster-pos-badge':'pd-pos-badge')+' '+st+'">'+icon+' '+pos+'</div>';
+  }).join('');
+}
+
 function renderRoster(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
@@ -3306,8 +3354,15 @@ function saveRosterEdit(){
     tags:{batting:[].concat(reTags.batting),pitching:[].concat(reTags.pitching),general:[].concat(reTags.general)}
   };
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  kvSave();
+  var savedTarget=rosterEditTarget;
   closeRosterEdit();
   renderRoster();
+  if(window._pdCurrentPlayer===savedTarget){
+    var ov2=rosterOverrides[savedTarget]||{};
+    var pbEl=document.getElementById('pd-pos-badges');
+    if(pbEl){var bh=buildPosBadges(ov2,false);pbEl.innerHTML=bh;pbEl.style.display=bh?'flex':'none';}
+  }
 }
 
 function removeFromRoster(){
@@ -3316,8 +3371,15 @@ function removeFromRoster(){
   rosterOverrides[rosterEditTarget]=rosterOverrides[rosterEditTarget]||{};
   rosterOverrides[rosterEditTarget].hidden=true;
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  kvSave();
+  var savedTarget=rosterEditTarget;
   closeRosterEdit();
   renderRoster();
+  if(window._pdCurrentPlayer===savedTarget){
+    var ov2=rosterOverrides[savedTarget]||{};
+    var pbEl=document.getElementById('pd-pos-badges');
+    if(pbEl){var bh=buildPosBadges(ov2,false);pbEl.innerHTML=bh;pbEl.style.display=bh?'flex':'none';}
+  }
 }
 
 function loadRosterOverrides(){
@@ -4223,6 +4285,7 @@ function renderLineup(){
 
   var pMap={};players.forEach(function(p){pMap[p.name]=p;});
   var lineup=lineupOrder.slice(0,players.length);
+  var SLOT_ROLES=['Leadoff','#2 Hitter','Best Hitter','Cleanup','#5 Power','','','','',''];
 
   var SLOT_ROLES=['Leadoff','#2 Hitter','Best Hitter','Cleanup','#5 Power','','','','',''];
 
@@ -5581,6 +5644,8 @@ function openPlayer(name){
   // Hero
   document.getElementById('pd-name').textContent=ov.displayName||name;
   document.getElementById('pd-meta').textContent='#'+(ov.num||p.num||'—')+' · Age '+age+' · '+pm+'P max';
+  var pbEl2=document.getElementById('pd-pos-badges');
+  if(pbEl2){var bh2=buildPosBadges(ov,false);pbEl2.innerHTML=bh2;pbEl2.style.display=bh2?'flex':'none';}
 
   // Position badges
   var posBadgesEl=document.getElementById('pd-pos-badges');
@@ -6026,15 +6091,22 @@ function renderInsightTab(){
 function buildInsights(p){
   _pdInsights=null;
   var bodyEl=document.getElementById('pd-insights-body');
-  if(bodyEl) bodyEl.innerHTML='';
+  var tabsEl=document.getElementById('pd-insight-tabs');
+  if(bodyEl){bodyEl.innerHTML='';bodyEl.style.display='none';}
+  if(tabsEl) tabsEl.style.display='none';
   var btn=document.getElementById('pd-regen-btn');
   var whenEl=document.getElementById('pd-insights-when');
   if(whenEl) whenEl.textContent='';
   if(btn) btn.innerHTML='Generate';
-  // Load cached insights after a tick to ensure DOM is ready
   setTimeout(function(){
     var hasCached=loadCachedInsights(window._pdCurrentPlayer);
-    if(hasCached&&btn) btn.innerHTML='Regenerate';
+    if(hasCached){
+      if(btn) btn.innerHTML='Regenerate';
+      if(tabsEl) tabsEl.style.display='flex';
+      if(bodyEl) bodyEl.style.display='block';
+      var secEl=document.getElementById('pd-sec-insights');
+      if(secEl) secEl.classList.remove('collapsed');
+    }
   },50);
 }
 
@@ -6130,6 +6202,12 @@ function regenerateInsights(){
     var stored={insights:_pdInsights,generatedAt:now.toISOString(),player:name};
     try{localStorage.setItem('sba_insights_'+name.replace(/\s+/g,'_'),JSON.stringify(stored));console.log('Saved insights for',name);}catch(e){console.error('Save failed',e);}
     document.getElementById('pd-insights-when').textContent='Generated: Today'+(customContext?' · with your context':'');
+    var tabsEl2=document.getElementById('pd-insight-tabs');
+    var bodyEl2=document.getElementById('pd-insights-body');
+    if(tabsEl2) tabsEl2.style.display='flex';
+    if(bodyEl2) bodyEl2.style.display='block';
+    var secEl2=document.getElementById('pd-sec-insights');
+    if(secEl2) secEl2.classList.remove('collapsed');
     renderInsightTab();
     var btn2=document.getElementById('pd-regen-btn');if(btn2)btn2.innerHTML='Regenerate';
   })
