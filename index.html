@@ -2736,12 +2736,15 @@ function getPlayers(){
       var csvSp=csvPit?csvPit.sp:0;
       var csvFps=csvPit?csvPit.fps:0;
       var csvHr=csvPit?(csvPit.hr||0):0;
+      // Calculate S% from per-game pitch counts if available (more accurate than CSV)
+      var totalNP=sum(pg,'np'), totalNS=sum(pg,'ns');
+      var calcSp=totalNP>0?+(totalNS/totalNP*100).toFixed(1):csvSp;
       tot.pit={gp:useSeason?pg.reduce(function(s,g){return s+(g.gp||1);},0):pg.length,
         ip:sum(pg,'ip'),w:sum(pg,'w'),l:sum(pg,'l'),h:sum(pg,'h'),er:sum(pg,'er'),
-        bb:sum(pg,'bb'),k:sum(pg,'k'),np:sum(pg,'np'),bf:sum(pg,'bf'),games:pg,
+        bb:sum(pg,'bb'),k:sum(pg,'k'),np:totalNP,bf:sum(pg,'bf'),games:pg,
         era:(function(){var tip=sum(pg,'ip');return tip?pg.reduce(function(s,g){return s+(g.era||0)*g.ip},0)/tip:0;})(),
         whip:sum(pg,'ip')>0?(sum(pg,'h')+sum(pg,'bb'))/sum(pg,'ip'):0,
-        sp:csvSp,fps:csvFps,fpso:0,hr:csvHr};
+        sp:calcSp,fps:csvFps,fpso:0,hr:csvHr};
     }
     if(gs.length>=4){var half=Math.max(1,Math.floor(gs.length/2)),early=gs.slice(0,half),late=gs.slice(-Math.min(3,half));var eAB=sum(early,'ab'),lAB=sum(late,'ab'),eH=sum(early,'h'),lH=sum(late,'h'),eBB=sum(early,'bb'),lBB=sum(late,'bb');var eOPS=eAB>0?(eH/eAB)+((eH+eBB)/((eAB+eBB)||1)):0,lOPS=lAB>0?(lH/lAB)+((lH+lBB)/((lAB+lBB)||1)):0;tot.trend=eOPS>0?(lOPS-eOPS)/eOPS:0;}
     else if(gs.length>=2){var f=gs[0],la=gs[gs.length-1];var fo=(f.ab>0?f.h/f.ab:0)+f.obp,lo=(la.ab>0?la.h/la.ab:0)+la.obp;tot.trend=fo>0?(lo-fo)/fo:0;}
@@ -4425,7 +4428,8 @@ function renderPitchingPlan(){
     var whipScore=Math.max(0,100-whip*25);          // 0 whip=100, 4=0
     var fipScore=Math.max(0,100-(fip-1)*20);       // FIP 1=100, 5=0
 
-    var composite=spScore*0.60 + bbScore*0.20 + whipScore*0.10 + fipScore*0.10;
+    // S% is the dominant factor (70%), BB/inn reduced to 15%
+    var composite=spScore*0.70 + bbScore*0.15 + whipScore*0.10 + fipScore*0.05;
     var tiebreak=trend*5; // small boost/penalty for trend
 
     // Recent form adjustment: weight last 3 games S% at 40%
@@ -5441,8 +5445,8 @@ function buildPlayersFromVision(data){
   // Build pitching — match to batting entry by jersey number first, then last name
   (data.pitching||[]).forEach(function(p){
     var ip=parseFloat(p.ip)||0;
-    var np=p.pitches||0,ns=p.strikes||0;
-    var sp=np>0?+(ns/np*100).toFixed(1):0;
+      var np=p.pitches||0,ns=p.strikes||0;
+      var sp=np>0?+(ns/np*100).toFixed(1):0;
     var er=p.er||0;
     var era=ip>0?+(er/ip*6).toFixed(2):0;
     var h=p.h||0,bb=p.bb||0;
