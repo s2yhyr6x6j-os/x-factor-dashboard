@@ -175,7 +175,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
   .sb-overlay{top:60px;left:0;right:0;bottom:0}
   /* Main: offset below fixed header */
   .main{margin-left:0;padding:68px 12px 20px;height:auto;min-height:100vh;overflow-y:visible}
-  .page{max-width:100%}
+  #page-roster.page.active, #page-games.page.active, #page-rotation.page.active{max-width:90%}
   #page-roster.page.active,#page-games.page.active{width:90%!important;margin:0 auto}
 
   .stat-kpi-val{font-size:28px!important;font-family:var(--ff)!important;white-space:nowrap;transform:translateZ(0)}
@@ -711,7 +711,7 @@ body.light-mode textarea#ins-coach-context{background:#f5f5f5;}
 .pd-ins-section-title{font-size:15px;font-weight:700;color:var(--hdr);padding-top:10px;margin-bottom:10px}
 #pd-insights-body{background:#030712;margin:0 18px 12px;padding:0 10px;border:1px solid #1e2939;border-radius:8px}
 .pd-drill-card{background:rgba(3,7,18,0.4);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
-body.light-mode #pd-insights-body{margin:0 18px 12px;padding:10px;border:1px solid #e5e7eb;border-radius:8px}
+body.light-mode #pd-insights-body{margin:0 18px 12px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;background:#f5f5f5;}
 body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pd-drill-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .pd-drill-name{font-size:14px;font-weight:700;color:var(--hdr)}
@@ -736,7 +736,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .stat-warn{color:var(--amber)!important}
 .stat-urgent{color:var(--red)!important}
 /* Pitching KPI vals */
-.pit-kpi-val{font-size:36px;font-weight:700;color:var(--green);line-height:1}
+.pit-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1}
 .pit-kpi-val.warn{color:var(--amber)}
 .pit-kpi-val.bad{color:#fb7185}
 .pit-kpi-val.urgent{color:var(--red)}
@@ -765,7 +765,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .pit-kpi-label .info{width:14px;height:14px;border-radius:50%;border:1px solid var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--blue);cursor:pointer;flex-shrink:0;transition:all .15s}
 .pit-kpi-label .info:hover{background:var(--blue);color:#fff}
-.pit-kpi-val{font-size:36px;font-weight:700;color:var(--green);line-height:1}
+.pit-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1}
 .pit-kpi-val.warn{color:var(--amber)}
 .pit-kpi-val.bad{color:#fb7185}
 .pit-kpi-val.urgent{color:var(--red)}
@@ -1089,6 +1089,14 @@ body.light-mode .ics-input{background:#f3f4f6}
 .sc-overlay.open{display:flex}
 @media(min-width:480px){.sc-overlay{align-items:center}}
 .sc-modal{background:#101828;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;height:90vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+body.light-mode .sc-modal, body.light-mode .sc-preview-footer{background:#ffffff;}
+body.light-mode #sc-pane-preview{background:#f5f5f5}
+body.light-mode .sc-inner-car{background:#fff; border:1px solid #35373b; box-shadow:0 1px 3px rgba(0,0,0,.12)}
+body.light-mode .sc-card-topbar{background:#eee;}
+body.light-mode .sc-tab {border: 1px solid #e5e7eb;margin: 0 8px 0 0;}
+body.light-mode .sc-tab.active {border-bottom: 3px solid #51a2ff;}
+body.light-mode .sc-tab:hover {background: rgba(0, 0, 0, 0.06);}
+body.light-mode .pd-btn-outline{background:#fff}
 @media(min-width:480px){.sc-modal{border-radius:16px}}
 .sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding: 20px 20px 10px;border-bottom: 1px solid var(--border);}
 .sc-hdr-title{font-size:16px;font-weight:800;color:var(--hdr)}
@@ -1107,7 +1115,7 @@ body.light-mode .ics-input{background:#f3f4f6}
 /* Preview card */
 .sc-preview-card{margin-bottom:0}
 .sc-card-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:#1e2939}
-.sc-card-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--hdr)}
+.sc-card-brand{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:var(--hdr)}
 .sc-card-season{font-size:11px;color:var(--sub)}
 .sc-card-hero{padding:14px 16px 12px}
 .sc-card-name{font-size:22px;font-weight:800;color:var(--hdr);line-height:1.1}
@@ -1165,11 +1173,11 @@ body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3
 /* Insights toggle */
 .pd-insights-toggle{display:flex;align-items:center;gap:8px}
 /* Drill cards */
-.pd-ins-bullets{padding:0 18px 8px;margin:0}
+.pd-ins-bullets{padding:0 18px 8px 35px;margin:0}
 .pd-ins-bullets li{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:4px}
 .pd-ins-section-title{font-size:15px;font-weight:700;color:var(--hdr);padding:12px 18px 8px}
 .pd-drill-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:8px 18px}
-body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
+body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
 .pd-drill-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .pd-drill-name{font-size:14px;font-weight:700;color:var(--hdr)}
 .pd-drill-time{font-size:12px;font-weight:600;color:var(--sub)}
@@ -1187,8 +1195,8 @@ body.light-mode .re-pos{background:var(--bg1)}
 .sc-inner-card{background: #101828;border: 1px solid #1e2939;border-radius: 12px;overflow: hidden;margin-bottom: 12px;}
 .sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
 .sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
-.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a}
-.sc-inner-card{background:#131f30;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#101828}
+.sc-inner-card{background:#101828;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -1499,7 +1507,7 @@ body.light-mode .re-pos{background:var(--bg1)}
           <!-- Hero card: brand + player name -->
           <div class="sc-inner-card">
             <div class="sc-card-topbar">
-              <div class="sc-card-brand"><img src="/public/x-factor-logo.png" alt="X-Factor" width="28" height="28" style="object-fit:contain"><span>X-Factor Baseball</span></div>
+              <div class="sc-card-brand">⚾<span>X-Factor Baseball</span></div>
               <div class="sc-card-season">Season Stats</div>
             </div>
             <div class="sc-card-hero">
