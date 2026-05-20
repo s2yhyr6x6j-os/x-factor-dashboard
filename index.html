@@ -4439,16 +4439,23 @@ function renderPitchingPlan(){
     }
     var tiebreak=trend*5; // small boost/penalty for trend
 
-    // Recent form adjustment: weight last 3 games S% at 40%
-    // Only use per-game sp if it actually has data (PDFs often don't include S%)
+    // Recent form adjustment: blend season S% with recent 3 games S% (if available)
     var recentGames=(p.pitGames||[]).slice(-3);
     var recentGamesWithSP=recentGames.filter(function(g){return g.sp>0;});
     var recentSP=recentGamesWithSP.length
       ?recentGamesWithSP.reduce(function(s,g){return s+g.sp;},0)/recentGamesWithSP.length
-      :sp; // fall back to season sp when no per-game data
+      :sp;
     var effectiveSP=sp*0.6+recentSP*0.4;
     var effectiveSpScore=Math.min(effectiveSP,100);
-    composite=effectiveSpScore*0.60 + bbScore*0.20 + whipScore*0.10 + fipScore*0.10;
+
+    // Final composite with new weights — S% dominant at 70%
+    composite=effectiveSpScore*0.70 + bbScore*0.15 + whipScore*0.10 + fipScore*0.05;
+
+    // Re-apply sample size penalty after recalc
+    if(ip<8){
+      var confidence2=ip/8;
+      composite=composite*confidence2 + 50*(1-confidence2);
+    }
 
     // X-Factor boost: up to 5 points (each point = ~1% composite boost)
     var xf=pitchXFactor(p);
