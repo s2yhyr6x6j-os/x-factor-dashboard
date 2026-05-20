@@ -711,7 +711,7 @@ body.light-mode textarea#ins-coach-context{background:#f5f5f5;}
 .pd-ins-section-title{font-size:15px;font-weight:700;color:var(--hdr);padding-top:10px;margin-bottom:10px}
 #pd-insights-body{background:#030712;margin:0 18px 12px;padding:0 10px;border:1px solid #1e2939;border-radius:8px}
 .pd-drill-card{background:rgba(3,7,18,0.4);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
-body.light-mode #pd-insights-body{background:#f5f5f5;margin:0 18px 12px;padding:10px;border:1px solid #e5e7eb;border-radius:8px}
+body.light-mode #pd-insights-body{margin:0 18px 12px;padding:10px;border:1px solid #e5e7eb;border-radius:8px}
 body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pd-drill-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .pd-drill-name{font-size:14px;font-weight:700;color:var(--hdr)}
@@ -736,7 +736,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .stat-warn{color:var(--amber)!important}
 .stat-urgent{color:var(--red)!important}
 /* Pitching KPI vals */
-.pit-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1}
+.pit-kpi-val{font-size:36px;font-weight:700;color:var(--green);line-height:1}
 .pit-kpi-val.warn{color:var(--amber)}
 .pit-kpi-val.bad{color:#fb7185}
 .pit-kpi-val.urgent{color:var(--red)}
@@ -765,7 +765,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .pit-kpi-label .info{width:14px;height:14px;border-radius:50%;border:1px solid var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--blue);cursor:pointer;flex-shrink:0;transition:all .15s}
 .pit-kpi-label .info:hover{background:var(--blue);color:#fff}
-.pit-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1}
+.pit-kpi-val{font-size:36px;font-weight:700;color:var(--green);line-height:1}
 .pit-kpi-val.warn{color:var(--amber)}
 .pit-kpi-val.bad{color:#fb7185}
 .pit-kpi-val.urgent{color:var(--red)}
@@ -1165,12 +1165,11 @@ body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3
 /* Insights toggle */
 .pd-insights-toggle{display:flex;align-items:center;gap:8px}
 /* Drill cards */
-.pd-ins-bullets{padding:0 18px 8px 35px;margin:0}
+.pd-ins-bullets{padding:0 18px 8px;margin:0}
 .pd-ins-bullets li{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:4px}
 .pd-ins-section-title{font-size:15px;font-weight:700;color:var(--hdr);padding:12px 18px 8px}
 .pd-drill-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:8px 18px}
-body.light-mode .pd-btn-outline{background: #fff;}
-body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
+body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pd-drill-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .pd-drill-name{font-size:14px;font-weight:700;color:var(--hdr)}
 .pd-drill-time{font-size:12px;font-weight:600;color:var(--sub)}
@@ -4617,14 +4616,6 @@ function askSkipper(name){
   }).catch(function(){alert('Could not reach Skipper — check your API key.');});
 }
 
-function autoLineup(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
-  var s=STRATEGIES[lineupStrategy];
-  var sorted=[].concat(players).sort(s.sort);
-  lineupOrder=sorted.map(function(p){return p.name;});
-  save();renderLineup();
-}
 
 // Drag and drop
 var luDragSrc=null;
