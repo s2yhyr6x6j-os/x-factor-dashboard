@@ -4430,6 +4430,13 @@ function renderPitchingPlan(){
 
     // S% is the dominant factor (70%), BB/inn reduced to 15%
     var composite=spScore*0.70 + bbScore*0.15 + whipScore*0.10 + fipScore*0.05;
+
+    // Sample size penalty — under 8 IP, reduce composite toward 50 (league average)
+    var ip=csvIP||pit.ip||0;
+    if(ip<8){
+      var confidence=ip/8; // 0 to 1
+      composite=composite*confidence + 50*(1-confidence);
+    }
     var tiebreak=trend*5; // small boost/penalty for trend
 
     // Recent form adjustment: weight last 3 games S% at 40%
