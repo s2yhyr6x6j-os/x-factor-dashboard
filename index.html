@@ -4457,9 +4457,9 @@ function renderPitchingPlan(){
       composite=composite*confidence2 + 50*(1-confidence2);
     }
 
-    // X-Factor boost: up to 5 points (each point = ~1% composite boost)
     var xf=pitchXFactor(p);
-    composite+=xf;
+    // X-Factor stored for display but not added to composite score
+    // Used only as tiebreaker when composites are within 0.5 of each other
 
     return {composite:composite+tiebreak, sp:sp, recentSP:recentSP, bbinn:bbinn, whip:whip, fip:fip, trend:trend, xfactor:xf};
   }
@@ -4471,7 +4471,11 @@ function renderPitchingPlan(){
     var ov=rosterOverrides[p.name]||{};
     var pm=pitchMax(ov.age||12);
     return {p:p, sc:sc, st:st, pm:pm, num:ov.num||p.num||'—'};
-  }).sort(function(a,b){return b.sc.composite-a.sc.composite;});
+  }).sort(function(a,b){
+    var diff=b.sc.composite-a.sc.composite;
+    if(Math.abs(diff)>0.5) return diff;
+    return (b.sc.xfactor||0)-(a.sc.xfactor||0); // X-Factor breaks ties only
+  });
 
   // Show top 4 (for 4-game minimum)
   var top4=ranked.slice(0,4);
