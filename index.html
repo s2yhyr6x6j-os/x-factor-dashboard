@@ -4437,7 +4437,7 @@ function renderPitchingPlan(){
       var confidence=ip/8; // 0 to 1
       composite=composite*confidence + 50*(1-confidence);
     }
-    var tiebreak=trend*5; // small boost/penalty for trend
+    var tiebreak=Math.max(-3, Math.min(3, (trend||0))) * 0.5; // max ±1.5 points
 
     // Recent form adjustment: blend season S% with recent 3 games S% (if available)
     var recentGames=(p.pitGames||[]).slice(-3);
