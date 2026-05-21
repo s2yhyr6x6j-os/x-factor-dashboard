@@ -868,7 +868,7 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 @media(max-width:768px){.roster-edit-modal{padding:0}.roster-edit-card{border-radius:0;min-height:100vh;width:100%!important;max-width:100%!important}}
 .roster-edit-modal.open{display:flex}
 .roster-edit-card{background:var(--bg1);border-radius:16px;width:480px;max-width:95vw;max-height:92vh;overflow-y:auto;margin:auto;display:flex;flex-direction:column;gap:10px;padding:12px}
-.re-modal-header{display:flex;align-items:center;gap:12px;padding:16px 20px;background:#101828;border:1px solid var(--border);border-radius:14px;position:relative}
+.re-modal-header{margin-bottom:0;background:#101828;border:1px solid var(--border);border-radius:14px;padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
 .re-modal-num{font-size:12px;font-weight:700;color:var(--sub);background:rgba(255,255,255,.08);border-radius:6px;padding:3px 8px;flex-shrink:0;font-family:var(--ff)}
 .re-modal-name{font-size:22px;font-weight:800;color:var(--hdr);line-height:1.1}
 .re-modal-meta{font-size:12px;color:var(--sub);margin-top:2px}
@@ -1591,17 +1591,14 @@ body.light-mode .re-pos{background:var(--bg1)}
   <div class="roster-edit-card">
     <!-- Header -->
     <div class="re-modal-header">
-      <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-          <div class="re-modal-num" id="re-hdr-num">1</div>
-          <div class="re-modal-name" id="re-hdr-name">Player</div>
-        </div>
-        <div class="re-modal-meta" id="re-hdr-meta">Age 12 · 85 pitch max</div>
+      <div class="pd-hero-left">
+        <div class="pd-player-name" id="re-hdr-name">Player</div>
+        <div class="pd-player-meta" id="re-hdr-meta">Age 12 · 85 pitch max</div>
         <div class="pd-pos-badges" id="re-hdr-pos-badges" style="margin-top:8px"></div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-        <button class="re-modal-close" onclick="closeRosterEdit()" style="margin-bottom:8px">✕</button>
-        <div id="re-hdr-stats" style="display:flex;gap:16px"></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+        <button class="re-modal-close" onclick="closeRosterEdit()">✕</button>
+        <div class="pd-hero-stats" id="re-hdr-stats"></div>
       </div>
     </div>
 
@@ -3359,25 +3356,25 @@ function openRosterEdit(name, event){
   document.getElementById('re-arm-str').value=ov.armStr||'';
   document.getElementById('re-arm-note').value=ov.armNote||'';
 
-  // Header
-  document.getElementById('re-hdr-num').textContent='#'+(ov.num||p.num||'?');
+  // Header - same layout as pd-hero
   document.getElementById('re-hdr-name').textContent=ov.displayName||p.name;
-  document.getElementById('re-hdr-meta').textContent='Age '+age+' · '+pitchMax(age)+' pitch max';
+  document.getElementById('re-hdr-meta').textContent='#'+(ov.num||p.num||'—')+' · Age '+age+' · '+pitchMax(age)+'P max';
 
-  // Hero stats in header
+  // Hero stats (right side) - same as pd-hero-stats
   var statsEl=document.getElementById('re-hdr-stats');
   if(statsEl){
+    var isP=p.pit&&p.pit.ip>0;
     var heroStats=[];
     if(p.ops>0) heroStats.push({val:p.ops.toFixed(3),lbl:'OPS',cls:statClass('ops',p.ops)});
-    if(p.avg>0) heroStats.push({val:p.avg.toFixed(3),lbl:'AVG',cls:statClass('avg',p.avg)});
-    if(p.pit&&p.pit.sp>0) heroStats.push({val:p.pit.sp.toFixed(1)+'%',lbl:'S%',cls:statClass('sp',p.pit.sp)});
+    heroStats.push({val:p.avg.toFixed(3),lbl:'AVG',cls:statClass('avg',p.avg)});
+    if(isP) heroStats.push({val:p.pit.sp.toFixed(1)+'%',lbl:'S%',cls:statClass('sp',p.pit.sp)});
     heroStats.push({val:p.gp,lbl:'games',cls:''});
     statsEl.innerHTML=heroStats.map(function(s){
-      return '<div style="text-align:center"><div style="font-size:18px;font-weight:800;color:'+(s.cls==='elite'?'var(--green)':s.cls==='warn'?'var(--amber)':s.cls==='urgent'?'#fb7185':'var(--hdr)')+'">'+s.val+'</div><div style="font-size:10px;color:var(--sub)">'+s.lbl+'</div></div>';
+      return '<div class="pd-hero-stat"><div class="pd-hero-stat-val '+s.cls+'">'+s.val+'</div><div class="pd-hero-stat-lbl">'+s.lbl+'</div></div>';
     }).join('');
   }
 
-  // Position badges in header
+  // Position badges
   var posBadgesEl=document.getElementById('re-hdr-pos-badges');
   if(posBadgesEl){
     var bh=buildPosBadges(ov,true);
