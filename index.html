@@ -557,8 +557,8 @@ body.light-mode .gl-boxscore{background:#fff;}
 .pp-avail-badge.ok{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
 .pp-avail-badge.rest{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
 .pp-resting-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);padding:10px 16px 6px;border-top:1px solid var(--border)}
-.pp-ranked-row{padding:14px 16px;border-bottom:1px solid rgba(51,65,85,.4)}
-.pp-ranked-row:last-child{border-bottom:none}
+.pp-ranked-row{padding:14px 16px;background:#101828;border:1px solid var(--border);border-radius:12px;margin-bottom:8px}
+.pp-ranked-row:last-child{margin-bottom:0}
 .pp-ranked-hdr{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .pp-rank-num{font-size:11px;font-weight:800;color:var(--sub);width:18px;flex-shrink:0}
 .pp-rank-num.top{color:var(--green)}
@@ -831,7 +831,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .met-lb-fill{height:100%;border-radius:3px;transition:width .4s ease}
 .met-lb-target-line{position:absolute;top:-3px;bottom:-3px;width:2px;background:#3b82f6;border-radius:1px}
 .met-section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:12px;margin-top:4px}
-#page-roster.page.active,#page-games.page.active, #page-rotation.page.active {width:60%;}
+#page-roster.page.active,#page-games.page.active,#page-rotation.page.active{width:75%;}
 .roster-page-hdr{margin-bottom:22px}
 button#gen-all-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:8px 14px;background:0;color:#f59e0b;border:1px solid #f59e0b;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;margin-top:4px;transition:all .18s}
 button#gen-all-btn:hover{background:#f59e0b;color:#fff}
@@ -2007,17 +2007,17 @@ body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
     Rotation
   </div>
   <div class="pit-page-sub" style="margin-bottom:20px">MLB Pitch Smart Guidelines · Ranked by S%, BB/INN, WHIP, FIP</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <button onclick="optimizeRotation()" style="font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer">🔄 Optimize Rotation</button>
+    <div id="rotation-last-optimized" style="font-size:11px;color:var(--sub)"></div>
+  </div>
   <div class="pp-card">
-    <div class="pp-hdr">
-      <div class="pp-title">⚾ Pitching Plan</div>
-      <div class="pp-sub">MLB Pitch Smart Guidelines</div>
-    </div>
     <div class="pp-relief-label">RECOMMENDED ROTATION</div>
     <div id="rotation-ranked-rows"></div>
     <div class="pp-relief-label" id="rotation-relief-label" class="svg-hidden">RELIEF PITCHERS</div>
     <div id="rotation-relief-rows"></div>
     <div style="font-size:10px;color:var(--sub);padding:10px 16px;border-top:1px solid var(--border)">
-      💡 Ranked by S% (weighted) · BB/INN · WHIP · FIP · Trend
+      💡 Ranked by S% (weighted) · BB/INN · WHIP · FIP
     </div>
   </div>
 </div>
@@ -5028,6 +5028,28 @@ function generateAllInsights(){
   processNext();
 }
 
+
+var _rotLastOptimized=localStorage.getItem('sba_rot_optimized')||null;
+
+function optimizeRotation(){
+  renderRotationPage();
+  _rotLastOptimized=new Date().toISOString();
+  try{localStorage.setItem('sba_rot_optimized',_rotLastOptimized);}catch(e){}
+  var el=document.getElementById('rotation-last-optimized');
+  if(el) el.textContent='Last Optimized: '+formatOptimizedTime(_rotLastOptimized);
+}
+
+function formatOptimizedTime(iso){
+  if(!iso) return '';
+  var d=new Date(iso);
+  var now=new Date();
+  var diff=Math.floor((now-d)/60000);
+  if(diff<1) return 'Just now';
+  if(diff<60) return diff+'m ago';
+  if(diff<1440) return Math.floor(diff/60)+'h ago';
+  return (d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2);
+}
+
 function renderRotationPage(){
   // Swap element IDs so renderPitchingPlan targets the rotation page
   var origRanked=document.getElementById('pp-ranked-rows');
@@ -6359,7 +6381,7 @@ function goPage(id,btn){
   if(btn)btn.classList.add('active');
   closeMobileSidebar();
   if(id==='metrics')renderMetrics();
-  if(id==='rotation')renderRotationPage();
+  if(id==='rotation'){renderRotationPage();var rlo=document.getElementById('rotation-last-optimized');if(rlo)rlo.textContent=_rotLastOptimized?'Last Optimized: '+formatOptimizedTime(_rotLastOptimized):'';}
   setTimeout(function(){if(spChartObj)spChartObj.resize();if(batTrendChartObj)batTrendChartObj.resize();},60);
 }
 
