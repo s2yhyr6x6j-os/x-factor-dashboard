@@ -1592,13 +1592,13 @@ body.light-mode .re-pos{background:var(--bg1)}
   <div class="roster-edit-card">
     <!-- Header -->
     <div class="re-modal-header">
-      <div class="pd-hero-left">
-        <div class="pd-player-name" id="re-hdr-name">—</div>
-        <div class="pd-player-meta" id="re-hdr-meta">—</div>
-        <div class="pd-pos-badges" id="re-hdr-pos-badges"></div>
+      <button class="re-modal-close" onclick="closeRosterEdit()" style="position:absolute;top:12px;right:14px;z-index:1">✕</button>
+      <div style="width:100%">
+        <div class="pd-player-name" id="re-hdr-name" style="padding-right:32px">—</div>
+        <div class="pd-player-meta" id="re-hdr-meta" style="margin-top:4px">—</div>
+        <div class="pd-pos-badges" id="re-hdr-pos-badges" style="margin-top:8px"></div>
+        <div class="pd-hero-stats" id="re-hdr-stats" style="margin-top:12px;justify-content:flex-start"></div>
       </div>
-      <div class="pd-hero-stats" id="re-hdr-stats"></div>
-      <button class="re-modal-close" onclick="closeRosterEdit()" style="position:absolute;top:12px;right:12px">✕</button>
     </div>
 
     <div class="re-modal-body">
