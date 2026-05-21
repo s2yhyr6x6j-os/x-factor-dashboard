@@ -890,6 +890,8 @@ body.light-mode .re-modal-header, body.light-mode .re-modal-body {background: #e
 .re-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;border:1.5px solid var(--border);color:var(--sub);background:#030712;}
 .re-tag:hover{border-color:var(--sub);color:var(--hdr)}
 .re-tag.active-auto{background:rgba(34,197,94,.12);border-color:var(--green);color:var(--green)}
+.lu-tag.auto{border-style:dashed}
+.lu-tag.coach{border-style:solid}
 .re-tag.active-manual{background:rgba(59,130,246,.12);border-color:var(--blue);color:#93c5fd}
 .re-tag.suppressed{text-decoration:line-through;opacity:.45}
 .re-tag .tag-remove{font-size:13px;line-height:1;opacity:.7}
@@ -3280,7 +3282,7 @@ function renderRoster(){
 // ── ROSTER EDIT MODAL ──
 var PITCH_SMART={7:50,8:50,9:75,10:75,11:85,12:85,13:95,14:95,15:95,16:95,17:105,18:105};
 var BATTING_TAGS=['Elite OBP','High OBP','Low OBP','Power bat','Plate discipline','Free swinger','Speed threat','Hot bat','Slumping','Clutch'];
-var PITCHING_TAGS=['Arm soreness','Command pitcher','Power pitcher','Finesse pitcher','Closer','Starter'];
+var PITCHING_TAGS=['Arm soreness','Power pitcher'];
 var GENERAL_TAGS=['Developing','Leader','Captain'];
 var POSITIONS=['P','C','1B','2B','3B','SS','LF','CF','RF'];
 var POS_CYCLE=['','primary','canplay','learning','never'];
@@ -4306,25 +4308,51 @@ function autoLineup(){
 
 function getPlayerTags(p){
   var tags=[];
-  // OBP tags
-  if(p.obp>=0.501) tags.push({label:'Elite OBP',cls:'elite-obp'});
-  else if(p.obp>=0.400) tags.push({label:'High OBP',cls:'high-obp'});
-  else if(p.obp<0.300) tags.push({label:'Low OBP',cls:'low-obp'});
-  // Power
-  if(p.hr>=2||p.slg>=0.500) tags.push({label:'Power bat',cls:'power-bat'});
-  // Plate discipline
-  if(p.bb>=8||(p.bb>0&&p.so>0&&p.bb/p.so>=0.75)) tags.push({label:'Plate discipline',cls:'plate-disc'});
-  // Free swinger
-  if(p.so>0&&p.bb>0&&p.bb/p.so<0.4) tags.push({label:'Free swinger',cls:'free-swinger'});
-  // Hot/Slumping
+  var players=getPlayers();
+  var teamOBP=players.length?players.reduce(function(s,x){return s+x.obp;},0)/players.length:0.35;
+  var OBP_TARGET=Math.max(teamOBP,0.400);
+
+  // OBP tags — must be above meaningful thresholds
+  if(p.obp>=0.501) tags.push({label:'Elite OBP',cls:'elite-obp',auto:true});
+  else if(p.obp>=OBP_TARGET) tags.push({label:'High OBP',cls:'high-obp',auto:true});
+  else if(p.obp<0.300&&p.ab>=10) tags.push({label:'Low OBP',cls:'low-obp',auto:true});
+
+  // Power — HR or high SLG
+  if(p.hr>=2||p.slg>=0.550) tags.push({label:'Power bat',cls:'power-bat',auto:true});
+
+  // Plate discipline — requires BOTH good BB/K AND QAB% above target
+  var teamQAB=players.length?players.reduce(function(s,x){return s+x.qab_pct;},0)/players.length:60;
+  var bbk=p.so>0?p.bb/p.so:0;
+  if(bbk>=0.75&&p.qab_pct>=teamQAB) tags.push({label:'Plate discipline',cls:'plate-disc',auto:true});
+
+  // Free swinger — high K, low BB
+  if(p.so>=8&&(p.so>0&&p.bb/p.so<0.30)) tags.push({label:'Free swinger',cls:'free-swinger',auto:true});
+
+  // Hot bat — recent AVG trend up meaningfully (not walks-based)
   var t=p.trend||0;
-  if(t>0.08) tags.push({label:'Hot bat',cls:'hot-bat'});
-  else if(t<-0.1&&p.ab>=15) tags.push({label:'Slumping',cls:'slumping'});
-  // Pitcher tags from roster overrides
+  if(t>0.050&&p.ab>=10) tags.push({label:'Hot bat',cls:'hot-bat',auto:true});
+  else if(t<-0.08&&p.ab>=15) tags.push({label:'Slumping',cls:'slumping',auto:true});
+
+  // Speed threat — SB attempts
+  if((p.sb||0)+(p.cs||0)>=3) tags.push({label:'Speed threat',cls:'speed-threat',auto:true});
+
+  // Pitcher auto tags — only Power pitcher if IP qualifies AND S% above target
   var ov=rosterOverrides[p.name]||{};
-  if(ov.armStr==='Strong arm') tags.push({label:'Strong arm',cls:'strong-arm'});
-  if(p.pit&&p.pit.ip>=4) tags.push({label:'Power pitcher',cls:'power-pitcher'});
-  if(ov.tags&&ov.tags.general&&ov.tags.general.indexOf('Leader')>=0) tags.push({label:'Leader',cls:'leader'});
+  if(p.pit&&p.pit.ip>=4&&p.pit.sp>=65) tags.push({label:'Power pitcher',cls:'power-pitcher',auto:true});
+
+  // Coach-added tags from rosterOverrides
+  if(ov.tags){
+    var coachTags=[];
+    if(ov.tags.batting) coachTags=coachTags.concat(ov.tags.batting);
+    if(ov.tags.pitching) coachTags=coachTags.concat(ov.tags.pitching);
+    if(ov.tags.general) coachTags=coachTags.concat(ov.tags.general);
+    coachTags.forEach(function(t){
+      // Don't duplicate auto tags
+      if(!tags.find(function(x){return x.label===t;}))
+        tags.push({label:t,cls:t.toLowerCase().replace(/\s+/g,'-'),auto:false});
+    });
+  }
+
   return tags;
 }
 
@@ -4388,7 +4416,7 @@ function renderLineup(){
     var roleHtml=role?'<span class="lu-role">'+role+'</span>':'';
 
     var tagsHtml=lineupShowNotes&&tags.length
-      ?'<div class="lu-tags">'+tags.map(function(t){return '<span class="lu-tag '+t.cls+'">'+t.label+'</span>';}).join('')+'</div>':'';
+      ?'<div class="lu-tags">'+tags.map(function(t){return '<span class="lu-tag '+t.cls+' '+(t.auto?'auto':'coach')+'">'+t.label+'</span>';}).join('')+'</div>':'';
 
     return '<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)">'
       +'<div class="lu-slot-num">'+(i+1)+'</div>'
