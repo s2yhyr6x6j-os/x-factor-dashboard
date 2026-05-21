@@ -1203,6 +1203,10 @@ body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
 .sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
 .sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#101828}
 .sc-inner-card{background:#101828;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
+
+body.light-mode #page-rotation .pp-card{background:none;border:none;box-shadow:none}
+body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#page-rotation .pp-card{background:none;border:none}
 </style>
 </head>
 <body>
@@ -2008,7 +2012,7 @@ body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
   </div>
   <div class="pit-page-sub" style="margin-bottom:20px">MLB Pitch Smart Guidelines · Ranked by S%, BB/INN, WHIP, FIP</div>
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-    <button onclick="optimizeRotation()" style="font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer">🔄 Optimize Rotation</button>
+    <button onclick="optimizeRotation()" style="font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:#7c3aed;color:#fff;border:none;border-radius:8px;cursor:pointer">🪄 Optimize Rotation</button>
     <div id="rotation-last-optimized" style="font-size:11px;color:var(--sub)"></div>
   </div>
   <div class="pp-card">
@@ -5036,18 +5040,26 @@ function optimizeRotation(){
   _rotLastOptimized=new Date().toISOString();
   try{localStorage.setItem('sba_rot_optimized',_rotLastOptimized);}catch(e){}
   var el=document.getElementById('rotation-last-optimized');
-  if(el) el.textContent='Last Optimized: '+formatOptimizedTime(_rotLastOptimized);
+  if(el){if(getRotationStale()){el.innerHTML='Last Optimized: '+formatOptimizedTime(_rotLastOptimized)+' &nbsp;<span style="color:#f59e0b;font-weight:700">⚠ Optimization recommended</span>';}else{el.textContent='Last Optimized: '+formatOptimizedTime(_rotLastOptimized);}}
 }
 
 function formatOptimizedTime(iso){
   if(!iso) return '';
   var d=new Date(iso);
   var now=new Date();
-  var diff=Math.floor((now-d)/60000);
-  if(diff<1) return 'Just now';
-  if(diff<60) return diff+'m ago';
-  if(diff<1440) return Math.floor(diff/60)+'h ago';
-  return (d.getMonth()+1)+'/'+d.getDate()+'/'+String(d.getFullYear()).slice(2);
+  var diffDays=Math.floor((now-d)/(1000*60*60*24));
+  var diffMins=Math.floor((now-d)/60000);
+  if(diffMins<1) return 'Just now';
+  if(diffMins<60) return diffMins+'m ago';
+  if(diffDays<1) return 'Today';
+  if(diffDays===1) return '1 day ago';
+  return diffDays+' days ago';
+}
+
+function getRotationStale(){
+  if(!_rotLastOptimized) return true;
+  var diff=Math.floor((new Date()-new Date(_rotLastOptimized))/(1000*60*60*24));
+  return diff>=7;
 }
 
 function renderRotationPage(){
@@ -6381,7 +6393,7 @@ function goPage(id,btn){
   if(btn)btn.classList.add('active');
   closeMobileSidebar();
   if(id==='metrics')renderMetrics();
-  if(id==='rotation'){renderRotationPage();var rlo=document.getElementById('rotation-last-optimized');if(rlo)rlo.textContent=_rotLastOptimized?'Last Optimized: '+formatOptimizedTime(_rotLastOptimized):'';}
+  if(id==='rotation'){renderRotationPage();var rlo=document.getElementById('rotation-last-optimized');if(rlo){if(!_rotLastOptimized){rlo.textContent='';}else if(getRotationStale()){rlo.innerHTML='Last Optimized: '+formatOptimizedTime(_rotLastOptimized)+' &nbsp;<span style="color:#f59e0b;font-weight:700">⚠ Optimization recommended</span>';}else{rlo.textContent='Last Optimized: '+formatOptimizedTime(_rotLastOptimized);}}}
   setTimeout(function(){if(spChartObj)spChartObj.resize();if(batTrendChartObj)batTrendChartObj.resize();},60);
 }
 
