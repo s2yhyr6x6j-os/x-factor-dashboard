@@ -869,6 +869,7 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 .roster-edit-modal.open{display:flex}
 .roster-edit-card{background:var(--bg1);border-radius:16px;width:480px;max-width:95vw;max-height:92vh;overflow-y:auto;margin:auto;display:flex;flex-direction:column;gap:10px;padding:12px}
 .re-modal-header{margin-bottom:0;background:#101828;border:1px solid var(--border);border-radius:14px;padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.re-modal-header .pd-hero-left{flex:1;min-width:0}
 .re-modal-num{font-size:12px;font-weight:700;color:var(--sub);background:rgba(255,255,255,.08);border-radius:6px;padding:3px 8px;flex-shrink:0;font-family:var(--ff)}
 .re-modal-name{font-size:22px;font-weight:800;color:var(--hdr);line-height:1.1}
 .re-modal-meta{font-size:12px;color:var(--sub);margin-top:2px}
@@ -1596,7 +1597,7 @@ body.light-mode .re-pos{background:var(--bg1)}
         <div class="pd-player-meta" id="re-hdr-meta">Age 12 · 85 pitch max</div>
         <div class="pd-pos-badges" id="re-hdr-pos-badges" style="margin-top:8px"></div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;min-height:60px">
         <button class="re-modal-close" onclick="closeRosterEdit()">✕</button>
         <div class="pd-hero-stats" id="re-hdr-stats"></div>
       </div>
