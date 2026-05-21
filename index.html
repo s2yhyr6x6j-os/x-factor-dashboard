@@ -3369,7 +3369,8 @@ function openRosterEdit(name, event){
     if(isP) heroStats.push({val:p.pit.sp.toFixed(1)+'%',lbl:'S%',cls:statClass('sp',p.pit.sp)});
     heroStats.push({val:p.gp,lbl:'games',cls:''});
     statsEl.innerHTML=heroStats.map(function(s){
-      return '<div class="pd-hero-stat"><div class="pd-hero-stat-val '+s.cls+'">'+s.val+'</div><div class="pd-hero-stat-lbl">'+s.lbl+'</div></div>';
+      var color=s.cls==='elite'?'var(--purple)':s.cls==='good'?'var(--green)':s.cls==='warn'?'var(--amber)':s.cls==='urgent'?'var(--red)':'var(--hdr)';
+      return '<div class="pd-hero-stat"><div class="pd-hero-stat-val" style="color:'+color+'">'+s.val+'</div><div class="pd-hero-stat-lbl">'+s.lbl+'</div></div>';
     }).join('');
   }
 
