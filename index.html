@@ -1209,6 +1209,37 @@ body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
 body.light-mode #page-rotation .pp-card{background:none;border:none;box-shadow:none}
 body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.12)}
 #page-rotation .pp-card{background:none;border:none}
+
+/* ── X-FACTOR ── */
+.xf-score-display{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.xf-score-badge{font-size:28px;font-weight:800;color:#a855f7;line-height:1}
+.xf-score-label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em}
+.xf-score-tier{font-size:12px;font-weight:700}
+.xf-category{margin-bottom:14px}
+.xf-cat-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.xf-cat-label{font-size:12px;font-weight:700;color:var(--hdr)}
+.xf-cat-score{font-size:12px;font-weight:700;color:#a855f7}
+.xf-stars{display:flex;gap:4px;margin-bottom:6px}
+.xf-star{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:rgba(255,255,255,.04);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.xf-star.active{background:rgba(168,85,247,.15);border-color:#a855f7}
+.xf-star:hover{border-color:#a855f7;background:rgba(168,85,247,.1)}
+.xf-note{width:100%;font-family:var(--ff);font-size:12px;padding:7px 10px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;color:var(--hdr);resize:none;outline:none;box-sizing:border-box}
+.xf-note:focus{border-color:#a855f7}
+.xf-not-assessed{font-size:12px;color:var(--sub);font-style:italic}
+/* PD X-Factor section */
+.xf-pd-score{font-size:32px;font-weight:800;color:#a855f7;line-height:1}
+.xf-pd-tier{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.xf-pd-cat{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.xf-pd-cat:last-child{border-bottom:none}
+.xf-pd-cat-name{font-size:13px;color:var(--hdr);font-weight:600}
+.xf-pd-cat-note{font-size:11px;color:var(--sub);margin-top:2px}
+.xf-pd-cat-score{font-size:14px;font-weight:800;color:#a855f7}
+.xf-pd-stars{display:flex;gap:3px;margin-top:4px}
+.xf-pd-star{width:10px;height:10px;border-radius:2px;background:rgba(168,85,247,.2)}
+.xf-pd-star.filled{background:#a855f7}
+/* Edit modal */
+.re-xf-section{margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
+.re-xf-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -2521,6 +2552,19 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
   </div>
 
   <div style="height:40px"></div>
+  <!-- X-Factor Section -->
+  <div class="pd-section" id="pd-sec-xfactor">
+    <div class="pd-sec-hdr" onclick="togglePdSection('pd-sec-xfactor')">
+      <div>
+        <div class="pd-sec-title">⚡ X-Factor</div>
+        <div class="pd-sec-sub" id="pd-xf-sub">Coach assessment</div>
+      </div>
+      <span class="pd-sec-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
+    </div>
+    <div class="pd-sec-body" id="pd-xf-body">
+      <div id="pd-xf-content"></div>
+    </div>
+  </div>
   </div><!-- /pd-inner -->
 </div>
 
@@ -3395,6 +3439,7 @@ function openRosterEdit(name, event){
   rePositions=Object.assign({},ov.positions||{});
   reTags={batting:[].concat(ov.tags&&ov.tags.batting||[]),pitching:[].concat(ov.tags&&ov.tags.pitching||[]),general:[].concat(ov.tags&&ov.tags.general||[])};
   reArmHealth=ov.armHealth||'healthy';
+  initXFEditor(ov);
 
   renderPosGrid();
   renderTags('re-tags-batting',BATTING_TAGS,reTags.batting,'batting');
@@ -3417,6 +3462,7 @@ function saveRosterEdit(){
   var first=document.getElementById('re-first').value.trim();
   var last=document.getElementById('re-last').value.trim();
   var displayName=(first+' '+last).trim()||rosterEditTarget;
+  var xfData=getXFFromEditor();
   rosterOverrides[rosterEditTarget]={
     displayName:displayName,
     num:document.getElementById('re-num').value.trim(),
@@ -5392,6 +5438,101 @@ function kvLoad(callback){
     }catch(e){console.error('KV load error',e);}
     callback();
   }).catch(function(){callback();});
+}
+
+
+// ── X-FACTOR ──
+var XF_CATS=['mindset','iq','passion'];
+var XF_LABELS={mindset:'Mindset',iq:'Baseball IQ',passion:'Passion'};
+var XF_TIERS=['','Low X-Factor','Low X-Factor','Average','Average','Average','High X-Factor','High X-Factor','High X-Factor','Elite X-Factor','Elite X-Factor ⚡'];
+var _reXF={mindset:0,iq:0,passion:0,mindsetNote:'',iqNote:'',passionNote:''};
+
+function calcXFScore(xf){
+  if(!xf||(!xf.mindset&&!xf.iq&&!xf.passion)) return 0;
+  var total=(xf.mindset||0)+(xf.iq||0)+(xf.passion||0);
+  return Math.round((total-3)/12*10);
+}
+
+function renderXFStars(cat, val){
+  var container=document.getElementById('re-xf-'+cat+'-stars');
+  if(!container) return;
+  container.innerHTML=[1,2,3,4,5].map(function(n){
+    var cls=val>=n?' active':'';
+    return '<div class="xf-star'+cls+'" onclick="setXFScore(\"'+cat+'\",'+n+')" title="'+n+'/5">'+(val>=n?'⚡':'·')+'</div>';
+  }).join('');
+  var scoreEl=document.getElementById('re-xf-'+cat+'-score');
+  if(scoreEl) scoreEl.textContent=val?val+'/5':'—';
+}
+
+function setXFScore(cat, val){
+  _reXF[cat]=val;
+  renderXFStars(cat, val);
+}
+
+function initXFEditor(ov){
+  var xf=ov.xfactor||{};
+  _reXF={
+    mindset:xf.mindset||0, iq:xf.iq||0, passion:xf.passion||0,
+    mindsetNote:xf.mindsetNote||'', iqNote:xf.iqNote||'', passionNote:xf.passionNote||''
+  };
+  XF_CATS.forEach(function(cat){renderXFStars(cat,_reXF[cat]);});
+  var mn=document.getElementById('re-xf-mindset-note');
+  var iqn=document.getElementById('re-xf-iq-note');
+  var pn=document.getElementById('re-xf-passion-note');
+  if(mn) mn.value=_reXF.mindsetNote;
+  if(iqn) iqn.value=_reXF.iqNote;
+  if(pn) pn.value=_reXF.passionNote;
+}
+
+function getXFFromEditor(){
+  return {
+    mindset:_reXF.mindset, iq:_reXF.iq, passion:_reXF.passion,
+    mindsetNote:document.getElementById('re-xf-mindset-note').value.trim(),
+    iqNote:document.getElementById('re-xf-iq-note').value.trim(),
+    passionNote:document.getElementById('re-xf-passion-note').value.trim()
+  };
+}
+
+function buildPdXFSection(p){
+  var ov=rosterOverrides[p.name]||{};
+  var xf=ov.xfactor||{};
+  var score=calcXFScore(xf);
+  var subEl=document.getElementById('pd-xf-sub');
+  var content=document.getElementById('pd-xf-content');
+  if(!content) return;
+
+  if(!xf.mindset&&!xf.iq&&!xf.passion){
+    if(subEl) subEl.textContent='Not yet assessed';
+    content.innerHTML='<div class="xf-not-assessed" style="padding:12px 18px">X-Factor has not been assessed for this player yet.</div>';
+    return;
+  }
+
+  if(subEl) subEl.textContent=score+'/10 · '+(XF_TIERS[score]||'');
+
+  var cats=[
+    {key:'mindset',label:'Mindset',note:xf.mindsetNote},
+    {key:'iq',label:'Baseball IQ',note:xf.iqNote},
+    {key:'passion',label:'Passion',note:xf.passionNote}
+  ];
+
+  content.innerHTML='<div style="padding:4px 18px 12px">'
+    +'<div class="xf-score-display" style="padding:12px 0 8px;border-bottom:1px solid var(--border);margin-bottom:12px">'
+      +'<div><div class="xf-pd-score">'+score+'<span style="font-size:16px;color:var(--sub)">/10</span></div>'
+      +'<div class="xf-pd-tier" style="color:#a855f7">'+XF_TIERS[score]+'</div></div>'
+    +'</div>'
+    +cats.map(function(cat){
+      var val=xf[cat.key]||0;
+      var stars=[1,2,3,4,5].map(function(n){
+        return '<div class="xf-pd-star'+(val>=n?' filled':'')+'"></div>';
+      }).join('');
+      return '<div class="xf-pd-cat">'
+        +'<div><div class="xf-pd-cat-name">'+cat.label+'</div>'
+        +(cat.note?'<div class="xf-pd-cat-note">'+cat.note+'</div>':'')
+        +'<div class="xf-pd-stars" style="margin-top:5px">'+stars+'</div></div>'
+        +'<div class="xf-pd-cat-score">'+val+'/5</div>'
+        +'</div>';
+    }).join('')
+    +'</div>';
 }
 
 function renderOptRecs(){}
