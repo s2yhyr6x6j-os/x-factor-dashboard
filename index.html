@@ -3541,19 +3541,19 @@ function renderHittingPage(){
     var roeVal=p.roe!=null?p.roe:'—';
 
     var detailStats=[
-      {lbl:'OPS',    val:p.ops.toFixed(3),       sub:'overall value'},
-      {lbl:'OBP',    val:p.obp.toFixed(3),        sub:'get on base'},
-      {lbl:'Contact%',val:conVal,                  sub:'ball in play'},
-      {lbl:'LD%',    val:ldVal,                    sub:'line drives'},
-      {lbl:'HHB',    val:hhbVal,                   sub:'hard hits'},
-      {lbl:'FB%',    val:fbVal,                    sub:'fly balls ÷ better'},
-      {lbl:'BB/K',   val:bbkVal,                   sub:'discipline'},
-      {lbl:'AVG',    val:p.avg.toFixed(3),         sub:'batting avg'},
-      {lbl:'P/PA',   val:ppa,                      sub:'pitches seen'},
-      {lbl:'H',      val:p.h,                      sub:'hits'},
-      {lbl:'K',      val:p.so,                     sub:'strikeouts'},
+      {lbl:'OPS',    val:p.ops.toFixed(3),       sub:'OBP + Slugging'},
+      {lbl:'OBP',    val:p.obp.toFixed(3),        sub:'On Base %'},
+      {lbl:'Contact%',val:conVal,                  sub:'% Ball in Play'},
+      {lbl:'LD%',    val:ldVal,                    sub:'% Line Drives'},
+      {lbl:'HHB',    val:hhbVal,                   sub:'% Hard Contact'},
+      {lbl:'FB%',    val:fbVal,                    sub:'% Fly Balls'},
+      {lbl:'BB/K',   val:bbkVal,                   sub:'Plate Discipline'},
+      {lbl:'AVG',    val:p.avg.toFixed(3),         sub:'Batting Average'},
+      {lbl:'P/PA',   val:ppa,                      sub:'Pitches Seen'},
+      {lbl:'H',      val:p.h,                      sub:'Hits'},
+      {lbl:'K',      val:p.so,                     sub:'Strikeouts'},
       {lbl:'K%',     val:kpct,                     sub:'K per PA'},
-      {lbl:'ROE',    val:roeVal,                   sub:'reach on error'},
+      {lbl:'ROE',    val:roeVal,                   sub:'Reached on Error'},
     ];
 
     return '<div class="bat-lb-row" id="'+rowId+'" onclick="toggleBatLbRow(\''+rowId+'\')">'
