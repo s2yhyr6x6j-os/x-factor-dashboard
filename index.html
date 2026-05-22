@@ -5477,10 +5477,15 @@ function calcXFScore(xf){
 function renderXFStars(cat, val){
   var container=document.getElementById('re-xf-'+cat+'-stars');
   if(!container) return;
-  container.innerHTML=[1,2,3,4,5].map(function(n){
+  var html='';
+  for(var n=1;n<=5;n++){
     var cls=val>=n?' active':'';
-    return '<div class="xf-star'+cls+'" onclick="setXFScore(\"'+cat+'\",'+n+')" title="'+n+'/5">'+(val>=n?'⚡':'·')+'</div>';
-  }).join('');
+    html+='<div class="xf-star'+cls+'" data-cat="'+cat+'" data-val="'+n+'" title="'+n+'/5">'+(val>=n?'⚡':'·')+'</div>';
+  }
+  container.innerHTML=html;
+  container.querySelectorAll('.xf-star').forEach(function(el){
+    el.onclick=function(){setXFScore(this.dataset.cat,parseInt(this.dataset.val));};
+  });
   var scoreEl=document.getElementById('re-xf-'+cat+'-score');
   if(scoreEl) scoreEl.textContent=val?val+'/5':'—';
 }
