@@ -2436,8 +2436,8 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
       </div>
       <div style="display:flex;align-items:center;gap:12px">
         <div id="pd-xf-score-inline" style="text-align:right">
-          <div class="xf-pd-score" style="font-size:22px"></div>
-          <div class="xf-pd-tier" style="color:#a855f7;font-size:10px"></div>
+          <div class="xf-pd-score"></div>
+          <div class="xf-pd-tier" style="color:#a855f7"></div>
         </div>
         <span class="pd-sec-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
       </div>
@@ -3494,6 +3494,7 @@ function closeRosterEdit(){
   document.getElementById('roster-edit-modal').classList.remove('open');
   document.body.style.overflow='';
   rosterEditTarget=null;
+  _reXF={mindset:0,iq:0,passion:0,mindsetNote:'',iqNote:'',passionNote:''};
 }
 
 function saveRosterEdit(){
@@ -6053,6 +6054,7 @@ function openPlayer(name){
     buildPdQab(p);
     buildPdNotes(name);
     buildInsights(p);
+    buildPdXFSection(p);
     // Resize all charts after paint
     setTimeout(function(){
       Object.values(_pdCharts).forEach(function(ch){if(ch)ch.resize();});
