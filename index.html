@@ -2428,6 +2428,22 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
     </div>
   </div>
 
+  <!-- X-Factor Section -->
+  <div class="pd-section collapsed" id="pd-sec-xfactor">
+    <div class="pd-sec-hdr" onclick="togglePdSection('pd-sec-xfactor')">
+      <div>
+        <div class="pd-sec-title">⚡ X-Factor</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="pd-xf-score-inline" style="font-size:13px;font-weight:700;color:#a855f7"></span>
+        <span class="pd-sec-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
+      </div>
+    </div>
+    <div class="pd-sec-body">
+      <div id="pd-xf-content"></div>
+    </div>
+  </div>
+
   <!-- Strike % Trend (pitchers) -->
   <div class="pd-section" id="pd-sec-sp" class="svg-hidden">
     <div class="pd-sec-hdr" onclick="togglePdSection('pd-sec-sp')">
@@ -2585,19 +2601,6 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
   </div>
 
   <div style="height:40px"></div>
-  <!-- X-Factor Section -->
-  <div class="pd-section" id="pd-sec-xfactor">
-    <div class="pd-sec-hdr" onclick="togglePdSection('pd-sec-xfactor')">
-      <div>
-        <div class="pd-sec-title">⚡ X-Factor</div>
-        <div class="pd-sec-sub" id="pd-xf-sub">Coach assessment</div>
-      </div>
-      <span class="pd-sec-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
-    </div>
-    <div class="pd-sec-body" id="pd-xf-body">
-      <div id="pd-xf-content"></div>
-    </div>
-  </div>
   </div><!-- /pd-inner -->
 </div>
 
@@ -5562,13 +5565,13 @@ function buildPdXFSection(p){
   var content=document.getElementById('pd-xf-content');
   if(!content) return;
 
+  var inlineEl=document.getElementById('pd-xf-score-inline');
   if(!xf.mindset&&!xf.iq&&!xf.passion){
-    if(subEl) subEl.textContent='Not yet assessed';
+    if(inlineEl) inlineEl.textContent='Not assessed';
     content.innerHTML='<div class="xf-not-assessed" style="padding:12px 18px">X-Factor has not been assessed for this player yet.</div>';
     return;
   }
-
-  if(subEl) subEl.textContent=score+'/10 · '+(XF_TIERS[score]||'');
+  if(inlineEl) inlineEl.textContent=score+'/10 · '+(XF_TIERS[score]||'');
 
   var cats=[
     {key:'mindset',label:'Mindset',note:xf.mindsetNote},
@@ -5577,10 +5580,6 @@ function buildPdXFSection(p){
   ];
 
   content.innerHTML='<div style="padding:4px 18px 12px">'
-    +'<div class="xf-score-display" style="padding:12px 0 8px;border-bottom:1px solid var(--border);margin-bottom:12px">'
-      +'<div><div class="xf-pd-score">'+score+'<span style="font-size:16px;color:var(--sub)">/10</span></div>'
-      +'<div class="xf-pd-tier" style="color:#a855f7">'+XF_TIERS[score]+'</div></div>'
-    +'</div>'
     +cats.map(function(cat){
       var val=xf[cat.key]||0;
       var stars=[1,2,3,4,5].map(function(n){
