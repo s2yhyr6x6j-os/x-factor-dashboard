@@ -1709,24 +1709,24 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
       </div>
 
       <!-- X-Factor Assessment -->
-      <div class="re-xf-section">
+      <div class="re-xf-section" style="background:#0a1120;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0">
         <div class="re-xf-title">⚡ X-Factor Assessment</div>
         <div class="xf-category">
-          <div class="xf-cat-hdr"><span class="xf-cat-label">Mindset</span><span class="xf-cat-score" id="re-xf-mindset-score">—</span></div>
+          <div class="xf-cat-hdr"><span class="xf-cat-label">Mindset</span><div style="display:flex;align-items:center;gap:8px"><span class="xf-cat-score" id="re-xf-mindset-score">—</span><button onclick="clearXFScore('mindset')" style="font-size:10px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0">✕ Clear</button></div></div>
           <div class="xf-stars" id="re-xf-mindset-stars"></div>
           <textarea class="xf-note" id="re-xf-mindset-note" rows="2" placeholder="Focus, composure, maturity notes..."></textarea>
         </div>
         <div class="xf-category">
-          <div class="xf-cat-hdr"><span class="xf-cat-label">Baseball IQ</span><span class="xf-cat-score" id="re-xf-iq-score">—</span></div>
+          <div class="xf-cat-hdr"><span class="xf-cat-label">Baseball IQ</span><div style="display:flex;align-items:center;gap:8px"><span class="xf-cat-score" id="re-xf-iq-score">—</span><button onclick="clearXFScore('iq')" style="font-size:10px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0">✕ Clear</button></div></div>
           <div class="xf-stars" id="re-xf-iq-stars"></div>
           <textarea class="xf-note" id="re-xf-iq-note" rows="2" placeholder="Instincts, positioning, anticipation notes..."></textarea>
         </div>
         <div class="xf-category">
-          <div class="xf-cat-hdr"><span class="xf-cat-label">Passion</span><span class="xf-cat-score" id="re-xf-passion-score">—</span></div>
+          <div class="xf-cat-hdr"><span class="xf-cat-label">Passion</span><div style="display:flex;align-items:center;gap:8px"><span class="xf-cat-score" id="re-xf-passion-score">—</span><button onclick="clearXFScore('passion')" style="font-size:10px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0">✕ Clear</button></div></div>
           <div class="xf-stars" id="re-xf-passion-stars"></div>
           <textarea class="xf-note" id="re-xf-passion-note" rows="2" placeholder="Effort, enthusiasm, extra work notes..."></textarea>
         </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px">1 = Low · 3 = Average · 5 = Elite</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:8px">1 = Low · 3 = Average · 5 = Elite</div>
       </div>
 
       <!-- Arm Health -->
@@ -5488,6 +5488,11 @@ function renderXFStars(cat, val){
   });
   var scoreEl=document.getElementById('re-xf-'+cat+'-score');
   if(scoreEl) scoreEl.textContent=val?val+'/5':'—';
+}
+
+function clearXFScore(cat){
+  _reXF[cat]=0;
+  renderXFStars(cat,0);
 }
 
 function setXFScore(cat, val){
