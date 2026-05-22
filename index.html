@@ -1248,6 +1248,14 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
 .ics-status-card.success .ics-status-hdr{color:#4ade80}
 .ics-status-card.error .ics-status-hdr{color:#fb7185}
 .ics-status-detail{font-size:13px;color:var(--sub);display:flex;align-items:center;gap:6px}
+
+/* ── INSIGHTS PROGRESS BAR ── */
+.gen-progress-bar{display:none;background:#1a1033;border:1px solid #7c3aed;border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.gen-progress-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.gen-progress-title{font-size:13px;font-weight:700;color:#a855f7;display:flex;align-items:center;gap:6px}
+.gen-progress-batch{font-size:12px;color:var(--sub)}
+.gen-progress-track{height:6px;background:rgba(168,85,247,.2);border-radius:4px;overflow:hidden}
+.gen-progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:4px;transition:width .3s ease;width:0%}
 </style>
 </head>
 <body>
@@ -1520,10 +1528,17 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
       </div>
       <div class="roster-page-sub">Tap <span>✏️</span> to edit name, jersey number, or league age</div>
     </div>
-    <button id="gen-all-btn" onclick="generateAllInsights()" Title="Generate X-Factor Insights for All Players (~5 min)">
+    <button id="gen-all-btn" onclick="generateAllInsights()" title="Generate Coaching Insights for All Players (~5 min)" style="background:#7c3aed;color:#fff;border-color:#7c3aed">
       <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       Generate All Insights
     </button>
+  </div>
+  <div class="gen-progress-bar" id="gen-progress-bar">
+    <div class="gen-progress-hdr">
+      <div class="gen-progress-title">✨ <span id="gen-progress-title">Generating insights... 0/0</span></div>
+      <div class="gen-progress-batch" id="gen-progress-batch"></div>
+    </div>
+    <div class="gen-progress-track"><div class="gen-progress-fill" id="gen-progress-fill"></div></div>
   </div>
   <div id="roster-list"></div>
 </div>
@@ -5116,15 +5131,23 @@ function generateAllInsights(){
   var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
   if(!players.length){alert('No player data found. Upload the season CSV first.');return;}
   var btn=document.getElementById('gen-all-btn');
+  var progressBar=document.getElementById('gen-progress-bar');
+  var progressTitle=document.getElementById('gen-progress-title');
+  var progressFill=document.getElementById('gen-progress-fill');
+  var progressBatch=document.getElementById('gen-progress-batch');
   var total=players.length;
   var done=0;
   var failed=[];
   btn.disabled=true;
+  btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;animation:spin .7s linear infinite"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Generating...';
+  if(progressBar) progressBar.style.display='block';
 
-  function updateBtn(){
-    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;animation:spin .7s linear infinite"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> '+done+'/'+total+' generated';
+  function updateProgress(){
+    var pct=total>0?Math.round(done/total*100):0;
+    if(progressTitle) progressTitle.textContent='Generating insights... '+done+'/'+total;
+    if(progressFill) progressFill.style.width=pct+'%';
   }
-  updateBtn();
+  updateProgress();
 
   // Build prompt for a player (same as regenerateInsights but extracted)
   function buildPrompt(p){    var firstName=p.name.split(' ')[0];    var teammates=players.filter(function(x){return x.name!==p.name&&x.ab>5;});    var teamAvgOBP=teammates.length?teammates.reduce(function(s,x){return s+x.obp;},0)/teammates.length:0;    var teamAvgAVG=teammates.length?teammates.reduce(function(s,x){return s+x.avg;},0)/teammates.length:0;    var teamAvgQAB=teammates.length?teammates.reduce(function(s,x){return s+x.qab_pct;},0)/teammates.length:0;    var pitSP=teammates.filter(function(x){return x.pit&&x.pit.sp>0;});    var teamAvgSP=pitSP.length?pitSP.reduce(function(s,x){return s+x.pit.sp;},0)/pitSP.length:61;    var pitFPS=teammates.filter(function(x){return x.pit&&x.pit.fps>0;});    var teamAvgFPS=pitFPS.length?pitFPS.reduce(function(s,x){return s+x.pit.fps;},0)/pitFPS.length:61;    var recentGames=p.games?p.games.slice(-3):[];    var earlyGames=p.games?p.games.slice(0,3):[];    var recentAVG=recentGames.length&&recentGames.reduce(function(s,g){return s+g.ab;},0)>0?(recentGames.reduce(function(s,g){return s+g.h;},0)/recentGames.reduce(function(s,g){return s+g.ab;},0)):null;    var earlyAVG=earlyGames.length&&earlyGames.reduce(function(s,g){return s+g.ab;},0)>0?(earlyGames.reduce(function(s,g){return s+g.h;},0)/earlyGames.reduce(function(s,g){return s+g.ab;},0)):null;    var kbb_bat=p.so>0?(p.bb/p.so).toFixed(2):'—';    var kper9=p.pit&&p.pit.ip>0?((p.pit.k/p.pit.ip)*9).toFixed(1):'—';    var kbb_pit=p.pit&&p.pit.bb>0?(p.pit.k/p.pit.bb).toFixed(2):'—';    var fip=p.pit&&p.pit.ip>0?((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/p.pit.ip+3.2).toFixed(2):'—';    var pitGames=p.pitGames?p.pitGames.length:0;    var totalNP=p.pit&&p.pit.np?p.pit.np:0;    var recentDetail='';    if(p.games&&p.games.length>=2){var lt=p.games.slice(-2);var rh=lt.reduce(function(s,g){return s+g.h;},0);var ra=lt.reduce(function(s,g){return s+g.ab;},0);if(ra>0)recentDetail=rh+' hits in last 2 games ('+ra+' AB)';}    return 'You are writing coaching insight cards for a 12U baseball player named '+firstName+'. These cards are shown to the player and their parents. Match this exact voice — punchy title, specific numbers, baseball context, age comparison.\n\nPLAYER: '+p.name+' | '+p.gp+' games\nBATTING: AVG '+p.avg.toFixed(3)+' (team '+teamAvgAVG.toFixed(3)+') | OBP '+p.obp.toFixed(3)+' (team '+teamAvgOBP.toFixed(3)+') | OPS '+p.ops.toFixed(3)+' | QAB% '+p.qab_pct.toFixed(1)+'% (team '+teamAvgQAB.toFixed(1)+'%) | PA '+p.pa+' | H '+p.h+' | BB '+p.bb+' | K '+p.so+' | HR '+p.hr+' | RBI '+p.rbi+' | SB '+p.sb+' | BB/K '+kbb_bat+(recentDetail?'\nRecent: '+recentDetail:'')+(recentAVG!==null&&earlyAVG!==null?'\nTrend: .'+Math.round(recentAVG*1000)+' AVG recent vs .'+Math.round(earlyAVG*1000)+' AVG early':'')+'\n'+(p.pit?'PITCHING ('+pitGames+' games'+(totalNP?', '+totalNP+' pitches':'')+'):  S% '+p.pit.sp.toFixed(1)+'% (team '+teamAvgSP.toFixed(1)+'%) | FPS% '+p.pit.fps.toFixed(1)+'% (team '+teamAvgFPS.toFixed(1)+'%) | K '+p.pit.k+' in '+p.pit.ip.toFixed(1)+' IP ('+kper9+' K/9) | BB '+p.pit.bb+' | K/BB '+kbb_pit+' | WHIP '+p.pit.whip.toFixed(2)+' | FIP '+fip+'\n':'')+'\nTHRESHOLDS (only praise stats that meet these — never praise below threshold):\nBatting: OBP\u2265.450 | AVG\u2265.400 | OPS\u2265.800 | QAB%\u226560 | BB/K\u22650.75 | SB\u22655 (always praise)\nPitching: S%\u226560 | FPS%\u226560 | WHIP\u22641.5 | K/BB\u22651.5 | K/9\u22656.0 | NEVER praise ERA\n\nEXACT VOICE EXAMPLES:\n\n"Dominating on the Mound" — With 25 strikeouts in just 15.1 innings, Dayton is averaging 1.6 K\'s per inning. His K/BB ratio of 3.57 shows he\'s missing bats while maintaining control — a rare combo at this age. [badge: 3.57 K/BB]\n\n"Pounding the Zone" — At 63.4% strike rate and 73% first-pitch strike rate, Nixon is well above team averages (60.8% S%, 61.3% FPS%). He attacks the zone and gets ahead of hitters — a huge advantage at this level where many young pitchers struggle to throw strikes. [badge: 63.4% S%]\n\n"Quality At-Bats Machine \u2197" — Nixon posts a 73.9% QAB rate, crushing the team average of 58.2%. He consistently puts together competitive at-bats — working counts, making hard contact, and avoiding easy outs. This discipline is a huge asset for the lineup. [badge: 73.9% QAB%]\n\n"Elite Plate Discipline \u2197" — Griffin\'s .500 OBP is outstanding — he\'s getting on base half the time he steps up. With 10 walks in 48 plate appearances, he\'s showing mature pitch recognition well above the team average (.453 OBP). [badge: .500 OBP]\n\n"Perfect on the Basepaths \u2197" — Nixon is 11-for-11 on stolen base attempts — 100% success rate. His speed and instincts make him a constant threat once he reaches base. That\'s elite baserunning awareness for a 12-year-old. [badge: 11/11 SB]\n\n"Pitching Command Trending Up \u2197" — Carson\'s strike percentage has improved from 57% in his first 3 outings to 69% in his last 3. His most recent start showed elite command at 78.9% strikes with 4 Ks and zero walks. [badge: 69% S%]\n\nRULES:\n- Title: specific, punchy. Add \u2197 if stat is trending up.\n- Text: Sentence 1 = key stat + exact number vs team avg. Sentence 2 = baseball meaning. Sentence 3 = age context.\n- badge_val: most impressive single number. badge_lbl: stat name (4 chars max).\n- Praise tab: 2-3 insights. Only stats meeting thresholds. Pitchers: lead with pitching stats if they qualify.\n- Focus tab: 1 area with exact stat in title. 3 bullets with data. 2 drills with measurable targets.\n- Plan tab: 2 drills, specific and named.\n- NEVER be vague. ALWAYS use the player\'s exact numbers.\n\nReturn ONLY valid JSON:\n{"celebrate":{"title":"What '+firstName+' Is Doing Well","insights":[{"badge_val":"val","badge_lbl":"lbl","title":"Title \\u2197","text":"2-3 sentences with exact stats"}]},"focus":{"title":"Specific Stat Area","bullets":["exact stat + observation","why it matters at 12U","data point"],"drills":[{"name":"Drill Name","duration":"10m","goal":"one sentence with measurable goal","instructions":"step-by-step with a number to hit"},{"name":"Drill 2","duration":"8m","goal":"one sentence","instructions":"steps"}]},"plan":{"title":"Practice Plan","drills":[{"name":"Drill","duration":"10m","goal":"goal","instructions":"steps"},{"name":"Drill 2","duration":"8m","goal":"goal","instructions":"steps"}]}}';  }
@@ -5141,7 +5164,7 @@ function generateAllInsights(){
     }
     var p=players[idx++];
     var prompt=buildPrompt(p);
-    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;animation:spin .7s linear infinite"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> '+p.name.split(' ')[0]+'… ('+done+'/'+total+')';
+    if(progressBatch) progressBatch.textContent='Batch '+idx+'/'+total+'...';
 
     callClaude({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
     .then(function(data){
@@ -5151,9 +5174,9 @@ function generateAllInsights(){
       var insights=JSON.parse(raw);
       var stored={insights:insights,generatedAt:new Date().toISOString(),player:p.name};
       try{localStorage.setItem('sba_insights_'+p.name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
-      done++;
+      done++;updateProgress();
     })
-    .catch(function(e){failed.push(p.name.split(' ').pop());done++;})
+    .catch(function(e){failed.push(p.name.split(' ').pop());done++;updateProgress();})
     .finally(function(){
       // Stagger: first few players fast, slow down after 5 to avoid rate limits
       var delay=idx<=5?1000:2500;
