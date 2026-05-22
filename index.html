@@ -3493,7 +3493,8 @@ function saveRosterEdit(){
     armHealth:reArmHealth,
     armNote:document.getElementById('re-arm-note').value.trim(),
     positions:Object.assign({},rePositions),
-    tags:{batting:[].concat(reTags.batting),pitching:[].concat(reTags.pitching),general:[].concat(reTags.general)}
+    tags:{batting:[].concat(reTags.batting),pitching:[].concat(reTags.pitching),general:[].concat(reTags.general)},
+    xfactor:xfData
   };
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
@@ -3504,6 +3505,8 @@ function saveRosterEdit(){
     var ov2=rosterOverrides[savedTarget]||{};
     var pbEl=document.getElementById('pd-pos-badges');
     if(pbEl){var bh=buildPosBadges(ov2,false);pbEl.innerHTML=bh;pbEl.style.display=bh?'flex':'none';}
+    var p2=getPlayers().find(function(x){return x.name===savedTarget;});
+    if(p2) buildPdXFSection(p2);
   }
 }
 
