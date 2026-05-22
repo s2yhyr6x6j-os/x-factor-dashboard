@@ -2410,7 +2410,7 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
   <div class="pd-section" id="pd-sec-insights">
     <div class="pd-insights-hdr" onclick="togglePdSection('pd-sec-insights')" style="cursor:pointer">
       <div>
-        <div class="pd-sec-title">🎯 X-Factor Insights</div>
+        <div class="pd-sec-title">🎯 Coaching Insights</div>
         <div class="pd-sec-sub" id="pd-insights-when"></div>
       </div>
       <div class="pd-insights-toggle" onclick="event.stopPropagation()">
@@ -2432,7 +2432,7 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
   <div class="pd-section collapsed" id="pd-sec-xfactor">
     <div class="pd-sec-hdr" onclick="togglePdSection('pd-sec-xfactor')">
       <div>
-        <div class="pd-sec-title">⚡ X-Factor</div>
+        <div class="pd-sec-title">⚡ X-Factor Score</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px">
         <div id="pd-xf-score-inline" style="text-align:right">
@@ -5574,8 +5574,8 @@ function buildPdXFSection(p){
     if(inlineEl){
     var scoreDiv=inlineEl.querySelector('.xf-pd-score');
     var tierDiv=inlineEl.querySelector('.xf-pd-tier');
-    if(scoreDiv) scoreDiv.textContent='—';
-    if(tierDiv) tierDiv.textContent='Not assessed';
+    if(scoreDiv){scoreDiv.textContent='—';scoreDiv.style.color='var(--sub)';}
+    if(tierDiv){tierDiv.textContent='Not assessed';tierDiv.style.color='var(--sub)';}
   }
     content.innerHTML='<div class="xf-not-assessed" style="padding:12px 18px">X-Factor has not been assessed for this player yet.</div>';
     return;
@@ -5583,8 +5583,8 @@ function buildPdXFSection(p){
   if(inlineEl){
     var scoreDiv=inlineEl.querySelector('.xf-pd-score');
     var tierDiv=inlineEl.querySelector('.xf-pd-tier');
-    if(scoreDiv) scoreDiv.innerHTML=score+'<span style="font-size:13px;color:var(--sub)">/10</span>';
-    if(tierDiv) tierDiv.textContent=XF_TIERS[score]||'';
+    if(scoreDiv){scoreDiv.innerHTML=score+'<span style="font-size:13px;color:var(--sub)">/10</span>';scoreDiv.style.color='#a855f7';}
+    if(tierDiv){tierDiv.textContent=XF_TIERS[score]||'';tierDiv.style.color='#a855f7';}
   }
 
   var cats=[
