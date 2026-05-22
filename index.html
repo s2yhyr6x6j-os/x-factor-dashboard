@@ -5634,6 +5634,17 @@ function buildPdXFSection(p){
     +'</div>';
 }
 
+
+function syncFromKV(){
+  if(!_isVercel) return;
+  var btn=document.getElementById('kv-sync-btn');
+  if(btn){btn.disabled=true;btn.textContent='Syncing...';}
+  kvLoad(function(){
+    fixPitchingData();loadRosterOverrides();renderAll();
+    if(btn){btn.disabled=false;btn.textContent='↻ Sync';}
+  });
+}
+
 function renderOptRecs(){}
 
 function confirmDeletePlayer(name){
@@ -6733,7 +6744,10 @@ function linkImportsToGameLog(){
   load();loadTheme();
   // Load from KV first (cross-device sync), then proceed with init
   kvLoad(function(){
-    fixPitchingData();loadRosterOverrides();loadCoachNotes();loadIcsSettings();
+    fixPitchingData();
+    // Only load from localStorage if KV didn't provide rosterOverrides
+    if(!_kvSynced||Object.keys(rosterOverrides).length===0) loadRosterOverrides();
+    loadCoachNotes();loadIcsSettings();
   // Always ensure all known season games exist in the game log
   var seedGames=[
     {dateVal:'2026-05-10',opp:'Brandon Valley Black 12U',us:2,them:6,loc:'H'},
