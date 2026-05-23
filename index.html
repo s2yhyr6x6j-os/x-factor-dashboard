@@ -1270,6 +1270,18 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 .up-complete-again:hover{text-decoration:underline}
 body.light-mode .up-complete-card.success{background:#f0fdf4}
 body.light-mode .up-complete-card.error{background:#fff1f2}
+
+/* ── LEADERBOARD FILTERS ── */
+.lb-filter-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.lb-filter-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--sub);cursor:pointer;transition:all .15s}
+.lb-filter-btn.active{background:#51a2ff;border-color:#51a2ff;color:#fff}
+.lb-filter-btn:hover:not(.active){border-color:var(--sub);color:var(--hdr)}
+.lb-filter-through{font-size:11px;color:var(--sub)}
+.lb-sample-warning{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 12px;font-size:12px;color:#f59e0b;display:none;margin-bottom:10px}
+.lb-sample-warning.show{display:flex;align-items:center;gap:6px}
+body.light-mode .lb-filter-btn{background:#f3f4f6;border-color:#e5e7eb;color:#6b7280}
+body.light-mode .lb-filter-btn.active{background:#51a2ff;color:#fff}
+body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 </style>
 </head>
 <body>
@@ -1892,6 +1904,14 @@ body.light-mode .up-complete-card.error{background:#fff1f2}
 
   <!-- Hitter Leaderboard -->
   <div class="bat-lb-card">
+    <div class="lb-filter-row">
+      <button class="lb-filter-btn active" onclick="setBatFilter('season',this)">Season</button>
+      <button class="lb-filter-btn" onclick="setBatFilter('last10',this)">Last 10</button>
+      <button class="lb-filter-btn" onclick="setBatFilter('last5',this)">Last 5</button>
+      <button class="lb-filter-btn" onclick="setBatFilter('last3',this)">Last 3</button>
+      <span class="lb-filter-through" id="bat-filter-through"></span>
+    </div>
+    <div class="lb-sample-warning" id="bat-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
     <div class="bat-lb-title">Hitter Leaderboard</div>
     <div class="bat-lb-sub" id="bat-lb-sub">Sorted by QAB% · Blue Line = 55% target</div>
     <div id="bat-lb-rows"></div>
@@ -2025,6 +2045,14 @@ body.light-mode .up-complete-card.error{background:#fff1f2}
 
   <!-- Pitcher Leaderboard -->
   <div class="pit-lb-card">
+    <div class="lb-filter-row">
+      <button class="lb-filter-btn active" onclick="setPitFilter('season',this)">Season</button>
+      <button class="lb-filter-btn" onclick="setPitFilter('last10',this)">Last 10</button>
+      <button class="lb-filter-btn" onclick="setPitFilter('last5',this)">Last 5</button>
+      <button class="lb-filter-btn" onclick="setPitFilter('last3',this)">Last 3</button>
+      <span class="lb-filter-through" id="pit-filter-through"></span>
+    </div>
+    <div class="lb-sample-warning" id="pit-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
     <div class="pit-lb-title">Pitcher Leaderboard</div>
     <div class="pit-lb-sub" id="pit-lb-sub">Sorted by S% · blue line = 60% target</div>
     <div id="pit-lb-rows"></div>
@@ -3633,7 +3661,7 @@ function toggleBatLbRow(id){
 
 function renderHittingPage(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getFilteredPlayers(_batFilter);
 
   // ── KPI cards ──
   var totalAB=0,totalH=0,totalBB=0,totalHBP=0,totalSO=0,totalQAB=0,totalPA=0,totalTB=0;
@@ -5685,6 +5713,112 @@ function resetUploadZone(){
   if(status){status.className='up-status';status.textContent='';}
   var fi=document.getElementById('file-input');
   if(fi) fi.value='';
+}
+
+
+// ── LEADERBOARD FILTERS ──
+var _pitFilter='season';
+var _batFilter='season';
+
+function getFilterLabel(filter){
+  if(filter==='season') return '';
+  if(filter==='last10') return 'Last 10 games';
+  if(filter==='last5') return 'Last 5 games';
+  if(filter==='last3') return 'Last 3 games';
+  return '';
+}
+
+function showSampleWarning(id, filter){
+  var el=document.getElementById(id);
+  if(!el) return;
+  if(filter==='last5'||filter==='last3'){el.classList.add('show');}
+  else{el.classList.remove('show');}
+}
+
+function updateFilterThrough(id, filter){
+  var el=document.getElementById(id);
+  if(!el) return;
+  if(filter==='season'){el.textContent='';}
+  else{
+    // Find latest game date
+    var dates=gameLog.filter(function(g){return g.dateVal;}).map(function(g){return g.dateVal;}).sort();
+    var latest=dates[dates.length-1];
+    if(latest){var d=new Date(latest+'T12:00:00');el.textContent='through '+(d.getMonth()+1)+'/'+d.getDate();}
+  }
+}
+
+function setPitFilter(filter, btn){
+  _pitFilter=filter;
+  btn.closest('.lb-filter-row').querySelectorAll('.lb-filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  showSampleWarning('pit-sample-warning', filter);
+  updateFilterThrough('pit-filter-through', filter);
+  renderPitchingPage();
+}
+
+function setBatFilter(filter, btn){
+  _batFilter=filter;
+  btn.closest('.lb-filter-row').querySelectorAll('.lb-filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  showSampleWarning('bat-sample-warning', filter);
+  updateFilterThrough('bat-filter-through', filter);
+  renderHittingPage();
+}
+
+// Get player stats filtered to last N games
+function getFilteredPlayers(filter){
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  if(filter==='season') return allPlayers;
+
+  var n=filter==='last10'?10:filter==='last5'?5:3;
+
+  return allPlayers.map(function(p){
+    var games=(p.games||[]).slice(-n);
+    if(!games.length) return p;
+    var ab=games.reduce(function(s,g){return s+g.ab;},0);
+    var h=games.reduce(function(s,g){return s+g.h;},0);
+    var bb=games.reduce(function(s,g){return s+g.bb;},0);
+    var hbp=games.reduce(function(s,g){return s+(g.hbp||0);},0);
+    var pa=games.reduce(function(s,g){return s+g.pa;},0);
+    var so=games.reduce(function(s,g){return s+g.so;},0);
+    var qab=games.reduce(function(s,g){return s+(g.qab||0);},0);
+    var tb=games.reduce(function(s,g){return s+(g.tb||g.h||0);},0);
+    var avg=ab>0?h/ab:0;
+    var obp=(ab+bb+hbp)>0?(h+bb+hbp)/(ab+bb+hbp):0;
+    var slg=ab>0?tb/ab:0;
+    var ops=obp+slg;
+    var qab_pct=pa>0?qab/pa*100:0;
+    return Object.assign({},p,{ab:ab,h:h,bb:bb,hbp:hbp,pa:pa,so:so,qab:qab,
+      avg:avg,obp:obp,slg:slg,ops:ops,qab_pct:qab_pct,gp:games.length});
+  }).filter(function(p){return p.pa>0;});
+}
+
+function getFilteredPitchers(filter){
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  if(filter==='season') return allPlayers.filter(function(p){return p.pit&&p.pit.ip>0;});
+
+  var n=filter==='last10'?10:filter==='last5'?5:3;
+
+  return allPlayers.map(function(p){
+    if(!p.pitGames||!p.pitGames.length) return null;
+    var games=p.pitGames.slice(-n);
+    var ip=games.reduce(function(s,g){return s+g.ip;},0);
+    if(!ip) return null;
+    var h=games.reduce(function(s,g){return s+g.h;},0);
+    var bb=games.reduce(function(s,g){return s+g.bb;},0);
+    var k=games.reduce(function(s,g){return s+g.k;},0);
+    var er=games.reduce(function(s,g){return s+g.er;},0);
+    var np=games.reduce(function(s,g){return s+(g.np||0);},0);
+    var ns=games.reduce(function(s,g){return s+(g.ns||0);},0);
+    var whip=ip>0?(h+bb)/ip:0;
+    var era=ip>0?er/ip*9:0;
+    var sp=np>0?ns/np*100:p.pit.sp;
+    var filtPit=Object.assign({},p.pit,{ip:ip,h:h,bb:bb,k:k,er:er,np:np,
+      whip:whip,era:era,sp:sp,gp:games.length});
+    return Object.assign({},p,{pit:filtPit});
+  }).filter(Boolean);
 }
 
 function renderOptRecs(){}
