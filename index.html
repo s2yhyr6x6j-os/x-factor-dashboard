@@ -1890,6 +1890,14 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
   </div>
 
   <!-- Toggle tabs -->
+  <div class="lb-filter-row" style="margin-bottom:10px">
+    <button class="lb-filter-btn active" onclick="setBatFilter('season',this)">Season</button>
+    <button class="lb-filter-btn" onclick="setBatFilter('last10',this)">Last 10</button>
+    <button class="lb-filter-btn" onclick="setBatFilter('last5',this)">Last 5</button>
+    <button class="lb-filter-btn" onclick="setBatFilter('last3',this)">Last 3</button>
+    <span class="lb-filter-through" id="bat-filter-through"></span>
+  </div>
+  <div class="lb-sample-warning" id="bat-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
   <div class="bat-tog-row">
     <button class="bat-tog active" onclick="setBatLbTog('qab',this)">QAB%</button>
     <button class="bat-tog" onclick="setBatLbTog('obp',this)">OBP</button>
@@ -1904,14 +1912,6 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 
   <!-- Hitter Leaderboard -->
   <div class="bat-lb-card">
-    <div class="lb-filter-row">
-      <button class="lb-filter-btn active" onclick="setBatFilter('season',this)">Season</button>
-      <button class="lb-filter-btn" onclick="setBatFilter('last10',this)">Last 10</button>
-      <button class="lb-filter-btn" onclick="setBatFilter('last5',this)">Last 5</button>
-      <button class="lb-filter-btn" onclick="setBatFilter('last3',this)">Last 3</button>
-      <span class="lb-filter-through" id="bat-filter-through"></span>
-    </div>
-    <div class="lb-sample-warning" id="bat-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
     <div class="bat-lb-title">Hitter Leaderboard</div>
     <div class="bat-lb-sub" id="bat-lb-sub">Sorted by QAB% · Blue Line = 55% target</div>
     <div id="bat-lb-rows"></div>
@@ -2036,6 +2036,14 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
   </div>
 
   <!-- Toggle: S% / FIP / WHIP leaderboard -->
+  <div class="lb-filter-row" style="margin-bottom:10px">
+    <button class="lb-filter-btn active" onclick="setPitFilter('season',this)">Season</button>
+    <button class="lb-filter-btn" onclick="setPitFilter('last10',this)">Last 10</button>
+    <button class="lb-filter-btn" onclick="setPitFilter('last5',this)">Last 5</button>
+    <button class="lb-filter-btn" onclick="setPitFilter('last3',this)">Last 3</button>
+    <span class="lb-filter-through" id="pit-filter-through"></span>
+  </div>
+  <div class="lb-sample-warning" id="pit-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
   <div class="pit-tog-row">
     <button class="pit-tog active" id="pit-tog-sp" onclick="setPitLbTog('sp',this)">S%</button>
     <button class="pit-tog" id="pit-tog-fip" onclick="setPitLbTog('fip',this)">FIP</button>
@@ -2045,14 +2053,6 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 
   <!-- Pitcher Leaderboard -->
   <div class="pit-lb-card">
-    <div class="lb-filter-row">
-      <button class="lb-filter-btn active" onclick="setPitFilter('season',this)">Season</button>
-      <button class="lb-filter-btn" onclick="setPitFilter('last10',this)">Last 10</button>
-      <button class="lb-filter-btn" onclick="setPitFilter('last5',this)">Last 5</button>
-      <button class="lb-filter-btn" onclick="setPitFilter('last3',this)">Last 3</button>
-      <span class="lb-filter-through" id="pit-filter-through"></span>
-    </div>
-    <div class="lb-sample-warning" id="pit-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
     <div class="pit-lb-title">Pitcher Leaderboard</div>
     <div class="pit-lb-sub" id="pit-lb-sub">Sorted by S% · blue line = 60% target</div>
     <div id="pit-lb-rows"></div>
@@ -3663,6 +3663,19 @@ function renderHittingPage(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var players=getFilteredPlayers(_batFilter);
 
+  // Recalculate dynamic thresholds based on filtered pool
+  if(players.length>1){
+    var poolOBP=players.reduce(function(s,p){return s+p.obp;},0)/players.length;
+    var poolOPS=players.reduce(function(s,p){return s+p.ops;},0)/players.length;
+    var poolAVG=players.reduce(function(s,p){return s+p.avg;},0)/players.length;
+    var poolQAB=players.reduce(function(s,p){return s+p.qab_pct;},0)/players.length;
+    // Update STAT_THRESHOLDS dynamically for filtered view
+    STAT_THRESHOLDS.obp={elite:+(poolOBP*1.25).toFixed(3),good:+(poolOBP*1.1).toFixed(3),warn:+(poolOBP*0.85).toFixed(3),hi:true};
+    STAT_THRESHOLDS.ops={elite:+(poolOPS*1.3).toFixed(3),good:+(poolOPS*1.1).toFixed(3),warn:+(poolOPS*0.8).toFixed(3),hi:true};
+    STAT_THRESHOLDS.avg={elite:+(poolAVG*1.3).toFixed(3),good:+(poolAVG*1.1).toFixed(3),warn:+(poolAVG*0.75).toFixed(3),hi:true};
+    STAT_THRESHOLDS.qab={elite:+(poolQAB*1.2).toFixed(1),good:+(poolQAB*1.05).toFixed(1),warn:+(poolQAB*0.85).toFixed(1),hi:true};
+  }
+
   // ── KPI cards ──
   var totalAB=0,totalH=0,totalBB=0,totalHBP=0,totalSO=0,totalQAB=0,totalPA=0,totalTB=0;
   players.forEach(function(p){totalAB+=p.ab;totalH+=p.h;totalBB+=p.bb;totalHBP+=p.hbp;totalSO+=p.so;totalQAB+=p.qab;totalPA+=p.pa;totalTB+=(p.s1b+p.d*2+p.t*3+p.hr*4);});
@@ -3820,7 +3833,17 @@ function setPitLbTog(key, btn){
 }
 
 function renderPitchingPage(){
-  var pitchers=getPitchers();
+  var pitchers=getFilteredPitchers(_pitFilter);
+  if(!pitchers.length) pitchers=getPitchers();
+
+  // Recalculate pitching thresholds based on filtered pool
+  var pitPool=pitchers.filter(function(p){return p.pit&&p.pit.ip>0;});
+  if(pitPool.length>1){
+    var poolSP=pitPool.reduce(function(s,p){return s+p.pit.sp;},0)/pitPool.length;
+    var poolWHIP=pitPool.reduce(function(s,p){return s+p.pit.whip;},0)/pitPool.length;
+    STAT_THRESHOLDS.sp={elite:+(poolSP*1.1).toFixed(1),good:+(poolSP*1.02).toFixed(1),warn:+(poolSP*0.9).toFixed(1),hi:true};
+    STAT_THRESHOLDS.whip={elite:+(poolWHIP*0.75).toFixed(2),good:+(poolWHIP*0.9).toFixed(2),warn:+(poolWHIP*1.2).toFixed(2),hi:false};
+  }
 
   // ── KPI row 1 ──
   if(pitchers.length){
