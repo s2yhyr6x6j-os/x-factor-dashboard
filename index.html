@@ -5595,6 +5595,7 @@ function kvLoad(callback){
 // ── X-FACTOR ──
 var XF_CATS=['mindset','iq','passion'];
 var XF_LABELS={mindset:'Mindset',iq:'Baseball IQ',passion:'Passion'};
+var XF_DESCS={mindset:'Focus & Composure',iq:'Instincts & Anticipation',passion:'Effort, Attitude & Enthusiasm'};
 var XF_TIERS=['','Low X-Factor','Low X-Factor','Average','Average','Average','High X-Factor','High X-Factor','High X-Factor','Elite X-Factor','Elite X-Factor ⚡'];
 var _reXF={mindset:0,iq:0,passion:0,mindsetNote:'',iqNote:'',passionNote:''};
 
@@ -5693,7 +5694,7 @@ function buildPdXFSection(p){
         return '<div class="xf-pd-star'+(val>=n?' filled':'')+'"></div>';
       }).join('');
       return '<div class="xf-pd-cat">'
-        +'<div><div class="xf-pd-cat-name">'+cat.label+'</div>'
+        +'<div><div class="xf-pd-cat-name">'+cat.label+'<span style="color:var(--sub);font-weight:400;font-size:12px;margin-left:6px">'+(XF_DESCS[cat.key]||'')+'</span></div>'
         +(cat.note?'<div class="xf-pd-cat-note">'+cat.note+'</div>':'')
         +'<div class="xf-pd-stars" style="margin-top:5px">'+stars+'</div></div>'
         +'<div class="xf-pd-cat-score">'+val+'/5</div>'
