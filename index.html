@@ -1258,6 +1258,18 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 .gen-progress-batch{font-size:12px;color:var(--sub)}
 .gen-progress-track{height:6px;background:rgba(168,85,247,.2);border-radius:4px;overflow:hidden}
 .gen-progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:4px;transition:width .3s ease;width:0%}
+
+/* ── UPLOAD COMPLETION CARD ── */
+.up-complete-card{display:none;border-radius:14px;padding:22px 24px;margin-top:16px}
+.up-complete-card.success{background:#0d1f15;border:1px solid rgba(34,197,94,.3)}
+.up-complete-card.error{background:#1f0d0d;border:1px solid rgba(251,113,133,.3)}
+.up-complete-hdr{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;color:var(--hdr);margin-bottom:10px}
+.up-complete-icon{font-size:24px}
+.up-complete-detail{font-size:14px;color:var(--sub);margin-bottom:14px;line-height:1.6}
+.up-complete-again{font-size:14px;font-weight:600;color:var(--blue);cursor:pointer;background:none;border:none;padding:0;font-family:var(--ff)}
+.up-complete-again:hover{text-decoration:underline}
+body.light-mode .up-complete-card.success{background:#f0fdf4}
+body.light-mode .up-complete-card.error{background:#fff1f2}
 </style>
 </head>
 <body>
@@ -2156,7 +2168,7 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
           </div>
           <button class="add-btn" onclick="addGame()">Save</button>
         </div>
-        <input type="file" id="file-input" accept=".csv" onchange="handleFileAttach(event)">
+        <input type="file" id="csv-attach-input" accept=".csv" onchange="handleFileAttach(event)">
         <div class="form-err" id="form-err"></div>
       </div>
     </div>
@@ -2327,7 +2339,7 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 
   <!-- Drop zone -->
   <div class="up-drop" id="up-drop-zone"
-    onclick="document.getElementById('file-input').click()"
+    onclick="document.getElementById('file-input').click()" style="cursor:pointer"
     ondragover="event.preventDefault();this.classList.add('drag-over')"
     ondragleave="this.classList.remove('drag-over')"
     ondrop="handleUploadDrop(event)">
@@ -2338,7 +2350,12 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
     <div class="up-drop-sub">Accepts .csv (season stats) or .pdf (boxscore)</div>
     <div class="up-status" id="up-status"></div>
   </div>
-  <input type="file" id="file-input" accept=".csv,.pdf" onchange="handleUploadFile(event)">
+  <input type="file" id="file-input" accept=".csv,.pdf,text/csv,application/pdf" onchange="handleUploadFile(event)">
+  <div class="up-complete-card" id="up-complete-card">
+    <div class="up-complete-hdr"><span class="up-complete-icon" id="up-complete-icon"></span><span id="up-complete-title"></span></div>
+    <div class="up-complete-detail" id="up-complete-detail"></div>
+    <button class="up-complete-again" onclick="resetUploadZone()">Upload another file</button>
+  </div>
 
   <!-- What comes from where? -->
   <div style="font-size:14px;font-weight:700;color:var(--hdr);margin-bottom:12px;display:flex;align-items:center;gap:8px">
@@ -5645,6 +5662,31 @@ function syncFromKV(){
   });
 }
 
+
+function showUploadError(msg){
+  var card=document.getElementById('up-complete-card');
+  var dropZone=document.getElementById('up-drop-zone');
+  if(card){
+    card.className='up-complete-card error';
+    card.style.display='block';
+    document.getElementById('up-complete-icon').textContent='❌';
+    document.getElementById('up-complete-title').textContent='Upload failed';
+    document.getElementById('up-complete-detail').textContent=msg;
+    if(dropZone) dropZone.style.display='none';
+  }
+}
+
+function resetUploadZone(){
+  var card=document.getElementById('up-complete-card');
+  var dropZone=document.getElementById('up-drop-zone');
+  var status=document.getElementById('up-status');
+  if(card) card.style.display='none';
+  if(dropZone) dropZone.style.display='block';
+  if(status){status.className='up-status';status.textContent='';}
+  var fi=document.getElementById('file-input');
+  if(fi) fi.value='';
+}
+
 function renderOptRecs(){}
 
 function confirmDeletePlayer(name){
@@ -5663,13 +5705,22 @@ function selectUploadType(type){
   currentUploadType=type;
   document.getElementById('type-csv').classList.toggle('selected',type==='csv');
   document.getElementById('type-pdf').classList.toggle('selected',type==='pdf');
-  document.getElementById('file-input').setAttribute('accept',type==='csv'?'.csv':'.pdf');
+  // accept attribute stays as .csv,.pdf — auto-detected from file extension
 }
 
 function handleUploadFile(e){var f=e.target.files[0];if(f)processUploadFile(f);e.target.value='';}
 function handleUploadDrop(e){e.preventDefault();document.getElementById('up-drop-zone').classList.remove('drag-over');var f=e.dataTransfer.files[0];if(f)processUploadFile(f);}
 
 function processUploadFile(file){
+  // Auto-detect type from file extension
+  var ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv') uploadType='csv';
+  else if(ext==='pdf') uploadType='pdf';
+  // Update UI toggle to match
+  var csvBtn=document.getElementById('type-csv');
+  var pdfBtn=document.getElementById('type-pdf');
+  if(csvBtn) csvBtn.classList.toggle('selected',uploadType==='csv');
+  if(pdfBtn) pdfBtn.classList.toggle('selected',uploadType==='pdf');
   var status=document.getElementById('up-status');
   status.className='up-status';status.textContent='Reading…';
   var isPDF=file.name.toLowerCase().endsWith('.pdf');
@@ -5682,14 +5733,14 @@ function processUploadFile(file){
       return;
     }
     parsePDFWithVision(file,apiKey,function(result,err){
-      if(err||!result){status.className='up-status err';status.textContent='❌ '+(err||'Could not parse PDF.');return;}
+      if(err||!result){showUploadError(err||'Could not parse PDF.');return;}
       storeGameImport(result,file.name,status);
     });
   } else {
     var reader=new FileReader();
     reader.onload=function(ev){
       var players=parseGameCSV(ev.target.result);
-      if(!players||!players.length){status.className='up-status err';status.textContent='❌ Could not parse CSV.';return;}
+      if(!players||!players.length){showUploadError('Could not parse CSV — check file format.');return;}
       storeGameImport({players:players,date:null,opp:null,usScore:null,themScore:null,gameResult:null,isSeason:true},file.name,status);
     };
     reader.readAsText(file,'UTF-8');
@@ -5881,8 +5932,21 @@ function storeGameImport(result,fileName,status){
   }
   save();linkImportsToGameLog();updateLabels();renderAll();
   // Show syncing status while KV saves
-  status.className='up-status ok';
-  status.textContent='✓ '+result.players.length+' players'+(isSeason?' (season totals)':'')+(result.opp?' · vs '+result.opp:'')+(result.usScore!=null?' · '+result.usScore+'-'+result.themScore:'');
+  status.className='up-status';status.textContent='';
+  // Show completion card
+  var card=document.getElementById('up-complete-card');
+  var dropZone=document.getElementById('up-drop-zone');
+  if(card){
+    card.className='up-complete-card success';
+    card.style.display='block';
+    document.getElementById('up-complete-icon').textContent='✅';
+    document.getElementById('up-complete-title').textContent='Upload complete';
+    var detail=isSeason
+      ?'Updated '+result.players.length+' players from '+fileName
+      :'Added box score'+(result.opp?' vs '+result.opp:'')+(result.usScore!=null?' ('+result.usScore+'-'+result.themScore+')':'')+' from '+fileName;
+    document.getElementById('up-complete-detail').textContent=detail;
+    if(dropZone) dropZone.style.display='none';
+  }
   if(_isVercel){
     status.textContent+=' · syncing…';
     kvSave().then(function(){
