@@ -4140,11 +4140,27 @@ function buildBoxScore(gl, opp){
     // Calculate team S% from pitchers in this game
     var spText='—', strikesText='';
     if(ig&&ig.players){
-      var pits=ig.players.filter(function(p){return p.pitching&&p.pitching.ip>0&&p.pitching.np>0;});
+      var pits=ig.players.filter(function(p){return p.pitching&&p.pitching.ip>0&&(p.pitching.np>0||p.pitching.sp>0);});
       if(pits.length){
-        var totalNP=pits.reduce(function(s,p){return s+p.pitching.np;},0);
-        var totalNS=pits.reduce(function(s,p){return s+p.pitching.ns;},0);
-        if(totalNP>0){spText=(totalNS/totalNP*100).toFixed(1)+'%';strikesText=totalNS+'/'+totalNP+' strikes';}
+        var totalNP=pits.reduce(function(s,p){return s+(p.pitching.np||0);},0);
+        // ns may not be stored — derive from sp% × np if available
+        var totalNS=pits.reduce(function(s,p){
+          if(p.pitching.ns) return s+p.pitching.ns;
+          if(p.pitching.sp>0&&p.pitching.np>0) return s+Math.round(p.pitching.sp/100*p.pitching.np);
+          return s;
+        },0);
+        if(totalNP>0&&totalNS>0){
+          spText=(totalNS/totalNP*100).toFixed(1)+'%';
+          strikesText=totalNS+'/'+totalNP+' strikes';
+        } else if(pits.length===1&&pits[0].pitching.sp>0){
+          // Single pitcher — use their sp directly
+          spText=pits[0].pitching.sp.toFixed(1)+'%';
+        } else if(pits.length>1){
+          // Weighted average by IP
+          var tip=pits.reduce(function(s,p){return s+p.pitching.ip;},0);
+          var wsp=tip>0?pits.reduce(function(s,p){return s+p.pitching.sp*p.pitching.ip;},0)/tip:0;
+          if(wsp>0) spText=wsp.toFixed(1)+'%';
+        }
       }
     }
 
@@ -5773,7 +5789,7 @@ function updateFilterThrough(id, filter){
 
 function setPitFilter(filter, btn){
   _pitFilter=filter;
-  btn.closest('.lb-filter-row').querySelectorAll('.lb-filter-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('#page-pitching .lb-filter-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   showSampleWarning('pit-sample-warning', filter);
   updateFilterThrough('pit-filter-through', filter);
@@ -5782,7 +5798,7 @@ function setPitFilter(filter, btn){
 
 function setBatFilter(filter, btn){
   _batFilter=filter;
-  btn.closest('.lb-filter-row').querySelectorAll('.lb-filter-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('#page-hitting .lb-filter-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   showSampleWarning('bat-sample-warning', filter);
   updateFilterThrough('bat-filter-through', filter);
@@ -5828,7 +5844,8 @@ function getFilteredPitchers(filter){
   return allPlayers.map(function(p){
     if(!p.pitGames||!p.pitGames.length) return null;
     var games=p.pitGames.slice(-n);
-    var ip=games.reduce(function(s,g){return s+g.ip;},0);
+    if(!games.length) return null;
+    var ip=games.reduce(function(s,g){return s+(g.ip||0);},0);
     if(!ip) return null;
     var h=games.reduce(function(s,g){return s+g.h;},0);
     var bb=games.reduce(function(s,g){return s+g.bb;},0);
