@@ -2824,6 +2824,17 @@ function parseGameCSV(text){
   var hi=-1;
   for(var i=0;i<rows.length;i++){if(rows[i][1]==='Last'){hi=i;break;}}
   if(hi<0)return null;
+
+  // Auto-detect pitching column indices from header row
+  var hdr=rows[hi];
+  var CI_SP=CI.PIT_SP, CI_FPS=CI.PIT_FPS, CI_FPSO=CI.PIT_FPSO, CI_HR=CI.PIT_HR;
+  for(var j=50;j<hdr.length;j++){
+    var h=String(hdr[j]||'').trim();
+    if(h==='S%') CI_SP=j;
+    else if(h==='FPS%') CI_FPS=j;
+    else if(h==='FPSO%') CI_FPSO=j;
+    else if(h==='HR'&&j>80) CI_HR=j;
+  }
   var out=[];
   for(var i=hi+1;i<rows.length;i++){
     var r=rows[i];if(!r||r.length<10)continue;
@@ -2831,7 +2842,7 @@ function parseGameCSV(text){
     if(!last||!first||last==='Totals'||last==='Glossary')continue;
     var batting={name:(first+' '+last).trim(),num:String(r[CI.NUM]||'').trim(),gp:n(r[CI.BAT_GP]),pa:n(r[CI.PA]),ab:n(r[CI.AB]),h:n(r[CI.H]),s1b:n(r[CI.B1]),d:n(r[CI.B2]),t:n(r[CI.B3]),hr:n(r[CI.HR]),rbi:n(r[CI.RBI]),run:n(r[CI.R]),bb:n(r[CI.BAT_BB]),so:n(r[CI.BAT_SO]),hbp:n(r[CI.HBP]),sb:n(r[CI.SB]),qab:n(r[CI.QAB]),qab_pct:n(r[CI.QAB_PCT]),avg:n(r[CI.AVG]),obp:n(r[CI.OBP]),slg:n(r[CI.SLG]),ops:n(r[CI.OPS]),roe:n(r[CI.ROE]),con:n(r[CI.CON]),hhb:n(r[CI.HHB]),ld:n(r[CI.LD]),fb:n(r[CI.FB]),ps:n(r[CI.PS]),pspa:n(r[CI.PSPA]),bbk:n(r[CI.BBK])};
     var ip=n(r[CI.PIT_IP]);
-    var pitching=ip>0?{gp:n(r[CI.PIT_GP]),ip:ip,w:n(r[CI.PIT_W]),l:n(r[CI.PIT_L]),bf:n(r[CI.PIT_BF]),np:n(r[CI.PIT_NP]),h:n(r[CI.PIT_H]),er:n(r[CI.PIT_ER]),bb:n(r[CI.PIT_BB]),k:n(r[CI.PIT_SO]),era:n(r[CI.PIT_ERA]),whip:n(r[CI.PIT_WHIP]),sp:n(r[CI.PIT_SP]),fps:n(r[CI.PIT_FPS]),fpso:n(r[CI.PIT_FPSO]),hr:n(r[CI.PIT_HR]||0)}:null;
+    var pitching=ip>0?{gp:n(r[CI.PIT_GP]),ip:ip,w:n(r[CI.PIT_W]),l:n(r[CI.PIT_L]),bf:n(r[CI.PIT_BF]),np:n(r[CI.PIT_NP]),h:n(r[CI.PIT_H]),er:n(r[CI.PIT_ER]),bb:n(r[CI.PIT_BB]),k:n(r[CI.PIT_SO]),era:n(r[CI.PIT_ERA]),whip:n(r[CI.PIT_WHIP]),sp:n(r[CI_SP]),fps:n(r[CI_FPS]),fpso:n(r[CI_FPSO]),hr:n(r[CI_HR]||0)}:null;
     out.push({batting,pitching});
   }
   return out;
