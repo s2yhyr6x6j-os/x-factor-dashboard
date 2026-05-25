@@ -3078,7 +3078,7 @@ function renderOverview(){
   if(pitBadge)pitBadge.textContent='S% '+tSP.toFixed(1)+'%';
 
   // Top 3 pitchers by highest S%
-  var topPit=[].concat(pitchers).sort(function(a,b){return b.pit.sp-a.pit.sp;}).slice(0,3);
+  var topPit=[].concat(pitchers).sort(function(a,b){return b.pit.ip-a.pit.ip;}).slice(0,3);
   document.getElementById('pit-player-list').innerHTML=topPit.length
     ? topPit.map(function(p){
         return '<div class="stat-player-row" onclick="openPlayer(\''+esc(p.name)+'\')">'
