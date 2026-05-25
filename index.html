@@ -339,7 +339,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .stat-kpi-back-def{font-size:10px;color:var(--sub);line-height:1.55;text-align:left;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .stat-kpi-cell.expanded .stat-kpi-back-def{display:block;overflow:visible;-webkit-line-clamp:unset}
-.stat-kpi-val{font-size:32px;font-weight:700;color:var(--green);line-height:1;transform:translateZ(0);-webkit-transform:translateZ(0)}
+.stat-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1;transform:translateZ(0);-webkit-transform:translateZ(0)}
 .stat-kpi-lbl{font-size:11px;color:var(--sub);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
 .stat-kpi-lbl .info{width:15px;height:15px;border-radius:50%;border:1px solid var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--blue);cursor:pointer;flex-shrink:0;transition:all .15s}
 .stat-kpi-lbl .info:hover{background:var(--blue);color:#fff}
@@ -436,9 +436,9 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .gl-card-wrap.expanded .gl-chevron{transform:rotate(180deg);color:var(--sub)}
 .gl-chevron svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;display:block}
 /* Box score slide-down */
-.gl-boxscore{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);background:var(--bg1);border:1px solid var(--border);border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px}
+.gl-boxscore{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1);background:var(--bg1);border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px}
 body.light-mode .gl-boxscore{background:#fff;}
-.gl-card-wrap.expanded .gl-boxscore{max-height:2000px}
+.gl-card-wrap.expanded .gl-boxscore{max-height:2000px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0, 0, 0, .12);}
 .gl-page-title{font-size:22px;font-weight:700;color:var(--hdr);margin-bottom:16px}
 .del-btn{display:none}
 /* Box score inner content */
@@ -752,13 +752,13 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .pit-kpi-card.flipped .pit-kpi-card-inner{transform:rotateY(180deg)}
 .pit-kpi-front,.pit-kpi-back{backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.pit-kpi-front{position:absolute;inset:0;background:var(--bg2);border-radius:12px;padding:14px 16px;box-sizing:border-box;z-index:1;display:flex;flex-direction:column}
+.pit-kpi-front{position:absolute;inset:0;background:var(--bg2);border-radius:12px;padding:14px 12px;box-sizing:border-box;z-index:1;display:flex;flex-direction:column}
 .pit-kpi-back{position:absolute;inset:0;transform:rotateY(180deg);background:var(--bg2);border-radius:12px;padding:0;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;z-index:0}
 .pit-kpi-card.expanded{height:auto}
 .pit-kpi-card.expanded .pit-kpi-card-inner{height:auto}
 .pit-kpi-card.expanded .pit-kpi-back{position:relative;inset:auto}
 .pit-kpi-card.expanded .pit-kpi-front{display:none}
-.pit-kpi-back-inner{padding:14px;height:100%}
+.pit-kpi-back-inner{padding:14px 10px;height:100%}
 .pit-kpi-back-title{font-size:13px;font-weight:700;color:var(--hdr);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase;letter-spacing:.06em}
 .pit-kpi-back-close{background:none;border:none;color:var(--sub);cursor:pointer;font-size:12px;padding:0;transition:color .15s}
 .pit-kpi-back-close:hover{color:var(--hdr)}
@@ -775,10 +775,12 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-val.elite{color:var(--purple)}
 .pit-kpi-desc{font-size:10px;color:var(--sub);margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
 .pit-kpi-target{font-size:10px;color:#3b82f6;margin-top:3px;letter-spacing:.04em}
-
+#page-metrics .pit-kpi-front{padding:14px 10px}
+#page-metrics .pit-kpi-val{font-size:22px}
+#page-metrics .pit-kpi-back-title{font-size:12px}
 .pit-tog-row{display:flex;gap:6px;margin-bottom:16px}
-.pit-tog{font-size:12px;font-weight:600;padding:7px 18px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);cursor:pointer;transition:all .15s}
-.pit-tog.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.pit-tog, .lb-filter-btn{font-size:12px;font-weight:600;padding:7px 18px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);cursor:pointer;transition:all .15s}
+.pit-tog.active, .lb-filter-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
 .pit-tog-hint{font-size:11px;color:var(--sub);margin-bottom:14px;line-height:1.5}
 /* Pitcher leaderboard */
 .pit-lb-card{background:#101828;border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:30px}
@@ -1273,14 +1275,11 @@ body.light-mode .up-complete-card.error{background:#fff1f2}
 
 /* ── LEADERBOARD FILTERS ── */
 .lb-filter-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.lb-filter-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--sub);cursor:pointer;transition:all .15s}
-.lb-filter-btn.active{background:#51a2ff;border-color:#51a2ff;color:#fff}
+.lb-filter-btn{font-family:var(--ff)}
 .lb-filter-btn:hover:not(.active){border-color:var(--sub);color:var(--hdr)}
 .lb-filter-through{font-size:11px;color:var(--sub)}
 .lb-sample-warning{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 12px;font-size:12px;color:#f59e0b;display:none;margin-bottom:10px}
 .lb-sample-warning.show{display:flex;align-items:center;gap:6px}
-body.light-mode .lb-filter-btn{background:#f3f4f6;border-color:#e5e7eb;color:#6b7280}
-body.light-mode .lb-filter-btn.active{background:#51a2ff;color:#fff}
 body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 </style>
 </head>
@@ -1419,7 +1418,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
           <div class="stat-kpi-front">
             <div class="stat-kpi-val" id="ov-fps">—</div>
             <div class="stat-kpi-lbl">FPS% <span class="info" onclick="flipCard('kpi-fps',event)">i</span></div>
-            <div class="stat-kpi-tgt">Target: 55%+</div>
+            <div class="stat-kpi-tgt">Target: 60%+</div>
           </div>
           <div class="stat-kpi-back" onclick="flipCard('kpi-fps',event)">
             <div class="stat-kpi-back-title">FPS% <button class="back-close" onclick="flipCard('kpi-fps',event)">✕</button></div>
@@ -1469,7 +1468,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
           <div class="stat-kpi-front">
             <div class="stat-kpi-val" id="ov-avg">—</div>
             <div class="stat-kpi-lbl">QAB% <span class="info" onclick="flipCard('kpi-qab',event)">i</span></div>
-            <div class="stat-kpi-tgt">Target: 50%+</div>
+            <div class="stat-kpi-tgt">Target: 60%+</div>
           </div>
           <div class="stat-kpi-back" onclick="flipCard('kpi-qab',event)">
             <div class="stat-kpi-back-title">QAB% <button class="back-close" onclick="flipCard('kpi-qab',event)">✕</button></div>
@@ -1497,7 +1496,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
           <div class="stat-kpi-front">
             <div class="stat-kpi-val" id="ov-obp">—</div>
             <div class="stat-kpi-lbl">OBP <span class="info" onclick="flipCard('kpi-obp',event)">i</span></div>
-            <div class="stat-kpi-tgt">Target: .350+</div>
+            <div class="stat-kpi-tgt">Target: .450+</div>
           </div>
           <div class="stat-kpi-back" onclick="flipCard('kpi-obp',event)">
             <div class="stat-kpi-back-title">OBP <button class="back-close" onclick="flipCard('kpi-obp',event)">✕</button></div>
@@ -1891,13 +1890,13 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 
   <!-- Toggle tabs -->
   <div class="lb-filter-row" style="margin-bottom:10px">
-    <button class="bat-tog active" onclick="setBatFilter('season',this)">Season</button>
-    <button class="bat-tog" onclick="setBatFilter('last10',this)">Last 10</button>
-    <button class="bat-tog" onclick="setBatFilter('last5',this)">Last 5</button>
-    <button class="bat-tog" onclick="setBatFilter('last3',this)">Last 3</button>
+    <button class="lb-filter-btn active" onclick="setBatFilter('season',this)">Season</button>
+    <button class="lb-filter-btn" onclick="setBatFilter('last10',this)">Last 10</button>
+    <button class="lb-filter-btn" onclick="setBatFilter('last5',this)">Last 5</button>
+    <button class="lb-filter-btn" onclick="setBatFilter('last3',this)">Last 3</button>
     <span class="lb-filter-through" id="bat-filter-through"></span>
   </div>
-  <div class="lb-sample-warning" id="bat-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
+  <div class="lb-sample-warning" id="bat-sample-warning">⚠ Small sample — Use for spotting trends, not evaluating ability</div>
   <div class="bat-tog-row">
     <button class="bat-tog active" onclick="setBatLbTog('qab',this)">QAB%</button>
     <button class="bat-tog" onclick="setBatLbTog('obp',this)">OBP</button>
@@ -2037,10 +2036,10 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 
   <!-- Toggle: S% / FIP / WHIP leaderboard -->
   <div class="lb-filter-row" style="margin-bottom:10px">
-    <button class="pit-tog active" onclick="setPitFilter('season',this)">Season</button>
-    <button class="pit-tog" onclick="setPitFilter('last10',this)">Last 10</button>
-    <button class="pit-tog" onclick="setPitFilter('last5',this)">Last 5</button>
-    <button class="pit-tog" onclick="setPitFilter('last3',this)">Last 3</button>
+    <button class="lb-filter-btn active" onclick="setPitFilter('season',this)">Season</button>
+    <button class="lb-filter-btn" onclick="setPitFilter('last10',this)">Last 10</button>
+    <button class="lb-filter-btn" onclick="setPitFilter('last5',this)">Last 5</button>
+    <button class="lb-filter-btn" onclick="setPitFilter('last3',this)">Last 3</button>
     <span class="lb-filter-through" id="pit-filter-through"></span>
   </div>
   <div class="lb-sample-warning" id="pit-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
@@ -2219,11 +2218,11 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
           <div class="pit-kpi-label">30 YD Dash <span class="info" onclick="flipPitCard('mkpi-dash',event)">i</span></div>
           <div class="pit-kpi-val" id="met-kpi-dash">4.79s</div>
           <div class="pit-kpi-desc">Team Average</div>
-          <div class="pit-kpi-target">Recorded: Dec 16, 2025</div>
+          <div class="pit-kpi-target">Tested: Dec 16, 2025</div>
         </div>
         <div class="pit-kpi-back" onclick="flipPitCard('mkpi-dash',event)">
           <div class="pit-kpi-back-inner">
-            <div class="pit-kpi-back-title">30 YD Dash <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-dash',event)">✕</button></div>            <div class="pit-kpi-back-def">The distance from Home to 1st is 90 feet (30yds). Measures how quickly a player can get down the line.</div>
+            <div class="pit-kpi-back-title">30 YD Dash <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-dash',event)">✕</button></div><div class="pit-kpi-back-def">The distance from Home to 1st is 90 feet (30yds). Measures how quickly a player can get down the line.</div>
           </div>
         </div>
       </div>
@@ -2232,14 +2231,14 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
     <div class="pit-kpi-card" id="mkpi-ev" style="height:140px">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
-          <div class="pit-kpi-label">EXIT VELOCITY (EV) <span class="info" onclick="flipPitCard('mkpi-ev',event)">i</span></div>
+          <div class="pit-kpi-label">EXIT VELOCITY <span class="info" onclick="flipPitCard('mkpi-ev',event)">i</span></div>
           <div class="pit-kpi-val" id="met-kpi-ev">63.1 mph</div>
           <div class="pit-kpi-desc">Team Average</div>
-          <div class="pit-kpi-target">Recorded: Dec 19, 2025</div>
+          <div class="pit-kpi-target">Tested: Dec 19, 2025</div>
         </div>
         <div class="pit-kpi-back" onclick="flipPitCard('mkpi-ev',event)">
           <div class="pit-kpi-back-inner">
-            <div class="pit-kpi-back-title">EXIT VELOCITY (EV) <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-ev',event)">✕</button></div>            <div class="pit-kpi-back-def">Measures the speed of the baseball as it comes off the bat, immediately after contact. Higher EV means harder hit balls and tougher for defenses to stop.</div>
+            <div class="pit-kpi-back-title">EXIT VELOCITY (EV) <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-ev',event)">✕</button></div><div class="pit-kpi-back-def">Measures the speed of the baseball as it comes off the bat, immediately after contact. Higher EV means harder hit balls and tougher for defenses to stop.</div>
           </div>
         </div>
       </div>
@@ -2251,11 +2250,11 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
           <div class="pit-kpi-label">Pulldowns <span class="info" onclick="flipPitCard('mkpi-pull',event)">i</span></div>
           <div class="pit-kpi-val" id="met-kpi-pull">62.9 mph</div>
           <div class="pit-kpi-desc">Team Average</div>
-          <div class="pit-kpi-target">Recorded: Mar 27, 2026</div>
+          <div class="pit-kpi-target">Tested: Mar 27, 2026</div>
         </div>
         <div class="pit-kpi-back" onclick="flipPitCard('mkpi-pull',event)">
           <div class="pit-kpi-back-inner">
-            <div class="pit-kpi-back-title">Pulldowns <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-pull',event)">✕</button></div>            <div class="pit-kpi-back-def">Max-effort throws measuring arm strength. Captured by radar gun — the higher the number, the stronger the arm.</div>
+            <div class="pit-kpi-back-title">Pulldowns <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-pull',event)">✕</button></div><div class="pit-kpi-back-def">Max-effort throws measuring arm strength. Captured by radar gun — the higher the number, the stronger the arm.</div>
           </div>
         </div>
       </div>
@@ -2267,11 +2266,11 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
           <div class="pit-kpi-label">Pop Time <span class="info" onclick="flipPitCard('mkpi-pop',event)">i</span></div>
           <div class="pit-kpi-val" id="met-kpi-pop">2.12s</div>
           <div class="pit-kpi-desc">Best Recorded</div>
-          <div class="pit-kpi-target">Recorded: Mar 29, 2026</div>
+          <div class="pit-kpi-target">Tested: Mar 29, 2026</div>
         </div>
         <div class="pit-kpi-back" onclick="flipPitCard('mkpi-pop',event)">
           <div class="pit-kpi-back-inner">
-            <div class="pit-kpi-back-title">Pop Time <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-pop',event)">✕</button></div>            <div class="pit-kpi-back-def">Measures the time it takes for a catcher to receive a ball and throw to 2nd. Starts when the ball hits the glove, stops when caught by the fielder.</div>
+            <div class="pit-kpi-back-title">Pop Time <button class="pit-kpi-back-close" onclick="flipPitCard('mkpi-pop',event)">✕</button></div><div class="pit-kpi-back-def">Measures the time it takes for a catcher to receive a ball and throw to 2nd. Starts when the ball hits the glove, stops when caught by the fielder.</div>
           </div>
         </div>
       </div>
@@ -2355,7 +2354,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
     </div>
   </div>
 
-  <!-- API Key Setting -->
+  <!-- API Key Setting 
   <div class="api-key-card">
     <div style="flex:1;min-width:160px">
       <div class="api-key-label">Anthropic API Key</div>
@@ -2363,7 +2362,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
     </div>
     <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-ant-api03-..." oninput="saveApiKey(this.value)">
     <div class="api-key-status" id="api-key-status">Not set</div>
-  </div>
+  </div> -->
 
   <!-- Drop zone -->
   <div class="up-drop" id="up-drop-zone"
