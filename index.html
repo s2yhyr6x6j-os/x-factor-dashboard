@@ -3674,13 +3674,17 @@ function renderHittingPage(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var players=getFilteredPlayers(_batFilter);
 
-  // Recalculate dynamic thresholds based on filtered pool
-  if(players.length>1){
+  // Only recalculate thresholds for filtered views, restore originals for season
+  if(_batFilter==='season'){
+    STAT_THRESHOLDS.obp={elite:.501,good:.450,warn:.350,hi:true};
+    STAT_THRESHOLDS.ops={elite:1.0,good:.800,warn:.700,hi:true};
+    STAT_THRESHOLDS.avg={elite:.451,good:.400,warn:.300,hi:true};
+    STAT_THRESHOLDS.qab={elite:70,good:60,warn:50,hi:true};
+  } else if(players.length>1){
     var poolOBP=players.reduce(function(s,p){return s+p.obp;},0)/players.length;
     var poolOPS=players.reduce(function(s,p){return s+p.ops;},0)/players.length;
     var poolAVG=players.reduce(function(s,p){return s+p.avg;},0)/players.length;
     var poolQAB=players.reduce(function(s,p){return s+p.qab_pct;},0)/players.length;
-    // Update STAT_THRESHOLDS dynamically for filtered view
     STAT_THRESHOLDS.obp={elite:+(poolOBP*1.25).toFixed(3),good:+(poolOBP*1.1).toFixed(3),warn:+(poolOBP*0.85).toFixed(3),hi:true};
     STAT_THRESHOLDS.ops={elite:+(poolOPS*1.3).toFixed(3),good:+(poolOPS*1.1).toFixed(3),warn:+(poolOPS*0.8).toFixed(3),hi:true};
     STAT_THRESHOLDS.avg={elite:+(poolAVG*1.3).toFixed(3),good:+(poolAVG*1.1).toFixed(3),warn:+(poolAVG*0.75).toFixed(3),hi:true};
@@ -3847,9 +3851,12 @@ function renderPitchingPage(){
   var pitchers=getFilteredPitchers(_pitFilter);
   if(!pitchers.length) pitchers=getPitchers();
 
-  // Recalculate pitching thresholds based on filtered pool
+  // Only recalculate thresholds for filtered views
   var pitPool=pitchers.filter(function(p){return p.pit&&p.pit.ip>0;});
-  if(pitPool.length>1){
+  if(_pitFilter==='season'){
+    STAT_THRESHOLDS.sp={elite:70,good:60,warn:50,hi:true};
+    STAT_THRESHOLDS.whip={elite:0.99,good:1.5,warn:2.0,hi:false};
+  } else if(pitPool.length>1){
     var poolSP=pitPool.reduce(function(s,p){return s+p.pit.sp;},0)/pitPool.length;
     var poolWHIP=pitPool.reduce(function(s,p){return s+p.pit.whip;},0)/pitPool.length;
     STAT_THRESHOLDS.sp={elite:+(poolSP*1.1).toFixed(1),good:+(poolSP*1.02).toFixed(1),warn:+(poolSP*0.9).toFixed(1),hi:true};
