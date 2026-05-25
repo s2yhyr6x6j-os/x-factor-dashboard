@@ -1894,7 +1894,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
     <button class="lb-filter-btn" onclick="setBatFilter('last10',this)">Last 10</button>
     <button class="lb-filter-btn" onclick="setBatFilter('last5',this)">Last 5</button>
     <button class="lb-filter-btn" onclick="setBatFilter('last3',this)">Last 3</button>
-    <span class="lb-filter-through" id="bat-filter-through"></span>
+
   </div>
   <div class="lb-sample-warning" id="bat-sample-warning">⚠ Small sample — Use for spotting trends, not evaluating ability</div>
   <div class="bat-tog-row">
@@ -2040,7 +2040,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
     <button class="lb-filter-btn" onclick="setPitFilter('last10',this)">Last 10</button>
     <button class="lb-filter-btn" onclick="setPitFilter('last5',this)">Last 5</button>
     <button class="lb-filter-btn" onclick="setPitFilter('last3',this)">Last 3</button>
-    <span class="lb-filter-through" id="pit-filter-through"></span>
+
   </div>
   <div class="lb-sample-warning" id="pit-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
   <div class="pit-tog-row">
@@ -5809,7 +5809,6 @@ function setPitFilter(filter, btn){
   document.querySelectorAll('#page-pitching .lb-filter-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   showSampleWarning('pit-sample-warning', filter);
-  updateFilterThrough('pit-filter-through', filter);
   renderPitchingPage();
 }
 
@@ -5818,7 +5817,6 @@ function setBatFilter(filter, btn){
   document.querySelectorAll('#page-hitting .lb-filter-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   showSampleWarning('bat-sample-warning', filter);
-  updateFilterThrough('bat-filter-through', filter);
   renderHittingPage();
 }
 
@@ -5837,16 +5835,20 @@ function getFilteredPlayers(filter){
     var h=games.reduce(function(s,g){return s+g.h;},0);
     var bb=games.reduce(function(s,g){return s+g.bb;},0);
     var hbp=games.reduce(function(s,g){return s+(g.hbp||0);},0);
-    var pa=games.reduce(function(s,g){return s+g.pa;},0);
-    var so=games.reduce(function(s,g){return s+g.so;},0);
-    var qab=games.reduce(function(s,g){return s+(g.qab||0);},0);
-    var tb=games.reduce(function(s,g){return s+(g.tb||g.h||0);},0);
+    var pa=games.reduce(function(s,g){return s+(g.pa||g.ab+g.bb+(g.hbp||0));},0);
+    var so=games.reduce(function(s,g){return s+(g.so||0);},0);
+    var hr=games.reduce(function(s,g){return s+(g.hr||0);},0);
+    var d=games.reduce(function(s,g){return s+(g.d||0);},0);
+    var t=games.reduce(function(s,g){return s+(g.t||0);},0);
+    var s1b=h-hr-d-t;
+    var tb=s1b+d*2+t*3+hr*4;
     var avg=ab>0?h/ab:0;
     var obp=(ab+bb+hbp)>0?(h+bb+hbp)/(ab+bb+hbp):0;
     var slg=ab>0?tb/ab:0;
     var ops=obp+slg;
-    var qab_pct=pa>0?qab/pa*100:0;
-    return Object.assign({},p,{ab:ab,h:h,bb:bb,hbp:hbp,pa:pa,so:so,qab:qab,
+    // QAB not available per-game from PDFs — use season rate as fallback
+    var qab_pct=p.qab_pct||0;
+    return Object.assign({},p,{ab:ab,h:h,bb:bb,hbp:hbp,pa:pa,so:so,hr:hr,
       avg:avg,obp:obp,slg:slg,ops:ops,qab_pct:qab_pct,gp:games.length});
   }).filter(function(p){return p.pa>0;});
 }
