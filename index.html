@@ -3644,10 +3644,10 @@ var batLbConfig={
   qab:{sub:'Sorted by QAB% · Blue Line = 60% target',hint:"QAB% = Quality At-Bats ÷ PA × 100 · QAB: walk, hit, HHB, moved runner, full count (6+ pitches)",target:60,goodHigh:true,fixedMax:100,
     fmt:function(v){return v.toFixed(1)+'%'},key:'qab',secondary:function(p){return p.ops.toFixed(3)+' OPS'},
     getVal:function(p){return p.qab_pct},color:function(v){var c=statClass('qab',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
-  obp:{sub:'Sorted by OBP · Blue Line = .450 target',hint:'OBP = On Base Percentage · Getting on base any way keeps innings alive',target:0.450,goodHigh:true,fixedMax:1.0,
+  obp:{sub:'Sorted by OBP · Blue Line = .450 target',hint:'OBP = On Base Percentage · Getting on base any way keeps innings alive',target:0.450,goodHigh:true,
     fmt:function(v){return v.toFixed(3)},key:'obp',secondary:function(p){return p.ops.toFixed(3)+' OPS'},
     getVal:function(p){return p.obp},color:function(v){var c=statClass('obp',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
-  ops:{sub:'Sorted by OPS · Blue Line = .800 target',hint:'OPS = OBP + Slugging · Single best offensive value indicator',target:0.800,goodHigh:true,fixedMax:2.0,
+  ops:{sub:'Sorted by OPS · Blue Line = .800 target',hint:'OPS = OBP + Slugging · Single best offensive value indicator',target:0.800,goodHigh:true,
     fmt:function(v){return v.toFixed(3)},key:'ops',secondary:function(p){return p.qab_pct.toFixed(1)+'% QAB'},
     getVal:function(p){return p.ops},color:function(v){var c=statClass('ops',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
   con:{sub:'Sorted by Contact% · Blue Line = 70% target',hint:'Contact% = (AB − K) ÷ AB × 100 · Ball in play rate',target:70,goodHigh:true,fixedMax:100,
@@ -3661,10 +3661,13 @@ var batLbConfig={
     getVal:function(p){return p.so>0?p.bb/p.so:0},color:function(v){var c=statClass('bbk',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
   rbi:{sub:'RBI = Runs Batted In',hint:'RBI = Runs Batted In · Total Runs Driven In',target:null,goodHigh:true,noBar:true,noColor:true,
     fmt:function(v){return Math.round(v)},key:'rbi',secondary:null,
-    getVal:function(p){return p.rbi},color:function(v){return 'var(--hdr)'}},
+    getVal:function(p){return p._filtRbi!=null?p._filtRbi:p.rbi},color:function(v){return 'var(--hdr)'}},  
+  hr:{sub:'Sorted by Home Runs',hint:'HR = Home Runs',target:null,goodHigh:true,noBar:true,noColor:true,
+    fmt:function(v){return Math.round(v)},key:'hr',secondary:null,
+    getVal:function(p){return p._filtHr!=null?p._filtHr:p.hr},color:function(v){return v>=2?'#a855f7':v>=1?'#22c55e':'var(--hdr)'}},
   xbh:{sub:'XBH = Extra Base Hits (2B + 3B + HR) · Power Indicator · Shows who is making hard contact',hint:'XBH = 2B + 3B + HR · Extra base hit power indicator',target:null,goodHigh:true,noBar:true,noColor:true,
     fmt:function(v){return Math.round(v)},key:'xbh',secondary:null,
-    getVal:function(p){return p.d+p.t+p.hr},color:function(v){return 'var(--hdr)'}},
+    getVal:function(p){return (p._filtD||p.d||0)+(p._filtT||p.t||0)+(p._filtHr||p.hr||0)},color:function(v){return 'var(--hdr)'}},  
 };
 
 function setBatLbTog(key, btn){
@@ -3692,6 +3695,7 @@ function renderHittingPage(){
     STAT_THRESHOLDS.avg={elite:.451,good:.400,warn:.300,hi:true};
     STAT_THRESHOLDS.qab={elite:70,good:60,warn:50,hi:true};
   } else if(players.length>1){
+    // For small-sample filters, use pool mean ± std dev approach
     var poolOBP=players.reduce(function(s,p){return s+p.obp;},0)/players.length;
     var poolOPS=players.reduce(function(s,p){return s+p.ops;},0)/players.length;
     var poolAVG=players.reduce(function(s,p){return s+p.avg;},0)/players.length;
@@ -5884,6 +5888,7 @@ function getFilteredPlayers(filter){
     var hr=games.reduce(function(s,g){return s+(g.hr||0);},0);
     var d=games.reduce(function(s,g){return s+(g.d||0);},0);
     var t=games.reduce(function(s,g){return s+(g.t||0);},0);
+    var rbi=games.reduce(function(s,g){return s+(g.rbi||0);},0);
     var s1b=h-hr-d-t;
     var tb=s1b+d*2+t*3+hr*4;
     var avg=ab>0?h/ab:0;
@@ -5893,7 +5898,8 @@ function getFilteredPlayers(filter){
     // QAB not available per-game from PDFs — use season rate as fallback
     var qab_pct=p.qab_pct||0;
     return Object.assign({},p,{ab:ab,h:h,bb:bb,hbp:hbp,pa:pa,so:so,hr:hr,
-      avg:avg,obp:obp,slg:slg,ops:ops,qab_pct:qab_pct,gp:games.length});
+      avg:avg,obp:obp,slg:slg,ops:ops,qab_pct:qab_pct,gp:games.length,
+      _filtRbi:rbi,_filtHr:hr,_filtD:d,_filtT:t});
   }).filter(function(p){return p.pa>0;});
 }
 
