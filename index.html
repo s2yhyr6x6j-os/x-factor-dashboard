@@ -3695,11 +3695,10 @@ function renderHittingPage(){
     STAT_THRESHOLDS.avg={elite:.451,good:.400,warn:.300,hi:true};
     STAT_THRESHOLDS.qab={elite:70,good:60,warn:50,hi:true};
   } else if(players.length>1){
-    // Scale thresholds by filter size — small samples inflate stats
-    var scale=_batFilter==='last3'?1.4:_batFilter==='last5'?1.25:1.1;
-    STAT_THRESHOLDS.obp={elite:+(0.501*scale).toFixed(3),good:+(0.450*scale).toFixed(3),warn:+(0.350*scale).toFixed(3),hi:true};
-    STAT_THRESHOLDS.ops={elite:+(1.0*scale).toFixed(3),good:+(0.800*scale).toFixed(3),warn:+(0.700*scale).toFixed(3),hi:true};
-    STAT_THRESHOLDS.avg={elite:+(0.451*scale).toFixed(3),good:+(0.400*scale).toFixed(3),warn:+(0.300*scale).toFixed(3),hi:true};
+    // Use same fixed thresholds as season — no scaling
+    STAT_THRESHOLDS.obp={elite:.501,good:.450,warn:.350,hi:true};
+    STAT_THRESHOLDS.ops={elite:1.0,good:.800,warn:.700,hi:true};
+    STAT_THRESHOLDS.avg={elite:.451,good:.400,warn:.300,hi:true};
     STAT_THRESHOLDS.qab={elite:70,good:60,warn:50,hi:true};
   }
 
