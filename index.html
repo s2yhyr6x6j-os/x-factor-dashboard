@@ -5880,8 +5880,16 @@ function getFilteredPlayers(filter){
 
   var n=filter==='last10'?10:filter==='last5'?5:3;
 
+  // Get the last N team game dates
+  var teamGames2=importedGames.filter(function(g){return !g.isSeason&&g.date;});
+  teamGames2.sort(function(a,b){return a.date.localeCompare(b.date);});
+  var cutoffDate2=teamGames2.length>=n?teamGames2[teamGames2.length-n].date:null;
+
   return allPlayers.map(function(p){
-    var games=(p.games||[]).slice(-n);
+    var allGames=p.games||[];
+    var games=cutoffDate2
+      ?allGames.filter(function(g){return g.date&&g.date>=cutoffDate2;})
+      :allGames.slice(-n);
     if(!games.length) return p;
     var ab=games.reduce(function(s,g){return s+g.ab;},0);
     var h=games.reduce(function(s,g){return s+g.h;},0);
@@ -5914,9 +5922,17 @@ function getFilteredPitchers(filter){
 
   var n=filter==='last10'?10:filter==='last5'?5:3;
 
+  // Get the last N team game dates
+  var teamGames=importedGames.filter(function(g){return !g.isSeason&&g.date;});
+  teamGames.sort(function(a,b){return a.date.localeCompare(b.date);});
+  var cutoffDate=teamGames.length>=n?teamGames[teamGames.length-n].date:null;
+
   return allPlayers.map(function(p){
     if(!p.pitGames||!p.pitGames.length) return null;
-    var games=p.pitGames.slice(-n);
+    // Filter to games on or after the cutoff date
+    var games=cutoffDate
+      ?p.pitGames.filter(function(g){return g.date&&g.date>=cutoffDate;})
+      :p.pitGames.slice(-n);
     if(!games.length) return null;
     var ip=games.reduce(function(s,g){return s+(g.ip||0);},0);
     if(!ip) return null;
@@ -5932,7 +5948,8 @@ function getFilteredPitchers(filter){
     var era=ip>0?er/ip*9:0;
     var sp=np>0?ns/np*100:p.pit.sp;
     // fps: if stored as count recalculate as pct, else use as-is
-    var fpsPct=fps>0&&bf>0&&fps<bf?+(fps/bf*100).toFixed(1):(fps>1?fps:p.pit.fps||0);
+    // fps in pitGames may be raw count or pct — detect and convert
+    var fpsPct=bf>0&&fps>0&&fps<=bf?+(fps/bf*100).toFixed(1):fps>0?fps:(p.pit.fps||0);
     var kbb=bb>0?k/bb:k>0?k:0;
     var bbinn=ip>0?bb/ip:0;
     var filtPit=Object.assign({},p.pit,{ip:ip,h:h,bb:bb,k:k,er:er,np:np,bf:bf,
