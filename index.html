@@ -929,6 +929,7 @@ body.light-mode .re-pos{background:var(--bg1)}
 .re-save{font-family:var(--ff);font-size:13px;font-weight:600;padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px}
 .bat-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:30px}
 .bat-tog-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.bat-tog:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
 .bat-tog{font-size:12px;font-weight:600;padding:7px 18px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);cursor:pointer;transition:all .15s}
 .bat-tog.active{background:var(--blue);border-color:var(--blue);color:#fff}
 .bat-tog-hint{font-size:11px;color:var(--sub);margin-bottom:14px;line-height:1.5}
@@ -1905,6 +1906,7 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
     <button class="bat-tog" onclick="setBatLbTog('avg',this)">AVG</button>
     <button class="bat-tog" onclick="setBatLbTog('bbk',this)">BB/K</button>
     <button class="bat-tog" onclick="setBatLbTog('rbi',this)">RBI</button>
+    <button class="bat-tog" onclick="setBatLbTog('hr',this)">HR</button>
     <button class="bat-tog" onclick="setBatLbTog('xbh',this)">XBH</button>
   </div>
   <div class="bat-tog-hint" id="bat-tog-hint">QAB% = Quality At-Bats ÷ PA × 100 · QAB: walk, hit, HHB, moved runner, full count (6+ pitches)</div>
@@ -2857,9 +2859,11 @@ function getPlayers(){
   var useSeason=!gameImports.length&&seasonImports.length>0;
   var map={};
   source.forEach(function(game,gi){
+    if(game.isSeason) return; // skip season CSV
+    // Track which players appeared in this game
+    var appearedInGame={};
     game.players.forEach(function(p){
       var b=p.batting,nm=b.name;
-      // Deduplicate truncated PDF names (e.g. "Bo Schroeder" vs "Bo Schroeder")
       var nmLast=nm.toLowerCase().split(' ').pop();
       var existKey=Object.keys(map).find(function(k){
         var kLast=k.toLowerCase().split(' ').pop();
@@ -2869,14 +2873,22 @@ function getPlayers(){
         return shorter.length>=4&&longer.startsWith(shorter.slice(0,Math.min(shorter.length,6)));
       });
       var key=existKey||nm;
-      // Prefer the longer/fuller name as the canonical key
       if(existKey&&nm.length>existKey.length) key=nm;
       if(!map[key]){
         if(existKey&&existKey!==key){map[key]=map[existKey];delete map[existKey];}
         else map[key]={name:key,num:b.num,games:[],pitGames:[]};
       }
+      appearedInGame[key]=true;
       map[key].games.push(Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},b));
       if(p.pitching)map[key].pitGames.push(Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},p.pitching));
+    });
+    // Add zero-stat entry for roster players who didn't appear
+    Object.keys(map).forEach(function(key){
+      if(!appearedInGame[key]){
+        map[key].games.push({gameIdx:gi,label:game.label,date:game.date,opp:game.opp,
+          name:key,num:map[key].num,gp:0,pa:0,ab:0,h:0,s1b:0,d:0,t:0,hr:0,
+          rbi:0,run:0,bb:0,so:0,hbp:0,sb:0,qab:0,qab_pct:0,avg:0,obp:0,slg:0,ops:0});
+      }
     });
   });
   // Build CSV pitching map ONCE for authoritative sp/hr values
@@ -5549,6 +5561,8 @@ var _isVercel=(window.location.hostname!=='localhost'&&
                window.location.hostname!=='127.0.0.1'&&
                window.location.protocol==='https:');
 var _kvSynced=false;
+var _filteredSeasons={last3:null,last5:null,last10:null};
+try{['last3','last5','last10'].forEach(function(k){var d=localStorage.getItem('sba_filt_'+k);if(d)_filteredSeasons[k]=JSON.parse(d);});}catch(e){}
 
 function kvGet(key){
   return fetch('/api/kv-get?key='+encodeURIComponent(key)+'&t='+Date.now())
@@ -5748,6 +5762,19 @@ function syncFromKV(){
 }
 
 
+function showUploadComplete(title, fileName){
+  var card=document.getElementById('up-complete-card');
+  var dropZone=document.getElementById('up-drop-zone');
+  if(card){
+    card.className='up-complete-card success';
+    card.style.display='block';
+    document.getElementById('up-complete-icon').textContent='✅';
+    document.getElementById('up-complete-title').textContent=title;
+    document.getElementById('up-complete-detail').textContent='From: '+fileName;
+    if(dropZone) dropZone.style.display='none';
+  }
+}
+
 function showUploadError(msg){
   var card=document.getElementById('up-complete-card');
   var dropZone=document.getElementById('up-drop-zone');
@@ -5817,6 +5844,17 @@ function setBatFilter(filter, btn){
   document.querySelectorAll('#page-hitting .lb-filter-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   showSampleWarning('bat-sample-warning', filter);
+  // Disable QAB% when not in season view
+  var qabBtn=document.querySelector('#page-hitting .bat-tog-row .bat-tog:first-child');
+  if(qabBtn){
+    if(filter!=='season'){
+      qabBtn.disabled=true;
+      // If QAB% is currently selected, switch to OBP
+      if(batLbTog==='qab'){setBatLbTog('obp',document.querySelectorAll('#page-hitting .bat-tog')[1]);}
+    } else {
+      qabBtn.disabled=false;
+    }
+  }
   renderHittingPage();
 }
 
@@ -5825,6 +5863,12 @@ function getFilteredPlayers(filter){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
   if(filter==='season') return allPlayers;
+
+  // Use uploaded filtered CSV if available
+  if(_filteredSeasons[filter]){
+    var fs=_filteredSeasons[filter];
+    return fs.filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  }
 
   var n=filter==='last10'?10:filter==='last5'?5:3;
 
@@ -5881,6 +5925,60 @@ function getFilteredPitchers(filter){
   }).filter(Boolean);
 }
 
+
+function parseFilteredCSV(text, filterKey){
+  var rows=Papa.parse(text,{header:false,skipEmptyLines:false}).data;
+  var hi=-1;
+  for(var i=0;i<rows.length;i++){if(rows[i][1]==='Last'){hi=i;break;}}
+  if(hi<0) return false;
+
+  var hdr=rows[hi];
+  var CI_SP=CI.PIT_SP,CI_FPS=CI.PIT_FPS,CI_FPSO=CI.PIT_FPSO,CI_HR=CI.PIT_HR;
+  for(var j=50;j<hdr.length;j++){
+    var h=String(hdr[j]||'').trim();
+    if(h==='S%') CI_SP=j;
+    else if(h==='FPS%') CI_FPS=j;
+    else if(h==='FPSO%') CI_FPSO=j;
+    else if(h==='HR'&&j>80) CI_HR=j;
+  }
+
+  var players=[];
+  function n(v){return parseFloat(String(v||'').replace(/[^0-9.-]/g,''))||0;}
+
+  for(var i=hi+1;i<rows.length;i++){
+    var r=rows[i];
+    if(!r||r.length<10) continue;
+    var last=String(r[CI.LAST]||'').trim(),first=String(r[CI.FIRST]||'').trim();
+    if(!last||!first||last==='Totals'||last==='Glossary') continue;
+    var ip=n(r[CI.PIT_IP]);
+    var batting={name:(first+' '+last).trim(),num:String(r[CI.NUM]||'').trim(),
+      gp:n(r[CI.BAT_GP]),pa:n(r[CI.PA]),ab:n(r[CI.AB]),h:n(r[CI.H]),
+      s1b:n(r[CI.B1]),d:n(r[CI.B2]),t:n(r[CI.B3]),hr:n(r[CI.HR]),
+      rbi:n(r[CI.RBI]),run:n(r[CI.R]),bb:n(r[CI.BAT_BB]),so:n(r[CI.BAT_SO]),
+      hbp:n(r[CI.HBP]),sb:n(r[CI.SB]),qab:n(r[CI.QAB]),qab_pct:n(r[CI.QAB_PCT]),
+      avg:n(r[CI.AVG]),obp:n(r[CI.OBP]),slg:n(r[CI.SLG]),ops:n(r[CI.OPS]),
+      roe:n(r[CI.ROE]),con:n(r[CI.CON]),hhb:n(r[CI.HHB]),ld:n(r[CI.LD]),
+      fb:n(r[CI.FB]),ps:n(r[CI.PS]),pspa:n(r[CI.PSPA]),bbk:n(r[CI.BBK])};
+    var pit=ip>0?{gp:n(r[CI.PIT_GP]),ip:ip,w:n(r[CI.PIT_W]),l:n(r[CI.PIT_L]),
+      bf:n(r[CI.PIT_BF]),np:n(r[CI.PIT_NP]),h:n(r[CI.PIT_H]),er:n(r[CI.PIT_ER]),
+      bb:n(r[CI.PIT_BB]),k:n(r[CI.PIT_SO]),era:n(r[CI.PIT_ERA]),whip:n(r[CI.PIT_WHIP]),
+      sp:n(r[CI_SP]),fps:n(r[CI_FPS]),fpso:n(r[CI_FPSO]),hr:n(r[CI_HR]||0)}:null;
+
+    // Build player object matching getPlayers() format
+    var p={name:batting.name,num:batting.num,gp:batting.gp,pa:batting.pa,ab:batting.ab,
+      h:batting.h,hr:batting.hr,rbi:batting.rbi,run:batting.run,bb:batting.bb,so:batting.so,
+      hbp:batting.hbp,sb:batting.sb,qab:batting.qab,qab_pct:batting.qab_pct,
+      avg:batting.avg,obp:batting.obp,slg:batting.slg,ops:batting.ops,
+      con:batting.con,hhb:batting.hhb,ps:batting.ps,pspa:batting.pspa,bbk:batting.bbk,
+      pit:pit,games:[],pitGames:[]};
+    players.push(p);
+  }
+
+  _filteredSeasons[filterKey]=players;
+  try{localStorage.setItem('sba_filt_'+filterKey,JSON.stringify(players));}catch(e){}
+  return true;
+}
+
 function renderOptRecs(){}
 
 function confirmDeletePlayer(name){
@@ -5908,8 +6006,16 @@ function handleUploadDrop(e){e.preventDefault();document.getElementById('up-drop
 function processUploadFile(file){
   // Auto-detect type from file extension
   var ext=file.name.split('.').pop().toLowerCase();
+  var fname=file.name.toLowerCase();
   if(ext==='csv') uploadType='csv';
   else if(ext==='pdf') uploadType='pdf';
+  // Auto-detect filtered CSV by filename
+  var filterKey=null;
+  if(ext==='csv'){
+    if(fname.indexOf('last3')>=0||fname.indexOf('season-3')>=0||fname.indexOf('last_3')>=0) filterKey='last3';
+    else if(fname.indexOf('last5')>=0||fname.indexOf('season-5')>=0||fname.indexOf('last_5')>=0) filterKey='last5';
+    else if(fname.indexOf('last10')>=0||fname.indexOf('season-10')>=0||fname.indexOf('last_10')>=0) filterKey='last10';
+  }
   // Update UI toggle to match
   var csvBtn=document.getElementById('type-csv');
   var pdfBtn=document.getElementById('type-pdf');
