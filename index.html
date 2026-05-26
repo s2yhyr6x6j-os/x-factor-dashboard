@@ -1299,6 +1299,53 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 .pd-avail-btn.unknown{background:rgba(255,255,255,.06);border-color:var(--border);color:var(--sub)}
 body.light-mode .pd-avail-card{background:#fff}
 body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
+
+/* ── PITCH COUNT PAGE ── */
+.pc-page-title{font-size:22px;font-weight:800;color:var(--hdr);margin-bottom:4px}
+.pc-page-sub{font-size:13px;color:var(--sub);margin-bottom:16px}
+.pc-next-game{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:#51a2ff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.pc-warning{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.pc-warning-icon{font-size:18px}
+.pc-warning-text{font-size:13px;font-weight:600;color:#f59e0b}
+.pc-warning-sub{font-size:11px;color:#f59e0b;margin-top:2px;text-decoration:underline;cursor:pointer}
+.pc-card{background:#101828;border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.pc-card-hdr{padding:14px 18px 10px}
+.pc-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.pc-card-name{font-size:16px;font-weight:800;color:var(--hdr)}
+.pc-card-meta{font-size:11px;color:var(--sub);margin-left:8px;font-weight:400}
+.pc-card-season{text-align:right}
+.pc-card-np{font-size:28px;font-weight:800;color:var(--hdr);line-height:1}
+.pc-card-np-lbl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em}
+.pc-card-np-detail{font-size:10px;color:var(--sub);margin-top:2px}
+.pc-status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;margin-bottom:6px}
+.pc-status-rest{background:rgba(245,158,11,.12);border:1px solid #f59e0b;color:#f59e0b}
+.pc-status-ok{background:rgba(34,197,94,.12);border:1px solid #22c55e;color:#4ade80}
+.pc-status-hit{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#fca5a5}
+.pc-status-text{font-size:11px;color:var(--sub);margin-bottom:6px}
+.pc-last-outing{font-size:11px;color:var(--sub);margin-bottom:6px}
+.pc-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:0 18px 10px}
+.pc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:visible;position:relative}
+.pc-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.pc-bar-max{position:absolute;right:0;top:-12px;font-size:9px;color:var(--sub)}
+.pc-bar-marker{position:absolute;top:-3px;width:2px;height:14px;background:rgba(255,255,255,.3);border-radius:1px}
+.pc-rest-note{font-size:11px;color:var(--sub);padding:0 18px 6px}
+.pc-toggle-hist{font-size:11px;color:var(--blue);cursor:pointer;padding:0 18px 10px;display:block}
+.pc-history{display:none;border-top:1px solid var(--border)}
+.pc-history.open{display:block}
+.pc-hist-hdr{display:grid;grid-template-columns:90px 1fr 45px 55px 60px 30px 30px 40px 45px;gap:4px;padding:8px 18px;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.pc-hist-row{display:grid;grid-template-columns:90px 1fr 45px 55px 60px 30px 30px 40px 45px;gap:4px;padding:8px 18px;font-size:12px;color:var(--sub);border-bottom:1px solid rgba(51,65,85,.3)}
+.pc-hist-row:last-child{border-bottom:none}
+.pc-hist-row span:first-child{color:var(--hdr)}
+.pc-ll-rules{background:#0a1120;border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:8px}
+.pc-ll-title{font-size:13px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+.pc-ll-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pc-ll-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(51,65,85,.2)}
+.pc-ll-row:last-child{border-bottom:none}
+.pc-ll-label{color:var(--sub)}
+.pc-ll-val{color:var(--hdr);font-weight:600}
+body.light-mode .pc-card{background:#fff}
+body.light-mode .pc-ll-rules{background:#f8f9fa}
+body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
 </style>
 </head>
 <body>
@@ -1371,6 +1418,9 @@ body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
       <button class="sb-item" onclick="goPage('games',this)" id="nav-games">
         <span class="sb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Games
         <span class="sb-badge" id="gc-badge">0</span>
+      </button>
+      <button class="sb-item" onclick="goPage('pitchcount',this)" id="nav-pitchcount">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span> Pitch Count
       </button>
       <button class="sb-item" onclick="goPage('metrics',this)" id="nav-metrics">
         <span class="sb-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span> Metrics
@@ -2449,6 +2499,41 @@ body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
   </div>
   <div id="debug-panel" style="display:none;margin-top:12px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;font-family:monospace;color:var(--sub);white-space:pre-wrap;overflow-x:auto;max-height:400px;overflow-y:auto"></div>
 
+</div>
+
+
+<!-- PITCH COUNT PAGE -->
+<div class="page" id="page-pitchcount">
+  <div class="pc-page-title">⏱ Pitch Count Tracker</div>
+  <div class="pc-page-sub" id="pc-date"></div>
+  <div class="pc-next-game" id="pc-next-game" style="display:none">
+    ⚾ <span id="pc-next-game-text"></span>
+  </div>
+  <div class="pc-warning" id="pc-rest-warning" style="display:none">
+    <div class="pc-warning-icon">⏳</div>
+    <div>
+      <div class="pc-warning-text" id="pc-rest-warning-text"></div>
+      <div class="pc-warning-sub">Per Little League rules — see eligibility dates below</div>
+    </div>
+  </div>
+  <div id="pc-pitcher-list"></div>
+  <div class="pc-ll-rules">
+    <div class="pc-ll-title">Little League Pitch Count Rules · Majors Division</div>
+    <div class="pc-ll-grid">
+      <div>
+        <div class="pc-ll-row"><span class="pc-ll-label">1–20 pitches</span><span class="pc-ll-val">0 days rest</span></div>
+        <div class="pc-ll-row"><span class="pc-ll-label">21–35 pitches</span><span class="pc-ll-val">1 day rest</span></div>
+        <div class="pc-ll-row"><span class="pc-ll-label">36–50 pitches</span><span class="pc-ll-val">2 days rest</span></div>
+        <div class="pc-ll-row"><span class="pc-ll-label">51–65 pitches</span><span class="pc-ll-val">3 days rest</span></div>
+        <div class="pc-ll-row"><span class="pc-ll-label">66+ pitches</span><span class="pc-ll-val">4 days rest</span></div>
+      </div>
+      <div>
+        <div class="pc-ll-row"><span class="pc-ll-label">Age 11–12 max</span><span class="pc-ll-val">85 pitches / day</span></div>
+        <div class="pc-ll-row"><span class="pc-ll-label">Age 10 max</span><span class="pc-ll-val">75 pitches / day</span></div>
+        <div class="pc-ll-row"><span class="pc-ll-label">3 consecutive days</span><span class="pc-ll-val">Never allowed</span></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 </main>
@@ -6122,6 +6207,209 @@ function buildAvailabilityCard(playerName){
   }).join('');
 }
 
+
+// ── PITCH COUNT PAGE ──
+
+function daysRestRequired(np){
+  if(np>=66) return 4; if(np>=51) return 3;
+  if(np>=36) return 2; if(np>=21) return 1;
+  return 0;
+}
+
+function pcEligibleDate(lastDate, np){
+  var needed=daysRestRequired(np);
+  if(!needed) return 'Today';
+  var d=new Date(lastDate+'T12:00:00');
+  d.setDate(d.getDate()+needed);
+  var today=new Date(); today.setHours(0,0,0,0);
+  var ed=new Date(d); ed.setHours(0,0,0,0);
+  if(ed<=today) return 'Today';
+  var diff=Math.round((ed-today)/86400000);
+  if(diff===1) return 'Tomorrow';
+  return 'Eligible '+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+function pcDaysUntilEligible(lastDate, np){
+  var needed=daysRestRequired(np);
+  if(!needed) return 0;
+  var d=new Date(lastDate+'T12:00:00');
+  d.setDate(d.getDate()+needed);
+  var today=new Date(); today.setHours(0,0,0,0);
+  d.setHours(0,0,0,0);
+  return Math.max(0,Math.round((d-today)/86400000));
+}
+
+function togglePcHistory(idx){
+  var el=document.getElementById('pc-hist-'+idx);
+  var lnk=document.getElementById('pc-tog-'+idx);
+  if(!el) return;
+  var open=el.classList.toggle('open');
+  if(lnk) lnk.textContent=open?'▲ Hide history':'▼ View outing history';
+}
+
+function renderPitchCountPage(){
+  var today=new Date();
+  var dateEl=document.getElementById('pc-date');
+  if(dateEl) dateEl.textContent=today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  // Next game
+  var nextGames=getUpcomingGames();
+  var nextGameEl=document.getElementById('pc-next-game');
+  var nextGameText=document.getElementById('pc-next-game-text');
+  if(nextGames.length&&nextGameEl&&nextGameText){
+    var ng=nextGames[0];
+    var ngDate=ng.date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    nextGameText.textContent='Next game: '+ngDate+' vs '+ng.opp;
+    nextGameEl.style.display='flex';
+  }
+
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var pitchers=getPlayers().filter(function(p){
+    return p.pit&&p.pit.ip>0&&EXCLUDED.indexOf(p.name)<0;
+  });
+
+  // Sort: resting first (most days needed), then available
+  pitchers.sort(function(a,b){
+    var aG=a.pitGames||[],bG=b.pitGames||[];
+    var aLast=aG.length?[].concat(aG).sort(function(x,y){return(y.date||'').localeCompare(x.date||'');})[0]:null;
+    var bLast=bG.length?[].concat(bG).sort(function(x,y){return(y.date||'').localeCompare(x.date||'');})[0]:null;
+    var aDays=aLast&&aLast.date?pcDaysUntilEligible(aLast.date,aLast.np||0):0;
+    var bDays=bLast&&bLast.date?pcDaysUntilEligible(bLast.date,bLast.np||0):0;
+    if(bDays!==aDays) return bDays-aDays;
+    return (b.pit.np||0)-(a.pit.np||0);
+  });
+
+  // Count pitchers on mandatory rest
+  var restCount=0;
+
+  var listEl=document.getElementById('pc-pitcher-list');
+  if(!listEl) return;
+
+  listEl.innerHTML=pitchers.map(function(p,idx){
+    var ov=rosterOverrides[p.name]||{};
+    var age=ov.age||12;
+    var pm=pitchMax(age);
+    var totalNP=p.pit.np||0;
+    var seasonIP=p.pit.ip||0;
+    var pinn=seasonIP>0?+(totalNP/seasonIP).toFixed(1):0;
+    var remaining=pm-totalNP;
+
+    // Last outing
+    var games=[].concat(p.pitGames||[]).sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+    var last=games[0]||null;
+    var lastNP=last?last.np||0:0;
+    var lastDate=last?last.date:null;
+    var daysUntil=lastDate?pcDaysUntilEligible(lastDate,lastNP):0;
+    var daysNeeded=lastDate?daysRestRequired(lastNP):0;
+    var eligStr=lastDate?pcEligibleDate(lastDate,lastNP):'';
+    var hitLimit=lastNP>=pm;
+
+    if(daysUntil>0) restCount++;
+
+    // Status badge
+    var statusHtml='';
+    if(hitLimit&&daysUntil>0){
+      statusHtml='<div class="pc-status-badge pc-status-hit">🚫 Hit limit last outing</div>';
+    } else if(daysUntil>0){
+      statusHtml='<div class="pc-status-badge pc-status-rest">⏳ Rest: '+daysUntil+' day'+(daysUntil!==1?'s':'')+'</div>';
+    } else {
+      statusHtml='<div class="pc-status-badge pc-status-ok">✅ Available</div>';
+    }
+
+    var statusText=daysUntil>0?eligStr:(lastDate?'Ready to pitch':'No outings recorded');
+    if(hitLimit&&daysUntil===0) statusText='Available today';
+
+    // Last outing line
+    var lastOutingHtml='';
+    if(last&&lastDate){
+      var lastDateStr=new Date(lastDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      var lastOpp=(last.opp||last.label||'').replace(/^@?\s*/,'');
+      var spStr=last.sp>0?last.sp.toFixed(1)+'% S%':'';
+      lastOutingHtml='<div class="pc-last-outing" style="padding:0 18px 4px">Last outing: '+lastDateStr+' vs '+lastOpp
+        +'<span style="float:right;color:'+(last.sp>=60?'var(--green)':'var(--amber)')+'">'+lastNP+'P'+(spStr?' · '+spStr:'')+'</span></div>';
+    }
+
+    // Pitch bar
+    var barPct=Math.min(totalNP/pm*100,100);
+    var barColor=barPct>=100?'#ef4444':barPct>=80?'#f59e0b':'#22c55e';
+
+    // Rest note
+    var restNote='';
+    if(lastDate&&daysNeeded>0){
+      restNote='<div class="pc-rest-note">'+lastNP+'P → '+daysNeeded+' day'+(daysNeeded!==1?'s':'')+' rest required → '+eligStr+'</div>';
+    } else if(lastDate&&daysNeeded===0){
+      restNote='<div class="pc-rest-note">'+lastNP+'P → no mandatory rest → '+eligStr+'</div>';
+    }
+
+    // Outing history table
+    var histRows=games.slice(0,10).map(function(g){
+      var gDate=g.date?new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'—';
+      var gOpp=(g.opp||g.label||'').replace(/^@?\s*/,'').substring(0,14);
+      var gNP=g.np||0;
+      var gNC=g.np&&g.sp?Math.round(g.np*g.sp/100):0;
+      var gRest=daysRestRequired(gNP);
+      var spDisp=g.sp>0?g.sp.toFixed(1)+'%':'—';
+      return '<div class="pc-hist-row">'
+        +'<span>'+gDate+'</span>'
+        +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+gOpp+'</span>'
+        +'<span>'+(+(g.ip||0)).toFixed(1)+'</span>'
+        +'<span>'+gNP+(gNC?' ('+gNC+')':'')+'</span>'
+        +'<span style="color:var(--sub);font-size:10px">set</span>'
+        +'<span>'+(g.k||0)+'</span>'
+        +'<span>'+(g.bb||0)+'</span>'
+        +'<span style="color:'+(g.sp>=60?'var(--green)':'var(--amber)')+'">'+spDisp+'</span>'
+        +'<span>'+(gRest>0?gRest+'d':'—')+'</span>'
+        +'</div>';
+    }).join('');
+
+    return '<div class="pc-card">'
+      +'<div class="pc-card-hdr">'
+        +'<div class="pc-card-top">'
+          +'<div>'
+            +'<span class="pc-card-name">'+p.name+'</span>'
+            +'<span class="pc-card-meta">#'+(ov.num||p.num||'—')+' · Age '+age+' · '+pm+'P limit</span>'
+          +'</div>'
+          +'<div class="pc-card-season">'
+            +'<div class="pc-card-np">'+totalNP+'</div>'
+            +'<div class="pc-card-np-lbl">season pitches</div>'
+            +(remaining>0?'<div class="pc-card-np-detail" style="color:'+(remaining<20?'#f59e0b':'var(--sub)')+'">'+remaining+' left</div>':'')
+            +(pinn>0?'<div class="pc-card-np-detail">~'+pinn+' P/inn</div>':'')
+          +'</div>'
+        +'</div>'
+        +statusHtml
+        +'<div style="font-size:11px;color:var(--sub);margin-bottom:6px">'+statusText+'</div>'
+      +'</div>'
+      +lastOutingHtml
+      +'<div class="pc-bar-row">'
+        +'<span style="font-size:10px;color:var(--sub)">0</span>'
+        +'<div class="pc-bar-track">'
+          +'<div class="pc-bar-fill" style="width:'+barPct+'%;background:'+barColor+'"></div>'
+          +'<div class="pc-bar-marker" style="left:'+Math.min((pm*0.75/pm*100),95)+'%"></div>'
+          +'<div class="pc-bar-max">'+pm+' max</div>'
+        +'</div>'
+      +'</div>'
+      +restNote
+      +'<span class="pc-toggle-hist" id="pc-tog-'+idx+'" onclick="togglePcHistory('+idx+')">▼ View outing history</span>'
+      +'<div class="pc-history" id="pc-hist-'+idx+'">'
+        +'<div class="pc-hist-hdr"><span>Date</span><span>Opponent</span><span>IP</span><span>P (GC)</span><span>LL Official</span><span>K</span><span>BB</span><span>S%</span><span>Rest</span></div>'
+        +histRows
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  // Warning banner
+  var warnEl=document.getElementById('pc-rest-warning');
+  var warnText=document.getElementById('pc-rest-warning-text');
+  if(warnEl&&warnText){
+    if(restCount>0){
+      warnEl.style.display='flex';
+      warnText.textContent=restCount+' pitcher'+(restCount!==1?'s are':'is')+' serving mandatory rest';
+    } else {
+      warnEl.style.display='none';
+    }
+  }
+}
+
 function renderOptRecs(){}
 
 function confirmDeletePlayer(name){
@@ -7181,6 +7469,7 @@ function goPage(id,btn){
   if(btn)btn.classList.add('active');
   closeMobileSidebar();
   if(id==='metrics')renderMetrics();
+  if(id==='pitchcount')renderPitchCountPage();
   if(id==='rotation'){renderRotationPage();var rlo=document.getElementById('rotation-last-optimized');if(rlo){if(!_rotLastOptimized){rlo.textContent='';}else if(getRotationStale()){rlo.innerHTML='Last Optimized: '+formatOptimizedTime(_rotLastOptimized)+' &nbsp;<span style="color:#f59e0b;font-weight:700">⚠ Optimization recommended</span>';}else{rlo.textContent='Last Optimized: '+formatOptimizedTime(_rotLastOptimized);}}}
   setTimeout(function(){if(spChartObj)spChartObj.resize();if(batTrendChartObj)batTrendChartObj.resize();},60);
 }
