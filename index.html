@@ -2047,8 +2047,13 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
   <div class="lb-sample-warning" id="pit-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
   <div class="pit-tog-row">
     <button class="pit-tog active" id="pit-tog-sp" onclick="setPitLbTog('sp',this)">S%</button>
-    <button class="pit-tog" id="pit-tog-fip" onclick="setPitLbTog('fip',this)">FIP</button>
     <button class="pit-tog" id="pit-tog-whip" onclick="setPitLbTog('whip',this)">WHIP</button>
+    <button class="pit-tog" id="pit-tog-fip" onclick="setPitLbTog('fip',this)">FIP</button>
+    <button class="pit-tog" id="pit-tog-era" onclick="setPitLbTog('era',this)">ERA</button>
+    <button class="pit-tog" id="pit-tog-fps" onclick="setPitLbTog('fps',this)">FPS%</button>
+    <button class="pit-tog" id="pit-tog-kbb" onclick="setPitLbTog('kbb',this)">K/BB</button>
+    <button class="pit-tog" id="pit-tog-bbinn" onclick="setPitLbTog('bbinn',this)">BB/INN</button>
+    <button class="pit-tog" id="pit-tog-k" onclick="setPitLbTog('k',this)">K</button>
   </div>
   <div class="pit-tog-hint" id="pit-tog-hint">S% = Strikes ÷ Pitches × 100 · Target: 60%+ · Elite: 70%+</div>
 
@@ -3816,12 +3821,22 @@ function sortBat(k){batLbTog=k==='qab_pct'?'qab':k==='obp'?'obp':k==='ops'?'ops'
 // ── PITCHING PAGE ──
 var pitLbTog='sp';
 var pitLbConfig={
-  sp:{label:'S%',sub:'Sorted by S% · blue line = 60% target',hint:'S% = Strikes ÷ Pitches × 100 · Target: 60%+ · Elite: 70%+',target:60,goodHigh:true,fmt:function(v){return v.toFixed(1)+'%'},
+  sp:{label:'S%',sub:'Sorted by S% · blue line = 60% target',hint:'S% = Strikes ÷ Pitches × 100 · Target: 60%+ · Elite: 70%+',target:60,goodHigh:true,fmt:function(v){return v.toFixed(1)+'%'},getVal:function(p){return p.pit.sp||0},
     color:function(v){var c=statClass('sp',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
-  fip:{label:'FIP',sub:'Sorted by FIP · lower is better · target < 3.00',hint:'FIP = Fielding Independent Pitching · Measures only what the pitcher can control: K, BB, HR. Removes fielding errors.',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},
+  fip:{label:'FIP',sub:'Sorted by FIP · lower is better · target < 3.00',hint:'FIP = Fielding Independent Pitching · Measures only what the pitcher can control: K, BB, HR. Removes fielding errors.',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){var fip=p.pit.fip||(p.pit.ip>0?((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/p.pit.ip+3.1):0);return fip;},
     color:function(v){var c=statClass('fip',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
-  whip:{label:'WHIP',sub:'Sorted by WHIP · lower is better · target < 1.50',hint:'WHIP = (Walks + Hits) ÷ Innings Pitched · 1.0 = excellent at any level',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},
-    color:function(v){var c=statClass('whip',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}}
+  whip:{label:'WHIP',sub:'Sorted by WHIP · lower is better · target < 1.50',hint:'WHIP = (Walks + Hits) ÷ Innings Pitched · 1.0 = excellent at any level',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.whip||0},
+    color:function(v){var c=statClass('whip',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+  era:{label:'ERA',sub:'Sorted by ERA · lower is better',hint:'ERA = Earned Runs × 9 ÷ IP · Earned Run Average',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.era||0},
+    color:function(v){var c=statClass('fip',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+  fps:{label:'FPS%',sub:'Sorted by FPS% · blue line = 60% target',hint:'FPS% = First Pitch Strikes ÷ Batters Faced · Target: 60%+',target:60,goodHigh:true,fmt:function(v){return v.toFixed(1)+'%'},getVal:function(p){return p.pit.fps||0},
+    color:function(v){var c=statClass('fps',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+  kbb:{label:'K/BB',sub:'Sorted by K/BB · higher is better · target > 2.0',hint:'K/BB = Strikeouts ÷ Walks · Command ratio. Elite: >3.0',target:null,goodHigh:true,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.kbb!=null?p.pit.kbb:(p.pit.bb>0?p.pit.k/p.pit.bb:p.pit.k||0)},
+    color:function(v){var c=statClass('kbb',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+  bbinn:{label:'BB/INN',sub:'Sorted by BB/INN · lower is better · target < 1.0',hint:'BB/INN = Walks ÷ Innings Pitched · Command metric. Elite: <0.5',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.bbinn!=null?p.pit.bbinn:(p.pit.ip>0?p.pit.bb/p.pit.ip:0)},
+    color:function(v){var c=statClass('bbinn',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+  k:{label:'K',sub:'Sorted by Strikeouts',hint:'K = Strikeouts · Total strikeouts in selected window',target:null,goodHigh:true,fmt:function(v){return Math.round(v)},noBar:true,getVal:function(p){return p.pit.k||0},
+    color:function(v){return v>=10?'#a855f7':v>=5?'#22c55e':'var(--hdr)'}}
 };
 
 function togglePitLbRow(id){
@@ -3931,39 +3946,32 @@ function renderPitchingPage(){
   if(!pitchers.length){lbEl.innerHTML='<div class="empty">Upload season CSV to see leaderboard</div>';return;}
 
   // Build CSV sp lookup for authoritative values
-  var getVal=function(p){
-    if(pitLbTog==='sp') return p.pit.sp;
-    if(pitLbTog==='fip'){
-      var ip=p.pit.ip,bb=p.pit.bb,k=p.pit.k,hr=p.pit.hr||0;
-      return ip>0?((13*hr+3*bb-2*k)/ip+3.2):null;
-    }
-    return p.pit.whip;
-  };
+  var getVal=cfg.getVal||function(p){return p.pit[pitLbTog]||0;};
 
-  var sorted=[].concat(pitchers).filter(function(p){return getVal(p)!==null&&p.pit.ip>0;});
+  var sorted=[].concat(pitchers).filter(function(p){return getVal(p)!=null&&p.pit.ip>0;});
   sorted.sort(function(a,b){return cfg.goodHigh?getVal(b)-getVal(a):getVal(a)-getVal(b);});
 
   // Max value for bar scaling
   var vals=sorted.map(getVal);
   var maxVal=Math.max.apply(null,vals)||1;
-  // For goodHigh (S%), bar = value/100 * full width; target line at 60%
-  // For !goodHigh, invert: best gets longest bar
 
   lbEl.innerHTML=sorted.map(function(p){
     var val=getVal(p);
-    var cls=pitLbTog==='fip'?statClass('fip',val):pitLbTog==='whip'?statClass('whip',val):statClass('sp',val);
-    var isElite=cls==='elite';
-    var disp=cfg.fmt(val)+(isElite?' 🔥':'');
+    var cls=cfg.color?null:statClass('sp',val);
     var color=cfg.color(val);
+    var isElite=color==='#a855f7';
+    var disp=cfg.fmt(val)+(isElite?' 🔥':'');
     var barPct, targetLinePct=null;
 
-    if(pitLbTog==='sp'){
-      barPct=Math.min(val,100);
-      targetLinePct=60;
+    if(cfg.noBar){
+      barPct=0;
+    } else if(cfg.goodHigh){
+      if(cfg.target){barPct=Math.min(val/cfg.target*60,100);targetLinePct=60;}
+      else{barPct=maxVal>0?val/maxVal*100:0;}
     } else {
       var minVal=Math.min.apply(null,vals)||0;
       var range=maxVal-minVal||1;
-      barPct=Math.max(5, (1-(val-minVal)/range)*90+5);
+      barPct=Math.max(5,(1-(val-minVal)/range)*90+5);
     }
 
     // Build detail stats grid (12 stats like screenshot)
@@ -5918,11 +5926,17 @@ function getFilteredPitchers(filter){
     var er=games.reduce(function(s,g){return s+g.er;},0);
     var np=games.reduce(function(s,g){return s+(g.np||0);},0);
     var ns=games.reduce(function(s,g){return s+(g.ns||0);},0);
+    var bf=games.reduce(function(s,g){return s+(g.bf||0);},0);
+    var fps=games.reduce(function(s,g){return s+(g.fps||0);},0);
     var whip=ip>0?(h+bb)/ip:0;
     var era=ip>0?er/ip*9:0;
     var sp=np>0?ns/np*100:p.pit.sp;
-    var filtPit=Object.assign({},p.pit,{ip:ip,h:h,bb:bb,k:k,er:er,np:np,
-      whip:whip,era:era,sp:sp,gp:games.length});
+    // fps: if stored as count recalculate as pct, else use as-is
+    var fpsPct=fps>0&&bf>0&&fps<bf?+(fps/bf*100).toFixed(1):(fps>1?fps:p.pit.fps||0);
+    var kbb=bb>0?k/bb:k>0?k:0;
+    var bbinn=ip>0?bb/ip:0;
+    var filtPit=Object.assign({},p.pit,{ip:ip,h:h,bb:bb,k:k,er:er,np:np,bf:bf,
+      whip:whip,era:era,sp:sp,fps:fpsPct,kbb:kbb,bbinn:bbinn,gp:games.length});
     return Object.assign({},p,{pit:filtPit});
   }).filter(Boolean);
 }
