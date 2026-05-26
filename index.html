@@ -1282,6 +1282,23 @@ body.light-mode .up-complete-card.error{background:#fff1f2}
 .lb-sample-warning{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 12px;font-size:12px;color:#f59e0b;display:none;margin-bottom:10px}
 .lb-sample-warning.show{display:flex;align-items:center;gap:6px}
 body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
+
+/* ── PLAYER AVAILABILITY ── */
+.pd-avail-card{background:#101828;border:1px solid var(--border);border-radius:14px;margin:0 16px 16px;overflow:hidden}
+.pd-avail-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none}
+.pd-avail-title{font-size:14px;font-weight:700;color:var(--hdr)}
+.pd-avail-sub{font-size:11px;color:var(--sub);margin-top:2px}
+.pd-avail-body{border-top:1px solid var(--border)}
+.pd-avail-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid rgba(51,65,85,.3)}
+.pd-avail-row:last-child{border-bottom:none}
+.pd-avail-game{font-size:13px;font-weight:600;color:var(--hdr)}
+.pd-avail-date{font-size:11px;color:var(--sub);margin-top:2px}
+.pd-avail-btn{font-family:var(--ff);font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;min-width:100px;text-align:center}
+.pd-avail-btn.confirmed{background:#166534;border-color:#22c55e;color:#4ade80}
+.pd-avail-btn.absent{background:#7f1d1d;border-color:#ef4444;color:#fca5a5}
+.pd-avail-btn.unknown{background:rgba(255,255,255,.06);border-color:var(--border);color:var(--sub)}
+body.light-mode .pd-avail-card{background:#fff}
+body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
 </style>
 </head>
 <body>
@@ -2672,6 +2689,17 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
   </div>
 
   <div style="height:40px"></div>
+  <!-- Player Availability -->
+  <div class="pd-avail-card" id="pd-avail-card">
+    <div class="pd-avail-hdr" onclick="toggleAvailCard()">
+      <div>
+        <div class="pd-avail-title">Upcoming Game Availability</div>
+        <div class="pd-avail-sub">Tap a game to toggle · feeds into lineup recommendations</div>
+      </div>
+      <span class="pd-sec-chevron" id="pd-avail-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
+    </div>
+    <div class="pd-avail-body" id="pd-avail-body"></div>
+  </div>
   </div><!-- /pd-inner -->
 </div>
 
@@ -4526,11 +4554,23 @@ function buildSmartLineup(players){
   return result.filter(Boolean).map(function(p){return p.name;});
 }
 
+function isPlayerAvailable(name){
+  var avail=_playerAvailability[name]||{};
+  var upcoming=getUpcomingGames();
+  if(!upcoming.length) return true;
+  var next=upcoming[0];
+  var status=avail[next.key]||'unknown';
+  return status!=='absent';
+}
+
 function autoLineup(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var allP=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  // Split available and unavailable
+  var players=allP.filter(function(p){return isPlayerAvailable(p.name);});
+  var unavailable=allP.filter(function(p){return !isPlayerAvailable(p.name);});
   if(!players.length) return;
-  lineupOrder=buildSmartLineup(players);
+  lineupOrder=buildSmartLineup(players).concat(unavailable.map(function(p){return p.name;}));
   save();renderLineup();
 }
 
@@ -5083,6 +5123,7 @@ function loadIcsSettings(){
     if(last){var el2=document.getElementById('ics-last-sync');if(el2)el2.textContent='Last synced: '+last;}
     var sched=localStorage.getItem('sba_schedule');
     if(sched){gcSchedule=JSON.parse(sched);renderNextGame();}
+    kvGet('sba_availability').then(function(v){if(v){_playerAvailability=typeof v==='string'?JSON.parse(v):v;}});
   }catch(e){}
 }
 
@@ -6012,6 +6053,75 @@ function parseFilteredCSV(text, filterKey){
   return true;
 }
 
+
+// ── PLAYER AVAILABILITY ──
+var _availOpen=true;
+var _playerAvailability={}; // {playerName: {gameKey: 'confirmed'|'absent'|'unknown'}}
+
+function loadAvailability(){
+  try{var d=localStorage.getItem('sba_availability');if(d)_playerAvailability=JSON.parse(d);}catch(e){}
+}
+
+function saveAvailability(){
+  try{localStorage.setItem('sba_availability',JSON.stringify(_playerAvailability));}catch(e){}
+  if(typeof kvSet==='function'&&_isVercel) kvSet('sba_availability',_playerAvailability);
+}
+
+function toggleAvailCard(){
+  _availOpen=!_availOpen;
+  var body=document.getElementById('pd-avail-body');
+  var chev=document.getElementById('pd-avail-chevron');
+  if(body) body.style.display=_availOpen?'block':'none';
+  if(chev) chev.style.transform=_availOpen?'':'rotate(180deg)';
+}
+
+function cycleAvailability(playerName, gameKey){
+  if(!_playerAvailability[playerName]) _playerAvailability[playerName]={};
+  var cur=_playerAvailability[playerName][gameKey]||'unknown';
+  var next=cur==='unknown'?'confirmed':cur==='confirmed'?'absent':'unknown';
+  _playerAvailability[playerName][gameKey]=next;
+  saveAvailability();
+  buildAvailabilityCard(playerName);
+}
+
+function getUpcomingGames(){
+  var now=new Date();
+  now.setHours(0,0,0,0);
+  if(!gcSchedule||!gcSchedule.length) return [];
+  return gcSchedule.filter(function(g){
+    var d=new Date(g.date);
+    d.setHours(0,0,0,0);
+    return d>=now;
+  }).slice(0,8).map(function(g){
+    var d=new Date(g.date);
+    var opp=g.summary||'Game';
+    opp=opp.replace(/SBA Red 12U\s*vs?\.?\s*/i,'').replace(/\s*vs?\.?\s*SBA Red 12U/i,'').trim();
+    var dateStr=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    var key=g.date+(opp||'');
+    return {opp:opp,dateStr:dateStr,key:key,date:d};
+  });
+}
+
+function buildAvailabilityCard(playerName){
+  var body=document.getElementById('pd-avail-body');
+  if(!body) return;
+  var games=getUpcomingGames();
+  if(!games.length){
+    body.innerHTML='<div style="padding:14px 18px;font-size:12px;color:var(--sub)">No upcoming games found. Sync your GameChanger schedule.</div>';
+    return;
+  }
+  var avail=_playerAvailability[playerName]||{};
+  body.innerHTML=games.map(function(g){
+    var status=avail[g.key]||'unknown';
+    var btnLabel=status==='confirmed'?'✅ Confirmed':status==='absent'?'✕ Absent':'? Unknown';
+    var btnCls='pd-avail-btn '+status;
+    return '<div class="pd-avail-row">'
+      +'<div><div class="pd-avail-game">'+g.opp+'</div><div class="pd-avail-date">'+g.dateStr+'</div></div>'
+      +'<button class="'+btnCls+'" data-player="'+esc(playerName)+'" data-key="'+esc(g.key)+'" onclick="cycleAvailability(this.dataset.player,this.dataset.key)">'+btnLabel+'</button>'
+      +'</div>';
+  }).join('');
+}
+
 function renderOptRecs(){}
 
 function confirmDeletePlayer(name){
@@ -6488,6 +6598,7 @@ function openPlayer(name){
     buildPdNotes(name);
     buildInsights(p);
     buildPdXFSection(p);
+    buildAvailabilityCard(p.name);
     // Resize all charts after paint
     setTimeout(function(){
       Object.values(_pdCharts).forEach(function(ch){if(ch)ch.resize();});
@@ -7138,7 +7249,7 @@ function linkImportsToGameLog(){
   var batEl=document.getElementById('batTrendChart');
   if(spEl)ro.observe(spEl.parentElement);
   if(batEl)ro.observe(batEl.parentElement);
-  load();loadTheme();
+  load();loadTheme();loadAvailability();
   // Load from KV first (cross-device sync), then proceed with init
   kvLoad(function(){
     fixPitchingData();
