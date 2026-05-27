@@ -2518,7 +2518,7 @@ body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
   </div>
   <div id="pc-pitcher-list"></div>
   <div class="pc-ll-rules">
-    <div class="pc-ll-title">Little League Pitch Count Rules · Majors Division</div>
+    <div class="pc-ll-title">MLB Pitch Smart Guidelines: 12U</div>
     <div class="pc-ll-grid">
       <div>
         <div class="pc-ll-row"><span class="pc-ll-label">1–20 pitches</span><span class="pc-ll-val">0 days rest</span></div>
@@ -2529,7 +2529,6 @@ body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
       </div>
       <div>
         <div class="pc-ll-row"><span class="pc-ll-label">Age 11–12 max</span><span class="pc-ll-val">85 pitches / day</span></div>
-        <div class="pc-ll-row"><span class="pc-ll-label">Age 10 max</span><span class="pc-ll-val">75 pitches / day</span></div>
         <div class="pc-ll-row"><span class="pc-ll-label">3 consecutive days</span><span class="pc-ll-val">Never allowed</span></div>
       </div>
     </div>
@@ -2999,7 +2998,12 @@ function getPlayers(){
       }
       appearedInGame[key]=true;
       map[key].games.push(Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},b));
-      if(p.pitching)map[key].pitGames.push(Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},p.pitching));
+      if(p.pitching){
+        var pitObj=Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},p.pitching);
+        // Always calculate sp from ns/np for accuracy
+        if(pitObj.np>0&&pitObj.ns>0) pitObj.sp=+(pitObj.ns/pitObj.np*100).toFixed(1);
+        map[key].pitGames.push(pitObj);
+      }
     });
     // Add zero-stat entry for roster players who didn't appear
     Object.keys(map).forEach(function(key){
@@ -3355,12 +3359,15 @@ function renderCharts(){
       return s;
     },0);
     if(totalNP>0&&totalNS>0) return +(totalNS/totalNP*100).toFixed(1);
-    // Fallback: IP-weighted average of sp
-    var pitsWithSP=pits.filter(function(p){return p.pitching.sp>0;});
+    // Fallback: IP-weighted average using ns/np derived sp
+    var pitsWithSP=pits.filter(function(p){return p.pitching.np>0||p.pitching.sp>0;});
     if(!pitsWithSP.length) return null;
     var totalIP=pitsWithSP.reduce(function(s,p){return s+p.pitching.ip;},0);
     if(!totalIP) return null;
-    return +(pitsWithSP.reduce(function(s,p){return s+p.pitching.sp*p.pitching.ip;},0)/totalIP).toFixed(1);
+    return +(pitsWithSP.reduce(function(s,p){
+      var sp=p.pitching.np>0&&p.pitching.ns>0?p.pitching.ns/p.pitching.np*100:p.pitching.sp;
+      return s+sp*p.pitching.ip;
+    },0)/totalIP).toFixed(1);
   });
 
   var spTargetPlugin={id:'spTarget',afterDraw:function(chart){
@@ -6349,9 +6356,9 @@ function renderPitchCountPage(){
         +'<span style="float:right;color:'+(last.sp>=60?'var(--green)':'var(--amber)')+'">'+lastNP+'P'+(spStr?' · '+spStr:'')+'</span></div>';
     }
 
-    // Pitch bar
-    var barPct=Math.min(totalNP/pm*100,100);
-    var barColor=barPct>=100?'#ef4444':barPct>=80?'#f59e0b':'#22c55e';
+    // Pitch bar - range 0-100, green under 85, red at/over 85
+    var barPct=Math.min(totalNP,100);
+    var barColor=totalNP>=85?'#ef4444':'#22c55e';
 
     // Rest note
     var restNote='';
@@ -6368,7 +6375,7 @@ function renderPitchCountPage(){
       var gNP=g.np||0;
       var gNC=g.np&&g.sp?Math.round(g.np*g.sp/100):0;
       var gRest=daysRestRequired(gNP);
-      var spDisp=g.sp>0?g.sp.toFixed(1)+'%':'—';
+      var spDisp=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1)+'%':g.sp>0?g.sp.toFixed(1)+'%':'—';
       return '<div class="pc-hist-row">'
         +'<span>'+gDate+'</span>'
         +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+gOpp+'</span>'
@@ -6404,8 +6411,8 @@ function renderPitchCountPage(){
         +'<span style="font-size:10px;color:var(--sub)">0</span>'
         +'<div class="pc-bar-track">'
           +'<div class="pc-bar-fill" style="width:'+barPct+'%;background:'+barColor+'"></div>'
-          +'<div class="pc-bar-marker" style="left:'+Math.min((pm*0.75/pm*100),95)+'%"></div>'
-          +'<div class="pc-bar-max">'+pm+' max</div>'
+          +'<div class="pc-bar-marker" style="left:85%"></div>'
+          +'<div class="pc-bar-max">100</div>'
         +'</div>'
       +'</div>'
       +restNote
