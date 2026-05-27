@@ -1307,7 +1307,7 @@ body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
 .pc-warning{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .pc-warning-icon{font-size:18px}
 .pc-warning-text{font-size:13px;font-weight:600;color:#f59e0b}
-.pc-warning-sub{font-size:11px;color:#f59e0b;margin-top:2px;text-decoration:underline;cursor:pointer}
+.pc-warning-sub{font-size:11px;color:#f59e0b;margin-top:2px}
 .pc-card{background:#101828;border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
 .pc-card-hdr{padding:14px 18px 10px}
 .pc-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
@@ -1324,7 +1324,8 @@ body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
 .pc-status-text{font-size:11px;color:var(--sub);margin-bottom:6px}
 .pc-last-outing{font-size:11px;color:var(--sub);margin-bottom:6px}
 .pc-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:0 18px 10px}
-.pc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:visible;position:relative}
+.pc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;position:relative}
+.pc-bar-wrap{flex:1;position:relative}
 .pc-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
 .pc-bar-max{position:absolute;right:0;top:-12px;font-size:9px;color:var(--sub)}
 .pc-bar-marker{position:absolute;top:-3px;width:2px;height:14px;background:rgba(255,255,255,.3);border-radius:1px}
@@ -2513,7 +2514,7 @@ body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
     <div class="pc-warning-icon">⏳</div>
     <div>
       <div class="pc-warning-text" id="pc-rest-warning-text"></div>
-      <div class="pc-warning-sub">Per Little League rules — see eligibility dates below</div>
+      <div class="pc-warning-sub">Per MLB Pitch Smart Guidelines — see eligibility dates below</div>
     </div>
   </div>
   <div id="pc-pitcher-list"></div>
@@ -3000,8 +3001,13 @@ function getPlayers(){
       map[key].games.push(Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},b));
       if(p.pitching){
         var pitObj=Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},p.pitching);
-        // Always calculate sp from ns/np for accuracy
-        if(pitObj.np>0&&pitObj.ns>0) pitObj.sp=+(pitObj.ns/pitObj.np*100).toFixed(1);
+        // Calculate sp from ns/np when available for accuracy
+        if(pitObj.np>0&&pitObj.ns>0){
+          pitObj.sp=+(pitObj.ns/pitObj.np*100).toFixed(1);
+        } else if(pitObj.np>0&&pitObj.sp>0&&!pitObj.ns){
+          // Store derived ns so sp can be recalculated later
+          pitObj.ns=Math.round(pitObj.sp/100*pitObj.np);
+        }
         map[key].pitGames.push(pitObj);
       }
     });
@@ -3353,8 +3359,9 @@ function renderCharts(){
     // Calculate from raw pitch counts (ns/np) for accuracy — fall back to sp if no pitch count data
     var totalNP=pits.reduce(function(s,p){return s+(p.pitching.np||0);},0);
     var totalNS=pits.reduce(function(s,p){
-      if(p.pitching.ns>0) return s+p.pitching.ns;
-      // Derive ns from sp% × np if ns not stored
+      // ns = strikes. Check stored ns first, then derive from sp%×np
+      var ns=p.pitching.ns||0;
+      if(ns>0) return s+ns;
       if(p.pitching.sp>0&&p.pitching.np>0) return s+Math.round(p.pitching.sp/100*p.pitching.np);
       return s;
     },0);
@@ -6353,14 +6360,16 @@ function renderPitchCountPage(){
     if(last&&lastDate){
       var lastDateStr=new Date(lastDate+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       var lastOpp=(last.opp||last.label||'').replace(/^@?\s*/,'');
-      var spStr=last.sp>0?last.sp.toFixed(1)+'% S%':'';
+      var lastSP=last.np>0&&last.ns>0?+(last.ns/last.np*100).toFixed(1):last.sp||0;
+      var spStr=lastSP>0?lastSP.toFixed(1)+'% S%':'';
       lastOutingHtml='<div class="pc-last-outing" style="padding:0 18px 4px">Last outing: '+lastDateStr+' vs '+lastOpp
-        +'<span style="float:right;color:'+(last.sp>=60?'var(--green)':'var(--amber)')+'">'+lastNP+'P'+(spStr?' · '+spStr:'')+'</span></div>';
+        +'<span style="float:right;color:'+(lastSP>=60?'var(--green)':'var(--amber)')+'">'+lastNP+'P'+(spStr?' · '+spStr:'')+'</span></div>';
     }
 
-    // Pitch bar - range 0-100, green under 85, red at/over 85
-    var barPct=Math.min(totalNP,100);
-    var barColor=totalNP>=85?'#ef4444':'#22c55e';
+    // Pitch bar - shows LAST OUTING pitches vs 85 limit (range 0-100)
+    var barNP=lastNP||0;
+    var barPct=Math.min(barNP,100);
+    var barColor=barNP>=85?'#ef4444':'#22c55e';
 
     // Rest note
     var restNote='';
@@ -6411,10 +6420,12 @@ function renderPitchCountPage(){
       +lastOutingHtml
       +'<div class="pc-bar-row">'
         +'<span style="font-size:10px;color:var(--sub)">0</span>'
-        +'<div class="pc-bar-track">'
-          +'<div class="pc-bar-fill" style="width:'+barPct+'%;background:'+barColor+'"></div>'
-          +'<div class="pc-bar-marker" style="left:85%"></div>'
-          +'<div class="pc-bar-max">100</div>'
+        +'<div style="flex:1;position:relative">'
+          +'<div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden">'
+            +'<div style="height:100%;width:'+barPct+'%;background:'+barColor+';border-radius:4px;transition:width .4s ease"></div>'
+          +'</div>'
+          +'<div style="position:absolute;left:85%;top:50%;transform:translate(-50%,-50%);width:2px;height:14px;background:rgba(255,255,255,.35);border-radius:1px"></div>'
+          +'<div style="position:absolute;right:0;top:-13px;font-size:9px;color:var(--sub)">100</div>'
         +'</div>'
       +'</div>'
       +restNote
@@ -6759,8 +6770,12 @@ function fixPitchingData(){
       var key=p.batting.name.toLowerCase();
       var cp=csvMap[key]||csvMap['_last_'+key.split(' ').pop()];
       if(cp){
-        // Only fix sp, fps, whip, hr from CSV — never overwrite per-game counting stats (np, bb, k, ip)
-        p.pitching.sp=cp.sp;
+        // Only fix fps, hr from CSV — never overwrite sp if we can calculate from ns/np
+        if(p.pitching.np>0&&p.pitching.ns>0){
+          p.pitching.sp=+(p.pitching.ns/p.pitching.np*100).toFixed(1);
+        } else {
+          p.pitching.sp=cp.sp; // fallback to CSV only when no pitch count data
+        }
         p.pitching.fps=cp.fps;
         p.pitching.hr=cp.hr||0;
         fixed++;
