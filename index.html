@@ -6247,7 +6247,9 @@ function pcEligibleDate(lastDate, np){
   var needed=daysRestRequired(np);
   if(!needed) return 'Today';
   var d=new Date(lastDate+'T12:00:00');
-  d.setDate(d.getDate()+needed);
+  // Eligible on the day AFTER the required rest days
+  // e.g. pitched Sat, needs 4 rest days (Sun/Mon/Tue/Wed), eligible Thu = Sat + 5
+  d.setDate(d.getDate()+needed+1);
   var today=new Date(); today.setHours(0,0,0,0);
   var ed=new Date(d); ed.setHours(0,0,0,0);
   if(ed<=today) return 'Today';
@@ -6260,7 +6262,7 @@ function pcDaysUntilEligible(lastDate, np){
   var needed=daysRestRequired(np);
   if(!needed) return 0;
   var d=new Date(lastDate+'T12:00:00');
-  d.setDate(d.getDate()+needed);
+  d.setDate(d.getDate()+needed+1);
   var today=new Date(); today.setHours(0,0,0,0);
   d.setHours(0,0,0,0);
   return Math.max(0,Math.round((d-today)/86400000));
