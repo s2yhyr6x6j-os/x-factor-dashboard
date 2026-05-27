@@ -2749,6 +2749,18 @@ body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
     </div>
   </div>
 
+  <!-- Player Availability -->
+  <div class="pd-avail-card" id="pd-avail-card">
+    <div class="pd-avail-hdr" onclick="toggleAvailCard()">
+      <div>
+        <div class="pd-avail-title">Upcoming Game Availability</div>
+        <div class="pd-avail-sub">Tap a game to toggle · feeds into lineup recommendations</div>
+      </div>
+      <span class="pd-sec-chevron" id="pd-avail-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
+    </div>
+    <div class="pd-avail-body" id="pd-avail-body"></div>
+  </div>
+
   <!-- Coach Notes -->
   <div class="pd-section" id="pd-sec-notes">
     <div class="pd-sec-hdr" onclick="togglePdSection('pd-sec-notes')">
@@ -2774,17 +2786,6 @@ body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
   </div>
 
   <div style="height:40px"></div>
-  <!-- Player Availability -->
-  <div class="pd-avail-card" id="pd-avail-card">
-    <div class="pd-avail-hdr" onclick="toggleAvailCard()">
-      <div>
-        <div class="pd-avail-title">Upcoming Game Availability</div>
-        <div class="pd-avail-sub">Tap a game to toggle · feeds into lineup recommendations</div>
-      </div>
-      <span class="pd-sec-chevron" id="pd-avail-chevron"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
-    </div>
-    <div class="pd-avail-body" id="pd-avail-body"></div>
-  </div>
   </div><!-- /pd-inner -->
 </div>
 
@@ -3343,24 +3344,41 @@ function renderCharts(){
 
   // ── S% per game — average across all pitchers in that game with IP > 0 ──
   var spData=games.map(function(g){
-    var pits=g.players.filter(function(p){return p.pitching&&p.pitching.ip>0&&(p.pitching.sp||0)>0;});
+    var pits=g.players.filter(function(p){return p.pitching&&p.pitching.ip>0;});
     if(!pits.length) return null;
-    // Weighted average by IP
-    var totalIP=pits.reduce(function(s,p){return s+p.pitching.ip;},0);
+    // Calculate from raw pitch counts (ns/np) for accuracy — fall back to sp if no pitch count data
+    var totalNP=pits.reduce(function(s,p){return s+(p.pitching.np||0);},0);
+    var totalNS=pits.reduce(function(s,p){
+      if(p.pitching.ns>0) return s+p.pitching.ns;
+      // Derive ns from sp% × np if ns not stored
+      if(p.pitching.sp>0&&p.pitching.np>0) return s+Math.round(p.pitching.sp/100*p.pitching.np);
+      return s;
+    },0);
+    if(totalNP>0&&totalNS>0) return +(totalNS/totalNP*100).toFixed(1);
+    // Fallback: IP-weighted average of sp
+    var pitsWithSP=pits.filter(function(p){return p.pitching.sp>0;});
+    if(!pitsWithSP.length) return null;
+    var totalIP=pitsWithSP.reduce(function(s,p){return s+p.pitching.ip;},0);
     if(!totalIP) return null;
-    var wSP=pits.reduce(function(s,p){return s+p.pitching.sp*p.pitching.ip;},0)/totalIP;
-    return +wSP.toFixed(1);
+    return +(pitsWithSP.reduce(function(s,p){return s+p.pitching.sp*p.pitching.ip;},0)/totalIP).toFixed(1);
   });
 
   var spTargetPlugin={id:'spTarget',afterDraw:function(chart){
     var c=chart.ctx,y=chart.scales.y,xl=chart.chartArea.left,xr=chart.chartArea.right;
     var y60=y.getPixelForValue(60),y50=y.getPixelForValue(50);
     c.save();
-    c.fillStyle='rgba(245,158,11,.06)';c.fillRect(xl,y60,xr-xl,y50-y60);
-    c.strokeStyle='rgba(245,158,11,.6)';c.lineWidth=1;c.setLineDash([6,4]);
+    // Amber fill between 50-60
+    c.fillStyle='rgba(245,158,11,.04)';c.fillRect(xl,y60,xr-xl,y50-y60);
+    // Green 60% target line
+    c.strokeStyle='rgba(34,197,94,.7)';c.lineWidth=1.5;c.setLineDash([6,4]);
     c.beginPath();c.moveTo(xl,y60);c.lineTo(xr,y60);c.stroke();
-    c.setLineDash([]);c.fillStyle='#f59e0b';c.font='bold 9px sans-serif';c.textAlign='right';
-    c.fillText('60% target',xr-4,y60-3);c.restore();
+    c.setLineDash([]);c.fillStyle='#22c55e';c.font='bold 9px sans-serif';c.textAlign='right';
+    c.fillText('60% target',xr-4,y60-3);
+    // Amber 50% line
+    c.strokeStyle='rgba(245,158,11,.6)';c.lineWidth=1;c.setLineDash([6,4]);
+    c.beginPath();c.moveTo(xl,y50);c.lineTo(xr,y50);c.stroke();
+    c.setLineDash([]);
+    c.restore();
   }};
 
   if(spChartObj){
@@ -3392,8 +3410,8 @@ function renderCharts(){
             });
           }
         }}},
-        scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},
-          y:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:function(v){return v+'%';}},min:30,max:85}}},
+        scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:function(v,i){return 'G'+(i+1);}}},
+          y:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:function(v){return v+'%';},stepSize:15},min:30,max:85}}},
       plugins:[spTargetPlugin]
     });
   }
@@ -3417,13 +3435,13 @@ function renderCharts(){
 
   var batTargetPlugin={id:'batTargets',afterDraw:function(chart){
     var c=chart.ctx,y=chart.scales.y,xl=chart.chartArea.left,xr=chart.chartArea.right;
-    c.save();c.setLineDash([5,4]);c.lineWidth=1;c.font='bold 9px sans-serif';c.textAlign='right';
-    var y75=y.getPixelForValue(.750);
-    c.strokeStyle='rgba(168,85,247,.5)';c.beginPath();c.moveTo(xl,y75);c.lineTo(xr,y75);c.stroke();
-    c.fillStyle='#a855f7';c.fillText('.750 OPS',xr-4,y75-3);
-    var y35=y.getPixelForValue(.350);
-    c.strokeStyle='rgba(34,197,94,.5)';c.beginPath();c.moveTo(xl,y35);c.lineTo(xr,y35);c.stroke();
-    c.fillStyle='#22c55e';c.fillText('.350 OBP',xr-4,y35-3);
+    c.save();c.setLineDash([5,4]);c.lineWidth=1.5;c.font='bold 9px sans-serif';c.textAlign='right';
+    var y80=y.getPixelForValue(.800);
+    c.strokeStyle='rgba(34,197,94,.7)';c.beginPath();c.moveTo(xl,y80);c.lineTo(xr,y80);c.stroke();
+    c.fillStyle='#22c55e';c.fillText('.800 OPS',xr-4,y80-3);
+    var y45=y.getPixelForValue(.450);
+    c.strokeStyle='rgba(59,130,246,.7)';c.beginPath();c.moveTo(xl,y45);c.lineTo(xr,y45);c.stroke();
+    c.fillStyle='#60a5fa';c.fillText('.450 OBP',xr-4,y45-3);
     c.setLineDash([]);c.restore();
   }};
 
@@ -3440,15 +3458,17 @@ function renderCharts(){
       data:{labels:labels,datasets:[
         {label:'OPS',data:opsVals,borderColor:'#a855f7',borderWidth:2.5,tension:.4,
           pointBackgroundColor:ptColors,pointBorderColor:ptColors,pointRadius:5,pointHoverRadius:6,fill:false,spanGaps:true},
-        {label:'OBP',data:obpVals,borderColor:'#22c55e',borderWidth:1.5,borderDash:[6,4],tension:.4,
+        {label:'OBP',data:obpVals,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[6,4],tension:.4,
           pointRadius:0,fill:false,spanGaps:true}
       ]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{
-          title:function(ctx){return fullLabels[ctx[0].dataIndex]||ctx[0].label;},
-          label:function(ctx){return ctx.dataset.label+': '+(ctx.parsed.y!==null?ctx.parsed.y.toFixed(3):'No data');}
-        }}},
-        scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},
+        plugins:{
+          legend:{display:true,position:'top',align:'end',labels:{color:tc,font:{size:11},boxWidth:20,usePointStyle:true,pointStyle:'line'}},
+          tooltip:{callbacks:{
+            title:function(ctx){return fullLabels[ctx[0].dataIndex]||ctx[0].label;},
+            label:function(ctx){return ctx.dataset.label+': '+(ctx.parsed.y!==null?ctx.parsed.y.toFixed(3):'No data');}
+          }}},
+        scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:function(v,i){return 'G'+(i+1);}}},
           y:{grid:{color:gc},ticks:{color:tc,font:{size:10},callback:function(v){return v.toFixed(2);}},min:0}}},
       plugins:[batTargetPlugin]
     });
@@ -6198,7 +6218,7 @@ function buildAvailabilityCard(playerName){
   var avail=_playerAvailability[playerName]||{};
   body.innerHTML=games.map(function(g){
     var status=avail[g.key]||'unknown';
-    var btnLabel=status==='confirmed'?'✅ Confirmed':status==='absent'?'✕ Absent':'? Unknown';
+    var btnLabel=status==='confirmed'?'✅ Confirmed':status==='absent'?'✕ Unavailable':'? Unknown';
     var btnCls='pd-avail-btn '+status;
     return '<div class="pd-avail-row">'
       +'<div><div class="pd-avail-game">'+g.opp+'</div><div class="pd-avail-date">'+g.dateStr+'</div></div>'
@@ -6522,7 +6542,7 @@ Return ONLY a valid JSON object — no markdown, no explanation, no extra text:
 
 Rules:
 - For HR, doubles, triples, SB: read from the notes lines (HR:, TB:, SB:) below the SBA batting table
-- For pitches/strikes: read from P-S line (e.g. "D Ovall 71-51" = 71 pitches, 51 strikes)  
+- For pitches/strikes: find the P-S line in the SBA pitching notes. Format is "P-S: Name1 P1-S1, Name2 P2-S2". Match each name to their pitcher entry. The number before the dash is TOTAL PITCHES, the number after is STRIKES. Example: "D Ovall 71-51" means Ovall threw 71 total pitches, 51 were strikes. Each pitcher has their OWN separate pitch count — do NOT share or average them.
 - The "num" field in pitching MUST match the jersey number from the batting section for the same player
 - If a value is missing use 0. Return only the JSON object.`;
 
@@ -7099,23 +7119,32 @@ function buildPdPitLog(p){
   var totalIP=games.reduce(function(s,g){return s+g.ip;},0);
   var totalBB=games.reduce(function(s,g){return s+g.bb;},0);
   var totalK=games.reduce(function(s,g){return s+g.k;},0);
-  var totalSP=totalIP>0?games.reduce(function(s,g){return s+g.sp*g.ip;},0)/totalIP:0;
+  var totalNP=games.reduce(function(s,g){return s+(g.np||0);},0);
+  var totalNS=games.reduce(function(s,g){
+    if(g.ns>0) return s+g.ns;
+    if(g.np>0&&g.sp>0) return s+Math.round(g.np*g.sp/100);
+    return s;
+  },0);
+  var totalSP=totalNP>0?+(totalNS/totalNP*100).toFixed(1):(totalIP>0?games.reduce(function(s,g){return s+g.sp*g.ip;},0)/totalIP:0);
   document.getElementById('pd-pit-log-sub').textContent='Season: '+totalIP.toFixed(1)+' IP · '+totalBB+' BB · '+totalK+' K · '+totalSP.toFixed(1)+'% S%';
   var html='<thead><tr><th>GAME</th><th>IP</th><th>BB</th><th>K</th><th>#P</th><th>S%</th></tr></thead><tbody>';
   games.forEach(function(g){
     var prefix=g.loc==='A'?'@ ':'vs ';
     var oppShort=(g.opp||'').replace(' 12U','');
     var date=formatGameDate(g.date,'long');
-    var spColor=statClass('sp',g.sp)==='elite'?'var(--purple)':statClass('sp',g.sp)==='good'?'var(--green)':statClass('sp',g.sp)==='warn'?'var(--amber)':'var(--red)';
+    // Calculate actual S% from pitch counts if available, fall back to stored sp
+    var gameSP=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1):
+               g.np>0&&g.sp>0?g.sp:g.sp;
+    var spColor=statClass('sp',gameSP)==='elite'?'var(--purple)':statClass('sp',gameSP)==='good'?'var(--green)':statClass('sp',gameSP)==='warn'?'var(--amber)':'var(--red)';
     var bbColor=g.bb>=2?'var(--red)':'var(--sub)';
-    var ps=g.np?(g.np+'-'+(g.ns||Math.round(g.np*g.sp/100))):'—';
+    var ps=g.np?(g.np+'-'+(g.ns||Math.round(g.np*gameSP/100))):'—';
     html+='<tr>'
       +'<td><div class="pd-log-game">'+prefix+oppShort+'</div><div class="pd-log-date">'+date+'</div></td>'
       +'<td>'+g.ip.toFixed(1)+'</td>'
       +'<td style="color:'+bbColor+'">'+g.bb+'</td>'
       +'<td>'+g.k+'</td>'
       +'<td>'+ps+'</td>'
-      +'<td style="color:'+spColor+'">'+g.sp.toFixed(1)+'%</td>'
+      +'<td style="color:'+spColor+'">'+gameSP.toFixed(1)+'%</td>'
       +'</tr>';
   });
   html+='</tbody>';
