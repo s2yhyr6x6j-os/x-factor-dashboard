@@ -3589,8 +3589,13 @@ function renderRoster(){
     if(ov.armStr) armNote='<span class="roster-meta-sep">·</span><span class="font-sub">💪 '+ov.armStr+'</span>';
     var armHealth=ov.armHealth||'healthy';
     var armHealthNote='';
-    if(armHealth==='limited') armHealthNote='<span class="roster-meta-sep">·</span><span style="color:var(--amber);font-size:11px;font-weight:600">🟡 Arm limited</span>';
-    else if(armHealth==='resting') armHealthNote='<span class="roster-meta-sep">·</span><span style="color:#fb7185;font-size:11px;font-weight:600">🔴 Arm resting</span>';
+    if(armHealth==='limited'){
+      armHealthNote='<span class="roster-meta-sep">·</span><span style="color:var(--amber);font-size:11px;font-weight:600">🟡 Arm limited</span>';
+      pitchAvail=''; // suppress Arm Ready — arm health takes priority
+    } else if(armHealth==='resting'){
+      armHealthNote='<span class="roster-meta-sep">·</span><span style="color:#fb7185;font-size:11px;font-weight:600">🔴 Arm resting</span>';
+      pitchAvail=''; // suppress Arm Ready — arm health takes priority
+    }
     var posBadgesRow=buildPosBadges(ov,true);
     return '<div class="roster-row">'
       +'<div class="roster-num-badge">'+num+'</div>'
