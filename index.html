@@ -1343,10 +1343,13 @@ body.light-mode .pc-card:hover {background:#fbf9fa;}
 .pc-toggle-hist{font-size:11px;color:var(--sub);cursor:pointer;padding:0 18px 10px;display:block}
 .pc-history{display:none;border-top:1px solid var(--border)}
 .pc-history.open{display:block;margin-bottom:10px;}
-.pc-hist-hdr{display:grid;grid-template-columns:90px 1fr 45px 55px 60px 30px 30px 40px 45px;gap:4px;padding:8px 18px;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
-.pc-hist-row{display:grid;grid-template-columns:90px 1fr 45px 55px 60px 30px 30px 40px 45px;gap:4px;padding:8px 18px;font-size:12px;color:var(--sub);border-bottom:1px solid rgba(51,65,85,.3)}
+.pc-hist-hdr{display:grid;grid-template-columns:90px 120px 55px 65px 65px 45px 45px 55px 55px;gap:4px;padding:8px 18px;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);text-align:center}
+.pc-hist-hdr span:first-child{text-align:left}
+.pc-hist-hdr span:nth-child(2){text-align:left}
+.pc-hist-row{display:grid;grid-template-columns:90px 120px 55px 65px 65px 45px 45px 55px 55px;gap:4px;padding:8px 18px;font-size:12px;color:var(--sub);border-bottom:1px solid rgba(51,65,85,.3);text-align:center}
 .pc-hist-row:last-child{border-bottom:none}
-.pc-hist-row span:first-child{color:var(--hdr)}
+.pc-hist-row span:first-child{color:var(--hdr);text-align:left}
+.pc-hist-row span:nth-child(2){text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc-ll-rules{background:#0a1120;border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:8px}
 .pc-ll-title{font-size:13px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
 .pc-ll-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -6419,10 +6422,10 @@ function renderPitchCountPage(){
       var spDisp=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1)+'%':g.sp>0?g.sp.toFixed(1)+'%':'—';
       return '<div class="pc-hist-row">'
         +'<span>'+gDate+'</span>'
-        +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+gOpp+'</span>'
+        +'<span>'+gOpp+'</span>'
         +'<span>'+(+(g.ip||0)).toFixed(1)+'</span>'
         +'<span>'+gNP+(gNC?' ('+gNC+')':'')+'</span>'
-        +'<span style="color:var(--sub);font-size:10px">set</span>'
+        +'<span style="font-size:10px">set</span>'
         +'<span>'+(g.k||0)+'</span>'
         +'<span>'+(g.bb||0)+'</span>'
         +'<span style="color:'+(g.sp>=60?'var(--green)':'var(--amber)')+'">'+spDisp+'</span>'
@@ -6453,7 +6456,11 @@ function renderPitchCountPage(){
             +'<div style="height:100%;width:'+barPct+'%;background:'+barColor+';border-radius:4px;transition:width .4s ease"></div>'
           +'</div>'
           +'<div style="position:absolute;left:85%;top:20%;transform:translate(-50%,-50%);width:2px;height:14px;background:#3b82f6;border-radius:1px"></div>'
-          +'<div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:var(--sub)">0</span><span style="font-size:9px;color:var(--sub)">'+pm+' max</span></div>'
+          +'<div style="position:relative;margin-top:3px;height:14px">'
+            +'<span style="position:absolute;left:0;font-size:9px;color:var(--sub)">0</span>'
+            +'<span style="position:absolute;left:85%;transform:translateX(-50%);font-size:9px;color:#3b82f6;font-weight:600">85</span>'
+            +'<span style="position:absolute;right:0;font-size:9px;color:var(--sub)">100</span>'
+          +'</div>'
         +'</div>'
       +'</div>'
       +restNote
