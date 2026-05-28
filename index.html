@@ -971,7 +971,7 @@ body.light-mode .api-key-card, body.light-mode .up-type-card, body.light-mode .i
 .up-drop-sub{font-size:11px;color:var(--sub)}
 .up-status{font-size:12px;font-weight:600;margin-top:10px;min-height:18px}
 .up-status.ok{color:var(--green)}.up-status.err{color:var(--red)}
-.up-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.up-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
 .up-info-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px}
 body.light-mode .up-info-card{box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .up-info-title{font-size:13px;font-weight:700;color:var(--hdr);margin-bottom:12px;display:flex;align-items:center;gap:8px}
@@ -980,7 +980,7 @@ body.light-mode .up-info-card{box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .up-check{color:var(--green);font-size:13px;flex-shrink:0;margin-top:1px}
 .up-info-label{font-size:12px;font-weight:600;color:var(--hdr);line-height:1.2}
 .up-info-detail{font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4}
-.up-info-note{font-size:11px;color:var(--amber);margin-top:10px;padding:10px;background:rgba(245,158,11,.08);border-radius:6px;line-height:1.5}
+.up-info-note{font-size:11px;color:var(--amber);margin:10px auto;padding:10px;background:rgba(245,158,11,.08);border-radius:6px;line-height:1.5;border:1px solid var(--amber);width:fit-content;}
 .up-hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .up-hist-title{font-size:15px;font-weight:700;color:var(--hdr)}
 .up-hist-refresh{font-size:12px;color:var(--sub);background:none;border:none;cursor:pointer;transition:color .15s}
@@ -2482,10 +2482,9 @@ body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Pitching leaderboards</div><div class="up-info-detail">ERA · WHIP · FIP · BAA · FPS% · BB/INN</div></div></div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Season record</div><div class="up-info-detail">W · L · GP per pitcher</div></div></div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Season trends</div><div class="up-info-detail">OBP + QAB% trend lines on Dashboard</div></div></div>
-      <div class="up-info-note">💡 The Batting + Pitching leaderboards only refresh when you upload a new CSV — PDF alone won't update them.</div>
     </div>
   </div>
-
+<div class="up-info-note">💡 The Batting + Pitching leaderboards only refresh when you upload a new CSV — PDF alone won't update them.</div>
   <!-- Upload History -->
   <div class="up-hist-hdr">
     <div class="up-hist-title">Upload History</div>
