@@ -534,8 +534,8 @@ body.light-mode .gl-boxscore{background:#fff;}
 .lu-gp{font-size:11px;color:var(--sub);flex-shrink:0;margin-top:2px}
 .ask-skipper-btn{display:flex;align-items:center;gap:5px;font-family:var(--ff);font-size:11px;font-weight:600;padding:6px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;color:var(--sub);cursor:pointer;flex-shrink:0;transition:all .15s;align-self:center}
 .ask-skipper-btn:hover{border-color:var(--blue);color:var(--blue)}
-.lu-rbi-note{font-size:11px;color:var(--amber);margin-top:10px;padding:8px 0 0;border-top:1px solid var(--border)}
-.lu-footer-note{background:#101828;border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:11px;color:var(--sub);line-height:1.7;margin-top:16px}
+.lu-rbi-note{font-size:11px;color:var(--amber);margin-top:10px;padding:8px 0 0;}
+.lu-footer-note{background:#101828;border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:11px;color:var(--sub);line-height:1.7;margin:10px 0 20px}
 .lu-footer-note strong{color:var(--hdr)}
 /* Pitching Plan panel */
 .pp-card{background:#101828;border:1px solid var(--border);border-radius:12px;overflow:hidden}
@@ -2180,7 +2180,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <div>
       <div class="lineup-suggested-card">
         <div class="lineup-suggested-hdr">
-          <div class="lineup-suggested-title"><span>📋</span> Suggested Lineup</div>
+          <div class="lineup-suggested-title"><span>📋</span> Recommended Lineup</div>
           <button class="notes-toggle on" id="notes-toggle-btn" onclick="toggleLineupNotes()">📝 Notes ON</button>
         </div>
         <div class="lineup-suggested-sub" id="lineup-suggested-sub">OBP → QAB% tiebreaker · Power bats nudged to slots 3–5</div>
@@ -2190,13 +2190,9 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         💡 Slots 3–5 highlighted as RBI spots. 12 & Under assumes roster bat.
       </div>
     </div>
-
-    <!-- RIGHT: Pitching Plan removed -->
   </div>
-
   <div class="lu-footer-note">
-    <strong>Lineup:</strong> Ranked by OBP (primary) and QAB% (tiebreaker). Power bats nudged to slots 3–5. <strong>Pitching:</strong> Starter = Ranked by S%, BB/INN, WHIP and FIP among eligible pitchers, with recent trend weighting. All eligibility calculations follow the MLB Pitch Smart Guidelines (2026). These are suggestions — coach judgment always takes priority.
-  </div>
+    💡<strong>Lineup:</strong> Ranked by OBP (primary) and QAB% (tiebreaker). Power bats nudged to slots 3–5.</div>
 </div>
 
 <!-- ROTATION -->
@@ -2205,19 +2201,19 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:#51a2ff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93c4.08 4.08 10.06 4.08 14.14 0"/><path d="M4.93 19.07c4.08-4.08 10.06-4.08 14.14 0"/></svg>
     Pitching Rotation
   </div>
-  <div class="pit-page-sub" style="margin-bottom:20px">MLB Pitch Smart Guidelines · Ranked by S%, BB/INN, WHIP, FIP</div>
+  <div class="pit-page-sub" style="margin-bottom:20px">Eligibility Rules: MLB Pitch Smart Guidelines&#8482; · 12U (85 Pitch Max)</div>
   <div style="display:block;align-items:center;margin-bottom:10px">
     <button onclick="optimizeRotation()" style="font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:#7c3aed;color:#fff;border:none;border-radius:8px;cursor:pointer">🪄 Optimize Rotation</button>
     <div id="rotation-last-optimized" style="font-size:11px;color:var(--sub);margin-top:6px;"></div>
   </div>
   <div class="pp-card">
-    <div class="pp-relief-label">RECOMMENDED ROTATION</div>
+    <div class="pp-relief-label">STARTING PITCHERS</div>
     <div id="rotation-ranked-rows"></div>
     <div class="pp-relief-label" id="rotation-relief-label" class="svg-hidden">RELIEF PITCHERS</div>
     <div id="rotation-relief-rows"></div>
-    <div style="font-size:10px;color:var(--sub);padding:10px 16px;border-top:1px solid var(--border)">
-      💡 Ranked by S% (weighted) · BB/INN · WHIP · FIP
-    </div>
+     <div class="lu-footer-note">
+    💡<strong>Starters:</strong> Ranked by S%, BB/INN, WHIP and FIP among eligible pitchers, with recent trend weighting. All eligibility calculations follow the MLB Pitch Smart Guidelines (2026). <strong>Note:</strong> These are suggestions — coach's judgment always takes priority.
+  </div>
   </div>
 </div>
 
