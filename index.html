@@ -7814,7 +7814,6 @@ function exportPlayerPDF(){
 
       // Jersey number badge
       var numStr='#'+(ov.num||p.num||'0');
-      doc.setFillColor('rgba(0,0,0,0)');
       doc.setTextColor('#ffffff');doc.setFontSize(28);doc.setFont('helvetica','bold');
       doc.text(numStr,margin+2,42);
 
@@ -7825,11 +7824,11 @@ function exportPlayerPDF(){
 
       // Meta in band
       var metaParts=['Age '+(ov.age||12),(isP?'Pitcher / ':'')+'Batter',p.gp+' GP'];
-      doc.setTextColor('rgba(255,255,255,0.8)');doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+      doc.setTextColor('#f1f5f9');doc.setFontSize(8.5);doc.setFont('helvetica','normal');
       doc.text(metaParts.join('  ·  '),margin+numW+12,52);
 
       // Date top-right in band
-      doc.setTextColor('rgba(255,255,255,0.7)');doc.setFontSize(8);
+      doc.setTextColor('#e2e8f0');doc.setFontSize(8);
       doc.text(dateStr,W-margin,52,{align:'right'});
       doc.text('SBA Red 12U',W-margin,38,{align:'right'});
 
