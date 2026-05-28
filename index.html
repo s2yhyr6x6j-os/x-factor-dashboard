@@ -1333,6 +1333,7 @@ body.light-mode .pc-card:hover {background:#fbf9fa;}
 .pc-last-outing{font-size:11px;color:var(--sub);margin-bottom:6px}
 .pc-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:0 18px 10px}
 .pc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;position:relative}
+.pc-bar-track-inner{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
 .pc-bar-wrap{flex:1;position:relative}
 .pc-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
 .pc-bar-max{position:absolute;right:0;top:-12px;font-size:9px;color:var(--sub)}
@@ -1354,7 +1355,8 @@ body.light-mode .pc-card:hover {background:#fbf9fa;}
 .pc-ll-val{color:var(--hdr);font-weight:600}
 body.light-mode .pc-card{background:#fff}
 body.light-mode .pc-ll-rules{background:#f8f9fa}
-body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
+body.light-mode .pc-bar-track{background:rgba(0,0,0,.08);border-radius:4px}
+body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px}
 </style>
 </head>
 <body>
@@ -6432,26 +6434,26 @@ function renderPitchCountPage(){
       +'<div class="pc-card-hdr">'
         +'<div class="pc-card-top">'
           +'<div>'
-            +'<span class="pc-card-name">'+p.name+'</span>'
-            +'<span class="pc-card-meta">#'+(ov.num||p.num||'—')+' · Age '+age+' · '+pm+'P limit</span>'
+            +'<div class="pc-card-name">'+p.name+'</div>'
+            +'<div class="pc-card-meta">#'+(ov.num||p.num||'—')+' · Age '+age+' · '+pm+'P limit</div>'
+            +'<div style="display:flex;align-items:center;gap:6px;margin-top:4px">'+statusHtml+'<span style="font-size:11px;color:var(--sub)">'+statusText+'</span></div>'
           +'</div>'
           +'<div class="pc-card-season">'
             +'<div class="pc-card-np">'+totalNP+'</div>'
             +'<div class="pc-card-np-lbl">season pitches</div>'
-            +(remaining>0?'<div class="pc-card-np-detail" style="color:'+(remaining<20?'#f59e0b':'var(--sub)')+'">'+remaining+' left</div>':'')
-            +(pinn>0?'<div class="pc-card-np-detail">~'+pinn+' P/inn</div>':'')
+            +(remaining>=0?'<div class="pc-card-np-detail" style="color:'+(remaining<20?'#f59e0b':'var(--sub)')+'">'+remaining+' left</div>':'')
+            +(pinn>0?'<div class="pc-card-np-detail">~'+pinn+' inn @ '+pinn+'P/inn</div>':'')
           +'</div>'
         +'</div>'
-        +statusHtml
-        +'<div style="font-size:11px;color:var(--sub);margin-bottom:6px">'+statusText+'</div>'
       +'</div>'
       +lastOutingHtml
       +'<div class="pc-bar-row">'
         +'<div style="flex:1;position:relative">'
-          +'<div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden">'
+          +'<div class="pc-bar-track-inner">'
             +'<div style="height:100%;width:'+barPct+'%;background:'+barColor+';border-radius:4px;transition:width .4s ease"></div>'
           +'</div>'
-          +'<div style="position:absolute;left:85%;top:50%;transform:translate(-50%,-50%);width:2px;height:14px;background:rgba(255,255,255,.35);border-radius:1px"></div>'
+          +'<div style="position:absolute;left:85%;top:50%;transform:translate(-50%,-50%);width:2px;height:14px;background:#3b82f6;border-radius:1px"></div>'
+          +'<div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:var(--sub)">0</span><span style="font-size:9px;color:var(--sub)">'+pm+' max</span></div>'
         +'</div>'
       +'</div>'
       +restNote
