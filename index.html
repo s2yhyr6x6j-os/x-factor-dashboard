@@ -569,6 +569,7 @@ body.light-mode .gl-boxscore{background:#fff;}
 .pp-ranked-avail{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
 .pp-ranked-avail.ok{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
 .pp-ranked-avail.rest{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.pp-ranked-avail.absent{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.35)}
 .pp-ranked-stats{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--sub);margin-left:28px}
 .pp-ranked-stat{display:flex;flex-direction:column;gap:1px}
 .pp-ranked-stat-val{font-size:13px;font-weight:700;color:var(--hdr)}
@@ -4806,14 +4807,17 @@ function renderLineup(){
 
     var xfHtml=xf>0?'<span class="lu-xfactor">⚡'+xf+'</span>':'';
     var roleHtml=role?'<span class="lu-role">'+role+'</span>':'';
+    var isAbsent=!isPlayerAvailable(nm);
+    var absentBadge=isAbsent?'<span class="pp-ranked-avail absent" style="font-size:10px;padding:2px 7px;border-radius:5px;margin-left:4px">Out</span>':'';
+    var absentStyle=isAbsent?' style="border-color:#ef4444;background:rgba(239,68,68,0.2)"':'';
 
     var tagsHtml=lineupShowNotes&&tags.length
       ?'<div class="lu-tags">'+tags.map(function(t){return '<span class="lu-tag '+t.cls+' '+(t.auto?'auto':'coach')+'">'+t.label+'</span>';}).join('')+'</div>':'';
 
-    return '<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)">'
+    return '<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)"'+absentStyle+'>'
       +'<div class="lu-slot-num">'+(i+1)+'</div>'
       +'<div class="lu-player-body">'
-        +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+roleHtml+xfHtml+'</div>'
+        +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+roleHtml+xfHtml+absentBadge+'</div>'
         +'<div class="lu-player-stats">'+statLine+'</div>'
         +tagsHtml
       +'</div>'
@@ -4977,10 +4981,14 @@ function renderPitchingPlan(){
   el.innerHTML=top4.map(function(x,i){
     var p=x.p, sc=x.sc, st=x.st;
     var isOk=st.status==='ok';
+    var isAbsent=x.absent;
     var rankLabel='#'+(i+1);
-    var availHtml=isOk
-      ?'<span class="pp-ranked-avail ok">✓ Ready</span>'
-      :'<span class="pp-ranked-avail rest">⏱ '+st.daysNeeded+'d rest</span>';
+    var availHtml=isAbsent
+      ?'<span class="pp-ranked-avail absent">Out</span>'
+      :isOk
+        ?'<span class="pp-ranked-avail ok">✓ Ready</span>'
+        :'<span class="pp-ranked-avail rest">⏱ '+st.daysNeeded+'d rest</span>';
+    var absentStyle=isAbsent?' style="border-color:#ef4444;background:rgba(239,68,68,0.2)"':'';
     var trendArrow=sc.trend>0.05?'↑ ':sc.trend<-0.05?'↓ ':'';
     var recentNote=Math.abs(sc.recentSP-sc.sp)>3?(trendArrow+'Recent '+sc.recentSP.toFixed(1)+'%'):'';
     var lastPitchedNote='';
@@ -4990,7 +4998,7 @@ function renderPitchingPlan(){
         ?'Last: '+st.lastNP+'P on '+months[d.getMonth()]+' '+d.getDate()+' · needs '+st.daysNeeded+'d more rest'
         :'Last: '+st.lastNP+'P on '+months[d.getMonth()]+' '+d.getDate();
     }
-    return '<div class="pp-ranked-row" draggable="true" data-ppidx="'+i+'" data-pptype="starter" ondragstart="ppDragStart(event)" ondragover="ppDragOver(event)" ondrop="ppDrop(event)" ondragleave="ppDragLeave(event)" style="cursor:grab">'
+    return '<div class="pp-ranked-row" draggable="true" data-ppidx="'+i+'" data-pptype="starter" ondragstart="ppDragStart(event)" ondragover="ppDragOver(event)" ondrop="ppDrop(event)" ondragleave="ppDragLeave(event)" style="cursor:grab'+(isAbsent?';border-color:#ef4444;background:rgba(239,68,68,0.2)':'')+'">'
       +'<div class="pp-ranked-hdr">'
         +'<div class="pp-rank-num '+(i===0?'top':'')+'">'+rankLabel+'</div>'
         +'<div class="pp-ranked-name"><span class="lu-name-link" onclick="openPlayer(\''+esc(p.name)+'\')">'+p.name+'</span> <span class="pp-ranked-jersey">#'+x.num+'</span></div>'
@@ -5021,10 +5029,13 @@ function renderPitchingPlan(){
     reliefRows.innerHTML=sortedRelief.map(function(x,i){
       var p=x.p,sc=x.sc,st=x.st;
       var isOk=st.status==='ok';
-      var availHtml=isOk
-        ?'<span class="pp-ranked-avail ok">✓ Ready</span>'
-        :'<span class="pp-ranked-avail rest">⏱ '+st.daysNeeded+'d rest</span>';
-      return '<div class="pp-ranked-row" draggable="true" data-ppidx="'+(4+i)+'" data-pptype="relief" ondragstart="ppDragStart(event)" ondragover="ppDragOver(event)" ondrop="ppDrop(event)" ondragleave="ppDragLeave(event)" style="cursor:grab">'
+      var isAbsent=x.absent;
+      var availHtml=isAbsent
+        ?'<span class="pp-ranked-avail absent">Out</span>'
+        :isOk
+          ?'<span class="pp-ranked-avail ok">✓ Ready</span>'
+          :'<span class="pp-ranked-avail rest">⏱ '+st.daysNeeded+'d rest</span>';
+      return '<div class="pp-ranked-row" draggable="true" data-ppidx="'+(4+i)+'" data-pptype="relief" ondragstart="ppDragStart(event)" ondragover="ppDragOver(event)" ondrop="ppDrop(event)" ondragleave="ppDragLeave(event)" style="cursor:grab'+(isAbsent?';border-color:#ef4444;background:rgba(239,68,68,0.2)':'')+'">'
         +'<div class="pp-ranked-hdr">'
           +'<div class="pp-rank-num">#'+(i+5)+'</div>'
           +'<div class="pp-ranked-name"><span class="lu-name-link" onclick="openPlayer(\''+esc(p.name)+'\')">'+p.name+'</span> <span class="pp-ranked-jersey">#'+x.num+'</span></div>'
