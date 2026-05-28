@@ -7,6 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>if(typeof Chart==='undefined'){document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
@@ -2567,6 +2568,10 @@ body.light-mode .pc-bar-track{background:rgba(0,0,0,.08)}
       <button class="pd-btn pd-btn-outline" onclick="sharePlayerCard()">
         <svg style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Share Card
+      </button>
+      <button class="pd-btn pd-btn-outline" id="pd-pdf-btn" onclick="exportPlayerPDF()">
+        <svg style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        PDF Report
       </button>
     </div>
   </div>
@@ -7659,6 +7664,344 @@ function linkImportsToGameLog(){
   renderAll();updateApiKeyUI();
   });
 })();
+
+// ── PLAYER PDF REPORT ──
+function exportPlayerPDF(){
+  var btn=document.getElementById('pd-pdf-btn');
+  var name=window._pdCurrentPlayer;
+  if(!name) return;
+  var players=getPlayers();
+  var p=players.find(function(x){return x.name===name;});
+  if(!p) return;
+  if(typeof window.jspdf==='undefined'||typeof window.jspdf.jsPDF==='undefined'){
+    alert('PDF library not loaded yet — try again in a moment.');return;
+  }
+
+  // Loading state
+  if(btn){btn.textContent='Generating…';btn.disabled=true;}
+
+  setTimeout(function(){
+    try{
+      var jsPDF=window.jspdf.jsPDF;
+      var doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
+      var W=612, pageH=792;
+      var margin=40, col=W-margin*2;
+      var y=margin;
+      var ov=rosterOverrides[name]||{};
+      var isP=!!p.pit&&p.pit.ip>0;
+
+      // ── helpers ──
+      function checkPage(need){
+        if(y+need>pageH-margin){doc.addPage();y=margin;}
+      }
+      function hline(yy,clr){
+        doc.setDrawColor(clr||'#334155');doc.setLineWidth(.5);
+        doc.line(margin,yy,W-margin,yy);
+      }
+      function tag(txt,x,yy,bg,fg,w){
+        w=w||doc.getTextWidth(txt)+14;
+        doc.setFillColor(bg);doc.roundedRect(x,yy-10,w,14,3,3,'F');
+        doc.setTextColor(fg);doc.setFontSize(8);doc.setFont('helvetica','bold');
+        doc.text(txt,x+w/2,yy+1,{align:'center'});
+      }
+      function statClass2(key,val){
+        var t=STAT_THRESHOLDS[key];if(!t)return 'normal';
+        return t.hi?(val>=t.elite?'elite':val>=t.good?'good':val>=t.warn?'warn':'urgent')
+          :(val<=t.elite?'elite':val<=t.good?'good':val<=t.warn?'warn':'urgent');
+      }
+      function statColor2(key,val){
+        var c=statClass2(key,val);
+        return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':c==='urgent'?'#ef4444':'#94a3b8';
+      }
+
+      // ── HEADER BAND ──
+      doc.setFillColor('#0f172a');
+      doc.rect(0,0,W,70,'F');
+      // Red accent stripe
+      doc.setFillColor('#ef4444');
+      doc.rect(0,0,5,70,'F');
+
+      // Team name
+      doc.setTextColor('#94a3b8');doc.setFontSize(9);doc.setFont('helvetica','normal');
+      doc.text('SBA RED 12U',margin+8,20);
+
+      // Player name
+      doc.setTextColor('#f1f5f9');doc.setFontSize(22);doc.setFont('helvetica','bold');
+      doc.text(ov.displayName||name,margin+8,46);
+
+      // Meta line
+      var metaParts=['#'+(ov.num||p.num||'—'),'Age '+(ov.age||12),(p.pit&&p.pit.ip>0?'Pitcher / ':'')+'Batter',p.gp+' games'];
+      doc.setTextColor('#94a3b8');doc.setFontSize(9);doc.setFont('helvetica','normal');
+      doc.text(metaParts.join('  ·  '),margin+8,60);
+
+      // Date stamp
+      var now=new Date();
+      var dateStr=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+      doc.setTextColor('#64748b');doc.setFontSize(8);
+      doc.text('Generated '+dateStr,W-margin,60,{align:'right'});
+
+      y=86;
+
+      // ── HERO STATS ROW ──
+      var heroStats=[];
+      if(p.ops>0) heroStats.push({v:p.ops.toFixed(3),l:'OPS',k:'ops'});
+      heroStats.push({v:p.avg.toFixed(3),l:'AVG',k:'avg'});
+      heroStats.push({v:p.obp.toFixed(3),l:'OBP',k:'obp'});
+      heroStats.push({v:p.slg.toFixed(3),l:'SLG',k:'slg'});
+      if(isP) heroStats.push({v:p.pit.sp.toFixed(1)+'%',l:'S%',k:'sp'});
+
+      var hCols=heroStats.length;
+      var hW=col/hCols;
+      heroStats.forEach(function(s,i){
+        var bx=margin+i*hW;
+        doc.setFillColor('#1e293b');
+        doc.roundedRect(bx,y,hW-4,46,4,4,'F');
+        var clr=statColor2(s.k,parseFloat(s.v));
+        doc.setTextColor(clr);doc.setFontSize(18);doc.setFont('helvetica','bold');
+        doc.text(s.v,bx+hW/2-2,y+24,{align:'center'});
+        doc.setTextColor('#64748b');doc.setFontSize(8);doc.setFont('helvetica','normal');
+        doc.text(s.l,bx+hW/2-2,y+38,{align:'center'});
+      });
+      y+=56;
+
+      // ── BATTING SUMMARY ──
+      checkPage(120);
+      doc.setTextColor('#f1f5f9');doc.setFontSize(11);doc.setFont('helvetica','bold');
+      doc.text('Season Batting',margin,y);
+      doc.setFillColor('#ef4444');doc.rect(margin,y+3,28,2,'F');
+      y+=16;
+
+      var batStats=[
+        {l:'PA',v:p.pa,k:null},{l:'AB',v:p.ab,k:null},
+        {l:'H',v:p.h,k:null},{l:'HR',v:p.hr||0,k:null},
+        {l:'RBI',v:p.rbi||0,k:null},{l:'R',v:p.run||0,k:null},
+        {l:'BB',v:p.bb,k:null},{l:'K',v:p.so,k:null},
+        {l:'SB',v:p.sb||0,k:null},{l:'QAB%',v:p.qab_pct>0?p.qab_pct.toFixed(1)+'%':'—',k:'qab_pct'},
+        {l:'Contact%',v:p.ab>0?((p.ab-p.so)/p.ab*100).toFixed(1)+'%':'—',k:null},
+        {l:'BB/K',v:p.so>0?(p.bb/p.so).toFixed(2):'—',k:'bbk'},
+      ];
+      var bCols=4, bW=col/bCols, bH=32;
+      batStats.forEach(function(s,i){
+        var bx=margin+(i%bCols)*bW;
+        var by=y+Math.floor(i/bCols)*bH;
+        checkPage(bH);
+        doc.setFillColor('#1e293b');
+        doc.roundedRect(bx,by,bW-4,bH-4,3,3,'F');
+        var clr=s.k?statColor2(s.k,parseFloat(s.v)):'#f1f5f9';
+        doc.setTextColor(clr);doc.setFontSize(11);doc.setFont('helvetica','bold');
+        doc.text(String(s.v),bx+bW/2-2,by+14,{align:'center'});
+        doc.setTextColor('#64748b');doc.setFontSize(7);doc.setFont('helvetica','normal');
+        doc.text(s.l,bx+bW/2-2,by+24,{align:'center'});
+      });
+      y+=Math.ceil(batStats.length/bCols)*bH+10;
+
+      // ── BATTING LOG ──
+      if(p.batGames&&p.batGames.length){
+        checkPage(60);
+        doc.setTextColor('#f1f5f9');doc.setFontSize(11);doc.setFont('helvetica','bold');
+        doc.text('Batting Log (Last 10)',margin,y);
+        doc.setFillColor('#ef4444');doc.rect(margin,y+3,28,2,'F');
+        y+=14;
+
+        // Table header
+        var logCols=['Date','Opp','AB','H','HR','RBI','BB','K','OPS'];
+        var logWs=[60,90,30,30,30,30,30,30,60];
+        var lx=margin;
+        doc.setFillColor('#1e293b');
+        doc.rect(margin,y,col,14,'F');
+        logCols.forEach(function(h,i){
+          doc.setTextColor('#94a3b8');doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+          doc.text(h,lx+logWs[i]/2,y+9,{align:'center'});
+          lx+=logWs[i];
+        });
+        y+=14;
+
+        var games=p.batGames.slice(-10);
+        games.forEach(function(g,ri){
+          checkPage(16);
+          doc.setFillColor(ri%2===0?'#0f172a':'#131f30');
+          doc.rect(margin,y,col,14,'F');
+          var gOps=g.ab>0?((g.h+g.bb)/(g.ab+g.bb)+(g.h+2*(g.d||0)+3*(g.t||0)+4*(g.hr||0))/(g.ab||1)):0;
+          var row=[
+            g.date?(new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})):'—',
+            (g.loc==='A'?'@ ':'')+((g.opp||'').substring(0,12)),
+            g.ab,g.h,g.hr||0,g.rbi||0,g.bb||0,g.so||0,
+            gOps>0?gOps.toFixed(3):'—'
+          ];
+          lx=margin;
+          row.forEach(function(v,ci){
+            var isHdr=ci<=1;
+            doc.setTextColor(isHdr?'#94a3b8':'#f1f5f9');
+            doc.setFontSize(7.5);doc.setFont('helvetica',isHdr?'normal':'normal');
+            doc.text(String(v),lx+logWs[ci]/2,y+9,{align:'center'});
+            lx+=logWs[ci];
+          });
+          y+=14;
+        });
+        y+=8;
+      }
+
+      // ── PITCHING SUMMARY ──
+      if(isP){
+        checkPage(100);
+        doc.setTextColor('#f1f5f9');doc.setFontSize(11);doc.setFont('helvetica','bold');
+        doc.text('Season Pitching',margin,y);
+        doc.setFillColor('#ef4444');doc.rect(margin,y+3,28,2,'F');
+        y+=16;
+
+        var pit=p.pit;
+        var fip=pit.ip>0?((13*(pit.hr||0)+3*pit.bb-2*pit.k)/pit.ip+3.2).toFixed(2):'—';
+        var kbb=pit.bb>0?(pit.k/pit.bb).toFixed(2):'—';
+        var pinn=pit.ip>0&&pit.np>0?(pit.np/pit.ip).toFixed(1):'—';
+        var pitStats=[
+          {l:'IP',v:pit.ip.toFixed(1),k:null},{l:'GP',v:pit.gp,k:null},
+          {l:'ERA',v:pit.era>0?pit.era.toFixed(2):'—',k:'era'},{l:'WHIP',v:pit.whip>0?pit.whip.toFixed(2):'—',k:'whip'},
+          {l:'S%',v:pit.sp>0?pit.sp.toFixed(1)+'%':'—',k:'sp'},{l:'FPS%',v:pit.fps>0?pit.fps.toFixed(1)+'%':'—',k:'fps'},
+          {l:'BB/Inn',v:pit.ip>0?(pit.bb/pit.ip).toFixed(2):'—',k:'bbinn'},{l:'FIP',v:fip,k:'fip'},
+          {l:'BB',v:pit.bb,k:null},{l:'SO',v:pit.k,k:null},
+          {l:'K/BB',v:kbb,k:null},{l:'P/Inn',v:pinn,k:null},
+        ];
+        pitStats.forEach(function(s,i){
+          var bx=margin+(i%bCols)*bW;
+          var by=y+Math.floor(i/bCols)*bH;
+          checkPage(bH);
+          doc.setFillColor('#1e293b');
+          doc.roundedRect(bx,by,bW-4,bH-4,3,3,'F');
+          var clr=s.k?statColor2(s.k,parseFloat(s.v)):'#f1f5f9';
+          doc.setTextColor(clr);doc.setFontSize(11);doc.setFont('helvetica','bold');
+          doc.text(String(s.v),bx+bW/2-2,by+14,{align:'center'});
+          doc.setTextColor('#64748b');doc.setFontSize(7);doc.setFont('helvetica','normal');
+          doc.text(s.l,bx+bW/2-2,by+24,{align:'center'});
+        });
+        y+=Math.ceil(pitStats.length/bCols)*bH+10;
+
+        // Pitching log
+        if(p.pitGames&&p.pitGames.length){
+          checkPage(60);
+          doc.setTextColor('#f1f5f9');doc.setFontSize(11);doc.setFont('helvetica','bold');
+          doc.text('Pitching Log',margin,y);
+          doc.setFillColor('#ef4444');doc.rect(margin,y+3,28,2,'F');
+          y+=14;
+
+          var plogCols=['Date','Opp','IP','NP','S%','BB','K','ERA'];
+          var plogWs=[60,110,40,40,50,40,40,72];
+          lx=margin;
+          doc.setFillColor('#1e293b');doc.rect(margin,y,col,14,'F');
+          plogCols.forEach(function(h,i){
+            doc.setTextColor('#94a3b8');doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+            doc.text(h,lx+plogWs[i]/2,y+9,{align:'center'});
+            lx+=plogWs[i];
+          });
+          y+=14;
+
+          p.pitGames.slice(-8).forEach(function(g,ri){
+            checkPage(16);
+            doc.setFillColor(ri%2===0?'#0f172a':'#131f30');
+            doc.rect(margin,y,col,14,'F');
+            var prow=[
+              g.date?(new Date(g.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})):'—',
+              (g.loc==='A'?'@ ':'')+((g.opp||'').substring(0,14)),
+              g.ip?g.ip.toFixed(1):'—',g.np||'—',
+              g.sp>0?g.sp.toFixed(1)+'%':'—',g.bb||0,g.k||0,
+              g.er!=null&&g.ip>0?(g.er/g.ip*9).toFixed(2):'—'
+            ];
+            lx=margin;
+            prow.forEach(function(v,ci){
+              doc.setTextColor(ci<=1?'#94a3b8':'#f1f5f9');
+              doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+              doc.text(String(v),lx+plogWs[ci]/2,y+9,{align:'center'});
+              lx+=plogWs[ci];
+            });
+            y+=14;
+          });
+          y+=8;
+        }
+      }
+
+      // ── COACHING INSIGHTS ──
+      if(_pdInsights&&(_pdInsights.celebrate||_pdInsights.focus||_pdInsights.plan)){
+        checkPage(80);
+        doc.setTextColor('#f1f5f9');doc.setFontSize(11);doc.setFont('helvetica','bold');
+        doc.text('Coaching Insights',margin,y);
+        doc.setFillColor('#ef4444');doc.rect(margin,y+3,28,2,'F');
+        y+=16;
+
+        var insightSections=[
+          {title:'Celebrate',text:_pdInsights.celebrate,color:'#22c55e'},
+          {title:'Focus On',text:_pdInsights.focus,color:'#f59e0b'},
+          {title:'Action Plan',text:_pdInsights.plan,color:'#3b82f6'},
+        ];
+        insightSections.forEach(function(sec){
+          if(!sec.text) return;
+          checkPage(50);
+          doc.setFillColor('#1e293b');
+          // Split text to lines
+          doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+          var lines=doc.splitTextToSize(sec.text,col-24);
+          var boxH=lines.length*11+22;
+          checkPage(boxH);
+          doc.roundedRect(margin,y,col,boxH,4,4,'F');
+          // Left accent bar
+          doc.setFillColor(sec.color);doc.roundedRect(margin,y,4,boxH,2,2,'F');
+          // Title
+          doc.setTextColor(sec.color);doc.setFontSize(8);doc.setFont('helvetica','bold');
+          doc.text(sec.title.toUpperCase(),margin+12,y+12);
+          // Body
+          doc.setTextColor('#cbd5e1');doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+          doc.text(lines,margin+12,y+23);
+          y+=boxH+6;
+        });
+      }
+
+      // ── X-FACTOR ──
+      var xf=ov.xfactor||{};
+      if(xf.mindset||xf.iq||xf.passion){
+        checkPage(60);
+        doc.setTextColor('#f1f5f9');doc.setFontSize(11);doc.setFont('helvetica','bold');
+        doc.text('X-Factor',margin,y);
+        doc.setFillColor('#ef4444');doc.rect(margin,y+3,28,2,'F');
+        y+=16;
+
+        var xfCats=[{l:'Mindset',v:xf.mindset||0},{l:'Baseball IQ',v:xf.iq||0},{l:'Passion',v:xf.passion||0}];
+        var xfW=col/3;
+        xfCats.forEach(function(cat,i){
+          var bx=margin+i*xfW;
+          doc.setFillColor('#1e293b');
+          doc.roundedRect(bx,y,xfW-4,40,4,4,'F');
+          // Stars
+          var stars='';for(var s=1;s<=5;s++) stars+=s<=cat.v?'★':'☆';
+          doc.setTextColor('#f59e0b');doc.setFontSize(12);doc.setFont('helvetica','normal');
+          doc.text(stars,bx+xfW/2-2,y+18,{align:'center'});
+          doc.setTextColor('#94a3b8');doc.setFontSize(8);doc.setFont('helvetica','normal');
+          doc.text(cat.l,bx+xfW/2-2,y+32,{align:'center'});
+        });
+        y+=50;
+      }
+
+      // ── FOOTER ──
+      var totalPages=doc.internal.getNumberOfPages();
+      for(var pg=1;pg<=totalPages;pg++){
+        doc.setPage(pg);
+        doc.setFillColor('#0f172a');
+        doc.rect(0,pageH-28,W,28,'F');
+        doc.setTextColor('#475569');doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+        doc.text('SBA Red 12U · '+dateStr,margin,pageH-10);
+        doc.text('Page '+pg+' of '+totalPages,W-margin,pageH-10,{align:'right'});
+        doc.setFillColor('#ef4444');doc.rect(0,pageH-28,5,28,'F');
+      }
+
+      // Save
+      var filename=(name.replace(/\s+/g,'_'))+'_SBA_Report.pdf';
+      doc.save(filename);
+
+    } catch(e){
+      console.error('PDF generation error:',e);
+      alert('Error generating PDF: '+e.message);
+    }
+
+    if(btn){btn.innerHTML='<svg style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> PDF Report';btn.disabled=false;}
+  },50);
+}
 </script>
 
 </body>
