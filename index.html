@@ -1299,8 +1299,8 @@ body.light-mode .lb-sample-warning{background:rgba(245,158,11,.06)}
 .pd-avail-game{font-size:13px;font-weight:600;color:var(--hdr)}
 .pd-avail-date{font-size:11px;color:var(--sub);margin-top:2px}
 .pd-avail-btn{font-family:var(--ff);font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;min-width:100px;text-align:center}
-.pd-avail-btn.confirmed{background:#166534;border-color:#22c55e;color:#4ade80}
-.pd-avail-btn.absent{background:#7f1d1d;border-color:#ef4444;color:#fca5a5}
+.pd-avail-btn.confirmed{background:rgba(34,197,94,0.3);border-color:#22c55e;color:#22c55e}
+.pd-avail-btn.absent{background:rgba(239,68,68,0.3);border-color:#ef4444;color:#ef4444}
 .pd-avail-btn.unknown{background:rgba(255,255,255,.06);border-color:var(--border);color:var(--sub)}
 body.light-mode .pd-avail-card{background:#fff}
 body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
@@ -1329,6 +1329,7 @@ body.light-mode .pc-card:hover {background:#fbf9fa;}
 .pc-status-rest{background:rgba(245,158,11,.12);border:1px solid #f59e0b;color:#f59e0b}
 .pc-status-ok{background:rgba(34,197,94,.12);border:1px solid #22c55e;color:#4ade80}
 .pc-status-hit{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
+.pc-status-unavail{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
 .pc-status-text{font-size:11px;color:var(--sub);margin-bottom:6px}
 .pc-last-outing{font-size:11px;color:var(--sub);margin-bottom:6px}
 .pc-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:0 18px 10px}
@@ -6380,6 +6381,10 @@ function renderPitchCountPage(){
       statusHtml='<div class="pc-status-badge pc-status-rest">⏳ Rest: '+daysUntil+' day'+(daysUntil!==1?'s':'')+'</div>';
     } else {
       statusHtml='<div class="pc-status-badge pc-status-ok">✅ Available</div>';
+    }
+    // Game availability overrides pitch-count status
+    if(!isPlayerAvailable(p.name)){
+      statusHtml='<div class="pc-status-badge pc-status-unavail">🚫 Unavailable</div>';
     }
 
     var statusText=daysUntil>0?eligStr:(lastDate?'Ready to pitch':'No outings recorded');
