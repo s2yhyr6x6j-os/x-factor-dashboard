@@ -4931,8 +4931,11 @@ function renderPitchingPlan(){
     var st=pitcherStatus(p);
     var ov=rosterOverrides[p.name]||{};
     var pm=pitchMax(ov.age||12);
-    return {p:p, sc:sc, st:st, pm:pm, num:ov.num||p.num||'—'};
+    var absent=!isPlayerAvailable(p.name);
+    return {p:p, sc:sc, st:st, pm:pm, num:ov.num||p.num||'—', absent:absent};
   }).sort(function(a,b){
+    // Absent players always go to the bottom
+    if(a.absent!==b.absent) return a.absent?1:-1;
     var diff=b.sc.composite-a.sc.composite;
     if(Math.abs(diff)>0.5) return diff;
     return (b.sc.xfactor||0)-(a.sc.xfactor||0); // X-Factor breaks ties only
@@ -6205,6 +6208,10 @@ function cycleAvailability(playerName, gameKey){
   _playerAvailability[playerName][gameKey]=next;
   saveAvailability();
   buildAvailabilityCard(playerName);
+  // Keep lineup and rotation in sync — absent players sink to bottom
+  if(typeof autoLineup==='function') autoLineup();
+  if(typeof renderPitchingPlan==='function') renderPitchingPlan();
+  if(typeof renderRotationPage==='function') renderRotationPage();
 }
 
 function getUpcomingGames(){
@@ -7116,7 +7123,7 @@ function buildPdBatSummary(p){
     {lbl:'AVG',val:p.avg.toFixed(3)},{lbl:'OBP',val:p.obp.toFixed(3)},
     {lbl:'OPS',val:p.ops.toFixed(3)},{lbl:'BB',val:p.bb},
     {lbl:'K',val:p.so},{lbl:'H',val:p.h},
-    {lbl:'PA',val:p.pa},{lbl:'ROE',val:p.roe!=null?p.roe:'—'}
+    {lbl:'PA',val:p.pa},{lbl:'HR',val:p.hr!=null?p.hr:0}
   ];
   document.getElementById('pd-bat-grid').innerHTML=stats.map(function(s){return renderStatCell(s.lbl,s.val);}).join('');
 }
