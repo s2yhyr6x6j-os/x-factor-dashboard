@@ -6385,6 +6385,7 @@ function renderPitchCountPage(){
     // Game availability overrides pitch-count status
     if(!isPlayerAvailable(p.name)){
       statusHtml='<div class="pc-status-badge pc-status-unavail">🚫 Unavailable</div>';
+      statusText='';
     }
 
     var statusText=daysUntil>0?eligStr:(lastDate?'Ready to pitch':'No outings recorded');
