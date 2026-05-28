@@ -8,6 +8,7 @@
 <script>if(typeof Chart==='undefined'){document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
@@ -7673,466 +7674,425 @@ function exportPlayerPDF(){
   var players=getPlayers();
   var p=players.find(function(x){return x.name===name;});
   if(!p) return;
-  if(typeof window.jspdf==='undefined'||typeof window.jspdf.jsPDF==='undefined'){
-    alert('PDF library not loaded yet — try again in a moment.');return;
-  }
+  if(typeof window.jspdf==='undefined'||typeof window.jspdf.jsPDF==='undefined'){alert('PDF library not loaded — try again in a moment.');return;}
+  if(typeof html2canvas==='undefined'){alert('html2canvas not loaded — try again in a moment.');return;}
   if(btn){btn.innerHTML='Generating…';btn.disabled=true;}
 
-  // Render charts into temp off-screen canvases in light-mode colors, then snapshot
-  function renderChartToImg(type, labels, datasets, opts){
+  var ov=rosterOverrides[name]||{};
+  var isP=!!p.pit&&p.pit.ip>0;
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ── threshold helpers (exact match to STAT_THRESHOLDS) ──
+  var PT={
+    ops:{elite:1.000,good:.800,warn:.700,hi:true},avg:{elite:.451,good:.400,warn:.300,hi:true},
+    obp:{elite:.501,good:.450,warn:.350,hi:true},sp:{elite:70,good:60,warn:50,hi:true},
+    whip:{elite:.99,good:1.5,warn:2.0,hi:false},fip:{elite:1.99,good:3.0,warn:4.5,hi:false},
+    bbinn:{elite:.49,good:.99,warn:1.49,hi:false},fps:{elite:70,good:60,warn:50,hi:true},
+    kbb:{elite:2.01,good:2.0,warn:1.1,hi:true},qab:{elite:70,good:60,warn:50,hi:true},
+    era:{elite:1.99,good:3.0,warn:5.0,hi:false}
+  };
+  function pcls(key,val){
+    var t=PT[key];if(!t||val==null||isNaN(val))return 'base';
+    return t.hi?(val>=t.elite?'elite':val>=t.good?'good':val>=t.warn?'warn':'bad')
+              :(val<=t.elite?'elite':val<=t.good?'good':val<=t.warn?'warn':'bad');
+  }
+  function pfmt(val,c){return '<span class="c-'+c+'">'+val+(c==='elite'?' 🔥':'')+'</span>';}
+  function pCell(lbl,display,key,num){
+    var c=key?pcls(key,num!=null?num:parseFloat(display)):'base';
+    return '<div class="stat-cell"><div class="stat-cell-lbl">'+lbl+'</div><div class="stat-cell-val">'+pfmt(display,c)+'</div></div>';
+  }
+
+  // ── position badges ──
+  function buildPdfPosBadges(ov2){
+    var positions=ov2.positions||{};
+    var posOrder=['P','C','1B','2B','3B','SS','LF','CF','RF','DH'];
+    var primary=[],canplay=[],learning=[];
+    posOrder.forEach(function(pos){
+      var st=positions[pos];
+      if(!st||st==='never'||st==='') return;
+      if(st==='primary') primary.push(pos);
+      else if(st==='canplay') canplay.push(pos);
+      else if(st==='learning') learning.push(pos);
+    });
+    var all=primary.concat(canplay).concat(learning);
+    if(!all.length) return '';
+    return all.map(function(pos){
+      var st=positions[pos];
+      var icon=st==='primary'?'⭐':st==='canplay'?'✓':'📘';
+      var extraCls=st==='canplay'?' canplay':'';
+      return '<span class="pdf-pos-badge'+extraCls+'">'+icon+' '+pos+'</span>';
+    }).join('');
+  }
+
+  // ── batting log rows (last 10) ──
+  function batLogRows(games){
+    return (games||[]).slice(-10).map(function(g){
+      var pre=g.loc==='A'?'@ ':'vs ';
+      var opp=(g.opp||'').replace(' 12U','');
+      var date=formatGameDate(g.date,'long');
+      var ops=g.ops||0;
+      var oc=ops>=0.8?'good':ops>=0.5?'warn':'bad';
+      var hc=g.h>0?'good':'base';
+      return '<tr><td><div class="log-game">'+pre+opp+'</div><div class="log-date">'+date+'</div></td>'
+        +'<td>'+g.ab+'</td><td class="c-'+hc+'">'+g.h+'</td><td>'+g.rbi+'</td>'
+        +'<td>'+g.bb+'</td><td>'+g.so+'</td><td class="c-'+oc+'">'+ops.toFixed(3)+'</td></tr>';
+    }).join('');
+  }
+
+  // ── pitching log rows (last 10) ──
+  function pitLogRows(games){
+    return (games||[]).slice(-10).map(function(g){
+      var pre=g.loc==='A'?'@ ':'vs ';
+      var opp=(g.opp||'').replace(' 12U','');
+      var date=formatGameDate(g.date,'long');
+      var gameSP=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1):g.sp||0;
+      var sc=pcls('sp',gameSP);
+      var bbc=g.bb>=2?'bad':'base';
+      return '<tr><td><div class="log-game">'+pre+opp+'</div><div class="log-date">'+date+'</div></td>'
+        +'<td>'+g.ip.toFixed(1)+'</td><td>'+(g.np||'—')+'</td>'
+        +'<td class="c-'+sc+'">'+(gameSP>0?gameSP.toFixed(1)+'%':'—')+'</td>'
+        +'<td class="c-'+bbc+'">'+(g.bb||0)+'</td><td>'+(g.k||0)+'</td></tr>';
+    }).join('');
+  }
+
+  // ── inline chart renderer (light-mode colours) ──
+  function makeChartImg(type,labels,datasets,extraOpts,cb){
     var canvas=document.createElement('canvas');
     canvas.width=1060;canvas.height=320;
     var ctx=canvas.getContext('2d');
-    // white bg
-    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
-    var cfg={type:type,data:{labels:labels,datasets:datasets},options:Object.assign({
-      responsive:false,animation:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}},
-        y:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11}}}
-      }
-    },opts||{})};
+    ctx.fillStyle='#f9fafb';ctx.fillRect(0,0,canvas.width,canvas.height);
+    var GRID='#e5e7eb',TICK='#6b7280';
+    var cfg={type:type,data:{labels:labels,datasets:datasets},
+      options:Object.assign({responsive:false,animation:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{grid:{color:GRID},ticks:{color:TICK,font:{size:11},maxRotation:30}},
+          y:{grid:{color:GRID},ticks:{color:TICK,font:{size:11}}}
+        }
+      },extraOpts||{})
+    };
     new Chart(ctx,cfg);
-    return canvas.toDataURL('image/png');
+    setTimeout(function(){cb(canvas.toDataURL('image/png'));},100);
   }
 
-  setTimeout(function(){
-    try{
-      var jsPDF=window.jspdf.jsPDF;
-      var doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
-      var W=612,pageH=792,margin=36,col=W-margin*2;
-      var y=margin;
-      var ov=rosterOverrides[name]||{};
-      var isP=!!p.pit&&p.pit.ip>0;
-      var now=new Date();
-      var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      var dateStr=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  function rollingPdf(arr,n){
+    return arr.map(function(_,i){
+      var sl=arr.slice(Math.max(0,i-n+1),i+1);
+      return sl.reduce(function(s,v){return s+v;},0)/sl.length;
+    });
+  }
 
-      // Light-mode palette
-      var C={
-        bg:'#ffffff',       // page / card bg
-        bg2:'#f3f4f6',      // cell bg
-        border:'#e5e7eb',   // borders
-        hdr:'#111827',      // primary text
-        sub:'#6b7280',      // secondary text
-        red:'#dc2626',      // SBA red accent
-        green:'#16a34a',
-        amber:'#d97706',
-        blue:'#2563eb',
-        purple:'#7c3aed'
-      };
+  // ── gather data ──
+  var batGames=p.games?p.games.slice(-10):[];
+  var pitGames=p.pitGames?p.pitGames.slice(-10):[];
 
-      // ── helpers ──
-      function checkPage(need){
-        if(y+need>pageH-36){doc.addPage();y=margin;}
-      }
-      function hline(yy,clr){
-        doc.setDrawColor(clr||C.border);doc.setLineWidth(.5);
-        doc.line(margin,yy,W-margin,yy);
-      }
-      function sectionTitle(title){
-        checkPage(28);
-        doc.setTextColor(C.hdr);doc.setFontSize(11);doc.setFont('helvetica','bold');
-        doc.text(title,margin,y);
-        // red underline bar
-        doc.setFillColor(C.red);doc.rect(margin,y+3,32,2,'F');
-        y+=18;
-      }
-      function statClass2(key,val){
-        var t=STAT_THRESHOLDS[key];if(!t)return 'normal';
-        return t.hi?(val>=t.elite?'elite':val>=t.good?'good':val>=t.warn?'warn':'urgent')
-          :(val<=t.elite?'elite':val<=t.good?'good':val<=t.warn?'warn':'urgent');
-      }
-      function statColor2(key,val){
-        var c=statClass2(key,val);
-        return c==='elite'?C.purple:c==='good'?C.green:c==='warn'?C.amber:c==='urgent'?C.red:C.hdr;
-      }
+  var batLabels=batGames.map(function(g){var pre=g.loc==='A'?'@':'vs';return pre+' '+(g.opp||'').split(' ')[0]+' '+formatGameDate(g.date);});
+  var pitLabels=pitGames.map(function(g){var pre=g.loc==='A'?'@':'vs';return pre+' '+(g.opp||'').split(' ')[0]+' '+formatGameDate(g.date);});
+  var opsData=batGames.map(function(g){return g.ops||0;});
+  var conData=batGames.map(function(g){return g.ab>0?(g.ab-g.so)/g.ab*100:0;});
+  var spData=pitGames.map(function(g){return g.sp||0;});
+  var pcData=pitGames.map(function(g){return g.np||0;});
 
-      // draw stat grid cells — 4 per row
-      function drawStatGrid(stats, cellH){
-        cellH=cellH||38;
-        var bCols=4, bW=col/bCols, gap=4;
-        var rows=Math.ceil(stats.length/bCols);
-        checkPage(rows*cellH+4);
-        stats.forEach(function(s,i){
-          var bx=margin+(i%bCols)*bW;
-          var by=y+Math.floor(i/bCols)*cellH;
-          // cell bg + border
-          doc.setFillColor(C.bg2);
-          doc.roundedRect(bx,by,bW-gap,cellH-gap,4,4,'F');
-          doc.setDrawColor(C.border);doc.setLineWidth(.4);
-          doc.roundedRect(bx,by,bW-gap,cellH-gap,4,4,'S');
-          // label
-          doc.setTextColor(C.sub);doc.setFontSize(7);doc.setFont('helvetica','bold');
-          doc.text(String(s.l).toUpperCase(),bx+(bW-gap)/2,by+11,{align:'center'});
-          // value
-          var clr=s.k?statColor2(s.k,parseFloat(s.v)):C.hdr;
-          doc.setTextColor(clr);doc.setFontSize(13);doc.setFont('helvetica','bold');
-          doc.text(String(s.v),bx+(bW-gap)/2,by+27,{align:'center'});
-        });
-        y+=rows*cellH+6;
-      }
+  // build 4 charts then render
+  var chartImgs={};
+  var needed=isP?4:2;
+  var done=0;
+  function onChartDone(){done++;if(done===needed)buildAndRender();}
 
-      // draw a table (header row + data rows)
-      function drawTable(cols, widths, rows, colorFns){
-        colorFns=colorFns||{};
-        var rowH=15, hdrH=16;
-        checkPage(hdrH+rowH+4);
-        // header
-        doc.setFillColor('#e5e7eb');
-        doc.rect(margin,y,col,hdrH,'F');
-        var lx=margin;
-        cols.forEach(function(h,i){
-          doc.setTextColor(C.sub);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
-          doc.text(h,lx+widths[i]/2,y+10,{align:'center'});
-          lx+=widths[i];
-        });
-        y+=hdrH;
-        rows.forEach(function(row,ri){
-          checkPage(rowH+2);
-          doc.setFillColor(ri%2===0?'#ffffff':'#f9fafb');
-          doc.rect(margin,y,col,rowH,'F');
-          doc.setDrawColor(C.border);doc.setLineWidth(.3);
-          doc.line(margin,y+rowH,margin+col,y+rowH);
-          lx=margin;
-          row.forEach(function(v,ci){
-            var clr=(colorFns[ci]?colorFns[ci](v,row):C.hdr);
-            doc.setTextColor(clr);doc.setFontSize(7.5);doc.setFont('helvetica',ci<=1?'normal':'bold');
-            doc.text(String(v),lx+widths[ci]/2,y+10,{align:'center'});
-            lx+=widths[ci];
-          });
-          y+=rowH;
-        });
-        y+=8;
-      }
+  makeChartImg('line',batLabels,[
+    {data:opsData,borderColor:'#7c3aed',borderWidth:2,pointRadius:4,
+     pointBackgroundColor:opsData.map(function(v){return v>=0.8?'#16a34a':v>=0.5?'#7c3aed':'#dc2626';}),
+     fill:false,tension:.25},
+    {data:rollingPdf(opsData,3),borderColor:'#d97706',borderWidth:2,pointRadius:0,fill:false,tension:.4}
+  ],{scales:{y:{min:0,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}},
+  function(img){chartImgs.ops=img;onChartDone();});
 
-      // ── PAGE 1: HEADER ──
-      // White bg already default; draw red top band
-      doc.setFillColor(C.red);
-      doc.rect(0,0,W,58,'F');
+  makeChartImg('line',batLabels,[
+    {data:conData,borderColor:'#7c3aed',borderWidth:1.5,pointRadius:4,pointBackgroundColor:'#7c3aed',fill:false,tension:.25},
+    {data:rollingPdf(conData,3),borderColor:'#16a34a',borderWidth:2,pointRadius:0,fill:false,tension:.4}
+  ],{scales:{y:{min:0,max:110,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},callback:function(v){return v+'%';}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}},
+  function(img){chartImgs.con=img;onChartDone();});
 
-      // Jersey number badge
-      var numStr='#'+(ov.num||p.num||'0');
-      doc.setTextColor('#ffffff');doc.setFontSize(28);doc.setFont('helvetica','bold');
-      doc.text(numStr,margin+2,42);
+  if(isP){
+    makeChartImg('bar',pitLabels,[
+      {type:'bar',data:spData,backgroundColor:'rgba(59,130,246,.3)',borderColor:'#2563eb',borderWidth:1,borderRadius:3},
+      {type:'line',data:rollingPdf(spData,3),borderColor:'#93c5fd',borderWidth:2,pointRadius:3,fill:false,tension:.35}
+    ],{scales:{y:{min:0,max:100,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},callback:function(v){return v+'%';}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}},
+    function(img){chartImgs.sp=img;onChartDone();});
 
-      // Player name (white in red band)
-      var numW=doc.getTextWidth(numStr);
-      doc.setFontSize(24);doc.setFont('helvetica','bold');
-      doc.text(ov.displayName||name,margin+numW+12,42);
+    makeChartImg('bar',pitLabels,[{
+      data:pcData,
+      backgroundColor:pcData.map(function(v){return v>=66?'rgba(220,38,38,.4)':v>=51?'rgba(217,119,6,.4)':'rgba(37,99,235,.3)';}),
+      borderColor:pcData.map(function(v){return v>=66?'#dc2626':v>=51?'#d97706':'#2563eb';}),
+      borderWidth:1,borderRadius:3
+    }],{scales:{y:{min:0,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}},
+    function(img){chartImgs.pc=img;onChartDone();});
+  }
 
-      // Meta in band
-      var metaParts=['Age '+(ov.age||12),(isP?'Pitcher / ':'')+'Batter',p.gp+' GP'];
-      doc.setTextColor('#f1f5f9');doc.setFontSize(8.5);doc.setFont('helvetica','normal');
-      doc.text(metaParts.join('  ·  '),margin+numW+12,52);
+  function buildAndRender(){
+    // ── computed values ──
+    var pit=p.pit||{};
+    var fip2=pit.ip>0?((13*(pit.hr||0)+3*pit.bb-2*pit.k)/pit.ip+3.2).toFixed(2):'—';
+    var kbb2=pit.bb>0?(pit.k/pit.bb).toFixed(2):'—';
+    var pinn2=pit.ip>0&&pit.np>0?(pit.np/pit.ip).toFixed(1):'—';
+    var bbinn2=pit.ip>0?(pit.bb/pit.ip).toFixed(2):'—';
+    var qc=pcls('qab',p.qab_pct);
+    var qgoalColor=qc==='elite'||qc==='good'?'#16a34a':'#d97706';
+    var qgoalText=p.qab_pct>=60?'✓ Above 60% goal':'⚠ Below 60% goal';
+    var xf=ov.xfactor||{};
+    function stars(n){var s='';for(var i=1;i<=5;i++)s+=i<=n?'★':'☆';return s;}
 
-      // Date top-right in band
-      doc.setTextColor('#e2e8f0');doc.setFontSize(8);
-      doc.text(dateStr,W-margin,52,{align:'right'});
-      doc.text('SBA Red 12U',W-margin,38,{align:'right'});
-
-      y=70;
-
-      // ── HERO STAT ROW ──
-      var heroStats=[];
-      if(p.ops>0)  heroStats.push({v:p.ops.toFixed(3),l:'OPS',k:'ops'});
-      heroStats.push({v:p.avg.toFixed(3),l:'AVG',k:'avg'});
-      heroStats.push({v:p.obp.toFixed(3),l:'OBP',k:'obp'});
-      heroStats.push({v:p.slg.toFixed(3),l:'SLG',k:null});
-      if(isP) heroStats.push({v:p.pit.sp.toFixed(1)+'%',l:'S%',k:'sp'});
-
-      var hCols=heroStats.length, hW=col/hCols, hH=48, hGap=4;
-      heroStats.forEach(function(s,i){
-        var bx=margin+i*hW;
-        doc.setFillColor(C.bg2);
-        doc.roundedRect(bx,y,hW-hGap,hH,5,5,'F');
-        doc.setDrawColor(C.border);doc.setLineWidth(.4);
-        doc.roundedRect(bx,y,hW-hGap,hH,5,5,'S');
-        var clr=s.k?statColor2(s.k,parseFloat(s.v)):C.hdr;
-        doc.setTextColor(clr);doc.setFontSize(17);doc.setFont('helvetica','bold');
-        doc.text(s.v,bx+(hW-hGap)/2,y+27,{align:'center'});
-        doc.setTextColor(C.sub);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
-        doc.text(s.l,bx+(hW-hGap)/2,y+40,{align:'center'});
-      });
-      y+=hH+10;
-
-      // ── SEASON QAB banner ──
-      var qabCls=statClass2('qab',p.qab_pct);
-      var qabClr=qabCls==='elite'?C.purple:qabCls==='good'?C.green:qabCls==='warn'?C.amber:C.red;
-      checkPage(40);
-      doc.setFillColor(C.bg2);
-      doc.roundedRect(margin,y,col,34,5,5,'F');
-      doc.setDrawColor(C.border);doc.setLineWidth(.4);
-      doc.roundedRect(margin,y,col,34,5,5,'S');
-      doc.setFillColor(C.red);doc.rect(margin,y,4,34,'F'); // left accent
-      doc.setTextColor(C.hdr);doc.setFontSize(9);doc.setFont('helvetica','bold');
-      doc.text('Season QAB%',margin+12,y+13);
-      doc.setTextColor(C.sub);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
-      doc.text('Quality At-Bats ÷ PA × 100',margin+12,y+25);
-      doc.setTextColor(qabClr);doc.setFontSize(17);doc.setFont('helvetica','bold');
-      var qabDisp=p.qab_pct>0?p.qab_pct.toFixed(1)+'%':'—';
-      doc.text(qabDisp,W-margin,y+22,{align:'right'});
-      y+=42;
-
-      // ── BATTING SUMMARY ──
-      sectionTitle('Season Batting Summary');
-      drawStatGrid([
-        {l:'AVG',v:p.avg.toFixed(3),k:'avg'},{l:'OBP',v:p.obp.toFixed(3),k:'obp'},
-        {l:'OPS',v:p.ops.toFixed(3),k:'ops'},{l:'BB',v:p.bb,k:null},
-        {l:'K',v:p.so,k:null},{l:'H',v:p.h,k:null},
-        {l:'PA',v:p.pa,k:null},{l:'HR',v:p.hr||0,k:null}
-      ]);
-
-      // ── OPS TREND CHART ──
-      if(p.games&&p.games.length){
-        sectionTitle('OPS Trend');
-        var opsLabels=p.games.map(function(g){
-          var pre=g.loc==='A'?'@ ':'vs ';
-          return pre+(g.opp||'').split(' ').slice(0,2).join(' ')+' '+formatGameDate(g.date);
-        });
-        var opsData=p.games.map(function(g){return g.ops||0;});
-        var opsRolling=rollingAvg(opsData,3);
-        var opsImg=renderChartToImg('line',opsLabels,[
-          {data:opsData,borderColor:'#7c3aed',borderWidth:2,pointRadius:4,
-           pointBackgroundColor:opsData.map(function(v){return v>=0.8?'#16a34a':v>=0.5?'#7c3aed':'#dc2626';}),
-           fill:false,tension:.2,label:'OPS'},
-          {data:opsRolling,borderColor:'#d97706',borderWidth:2.5,pointRadius:0,fill:false,tension:.4,label:'3g avg'}
-        ],{scales:{y:{min:0,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}});
-        checkPage(120);
-        doc.addImage(opsImg,'PNG',margin,y,col,110);
-        y+=116;
-      }
-
-      // ── CONTACT% TREND CHART ──
-      if(p.games&&p.games.length){
-        sectionTitle('Contact % Trend');
-        var conLabels=p.games.map(function(g){
-          var pre=g.loc==='A'?'@ ':'vs ';
-          return pre+(g.opp||'').split(' ').slice(0,2).join(' ')+' '+formatGameDate(g.date);
-        });
-        var conData=p.games.map(function(g){return g.ab>0?(g.ab-g.so)/g.ab*100:0;});
-        var conRolling=rollingAvg(conData,3);
-        var conImg=renderChartToImg('line',conLabels,[
-          {data:conData,borderColor:'#7c3aed',borderWidth:1.5,pointRadius:4,pointBackgroundColor:'#7c3aed',fill:false,tension:.2,label:'C%'},
-          {data:conRolling,borderColor:'#16a34a',borderWidth:2,pointRadius:0,fill:false,tension:.4,label:'3g avg'}
-        ],{scales:{y:{min:0,max:105,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},callback:function(v){return v+'%';}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}});
-        checkPage(120);
-        doc.addImage(conImg,'PNG',margin,y,col,110);
-        y+=116;
-      }
-
-      // ── BATTING LOG ──
-      if(p.games&&p.games.length){
-        sectionTitle('Batting Log');
-        var batCols=['Game','Date','AB','H','RBI','BB','K','OPS'];
-        var batWs=[140,70,42,42,42,42,42,112];
-        var batRows=p.games.map(function(g){
-          var pre=g.loc==='A'?'@ ':'vs ';
-          var oppShort=(g.opp||'').replace(' 12U','');
-          var ops=g.ops||0;
-          return [
-            pre+oppShort,
-            formatGameDate(g.date,'long'),
-            g.ab,g.h,g.rbi,g.bb||0,g.so||0,
-            ops>0?ops.toFixed(3):'—'
-          ];
-        });
-        drawTable(batCols,batWs,batRows,{
-          2:function(v){return v>0?C.hdr:C.sub;},  // AB
-          3:function(v){return Number(v)>0?C.green:C.sub;},  // H
-          7:function(v){var n=parseFloat(v);return n>=0.8?C.green:n>=0.5?C.amber:isNaN(n)?C.sub:C.red;} // OPS
-        });
-      }
-
-      // ── PITCHING (pitchers only) ──
-      if(isP){
-        // Pitching summary
-        sectionTitle('Season Pitching Summary');
-        var pit=p.pit;
-        var fip2=pit.ip>0?((13*(pit.hr||0)+3*pit.bb-2*pit.k)/pit.ip+3.2).toFixed(2):'—';
-        var kbb2=pit.bb>0?(pit.k/pit.bb).toFixed(2):'—';
-        var pinn2=pit.ip>0&&pit.np>0?(pit.np/pit.ip).toFixed(1):'—';
-        drawStatGrid([
-          {l:'S%',v:pit.sp>0?pit.sp.toFixed(1)+'%':'—',k:'sp'},{l:'FPS%',v:pit.fps>0?pit.fps.toFixed(1)+'%':'—',k:'fps'},
-          {l:'WHIP',v:pit.whip>0?pit.whip.toFixed(2):'—',k:'whip'},{l:'BB/INN',v:pit.ip>0?(pit.bb/pit.ip).toFixed(2):'—',k:'bbinn'},
-          {l:'FIP',v:fip2,k:'fip'},{l:'K/BB',v:kbb2,k:null},
-          {l:'ERA',v:pit.era>0?pit.era.toFixed(2):'—',k:'era'},{l:'BB',v:pit.bb,k:null},
-          {l:'SO',v:pit.k,k:null},{l:'Pitches',v:pit.np||'—',k:null},
-          {l:'P/Inn',v:pinn2,k:null},{l:'IP',v:pit.ip.toFixed(1),k:null}
-        ]);
-
-        // Strike % trend chart
-        if(p.pitGames&&p.pitGames.length){
-          sectionTitle('Strike % Trend');
-          var spLabels=p.pitGames.map(function(g){
-            var pre=g.loc==='A'?'@ ':'vs ';
-            return pre+(g.opp||'').split(' ').slice(0,2).join(' ')+' '+formatGameDate(g.date);
-          });
-          var spData=p.pitGames.map(function(g){return g.sp||0;});
-          var spRolling=rollingAvg(spData,3);
-          var spImg=renderChartToImg('bar',spLabels,[
-            {type:'bar',data:spData,backgroundColor:'rgba(59,130,246,.4)',borderColor:'#2563eb',borderWidth:1,borderRadius:3,label:'S%'},
-            {type:'line',data:spRolling,borderColor:'#93c5fd',borderWidth:2,pointRadius:3,fill:false,tension:.3,label:'3g avg'}
-          ],{scales:{y:{min:0,max:100,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},callback:function(v){return v+'%';}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}});
-          checkPage(120);
-          doc.addImage(spImg,'PNG',margin,y,col,110);
-          y+=116;
-
-          // Pitch count chart
-          sectionTitle('Pitch Count per Outing');
-          var pcData=p.pitGames.map(function(g){return g.np||0;});
-          var pcImg=renderChartToImg('bar',spLabels,[
-            {data:pcData,backgroundColor:pcData.map(function(v){return v>=66?'rgba(239,68,68,.5)':v>=51?'rgba(245,158,11,.5)':'rgba(59,130,246,.4)';}),
-             borderColor:pcData.map(function(v){return v>=66?'#dc2626':v>=51?'#d97706':'#2563eb';}),borderWidth:1,borderRadius:3,label:'Pitches'}
-          ],{scales:{y:{min:0,grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11}}},x:{grid:{color:'#e5e7eb'},ticks:{color:'#6b7280',font:{size:11},maxRotation:30}}}});
-          checkPage(120);
-          doc.addImage(pcImg,'PNG',margin,y,col,110);
-          y+=116;
-
-          // Pitching log table
-          sectionTitle('Pitching Log');
-          var plogCols=['Game','Date','IP','#P','S%','BB','K'];
-          var plogWs=[148,72,60,60,72,60,68];
-          var plogRows=p.pitGames.map(function(g){
-            var pre=g.loc==='A'?'@ ':'vs ';
-            var oppShort=(g.opp||'').replace(' 12U','');
-            var gameSP=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1):g.sp||0;
-            return [
-              pre+oppShort,
-              formatGameDate(g.date,'long'),
-              g.ip?g.ip.toFixed(1):'—',
-              g.np||'—',
-              gameSP>0?gameSP.toFixed(1)+'%':'—',
-              g.bb||0,g.k||0
-            ];
-          });
-          drawTable(plogCols,plogWs,plogRows,{
-            4:function(v){var n=parseFloat(v);return n>=70?C.purple:n>=60?C.green:n>=50?C.amber:isNaN(n)?C.sub:C.red;}, // S%
-            5:function(v){return Number(v)>=2?C.red:C.hdr;} // BB
-          });
-        }
-      }
-
-      // ── X-FACTOR ──
-      var xf=ov.xfactor||{};
-      if(xf.mindset||xf.iq||xf.passion){
-        sectionTitle('X-Factor');
-        var xfCats=[
-          {l:'Mindset',v:xf.mindset||0,note:xf.mindsetNote},
-          {l:'Baseball IQ',v:xf.iq||0,note:xf.iqNote},
-          {l:'Passion',v:xf.passion||0,note:xf.passionNote}
-        ];
-        var xfW=col/3, xfH=52, xfGap=4;
-        checkPage(xfH+10);
-        xfCats.forEach(function(cat,i){
-          var bx=margin+i*xfW;
-          doc.setFillColor(C.bg2);
-          doc.roundedRect(bx,y,xfW-xfGap,xfH,4,4,'F');
-          doc.setDrawColor(C.border);doc.setLineWidth(.4);
-          doc.roundedRect(bx,y,xfW-xfGap,xfH,4,4,'S');
-          // category label
-          doc.setTextColor(C.sub);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
-          doc.text(cat.l.toUpperCase(),bx+(xfW-xfGap)/2,y+12,{align:'center'});
-          // stars drawn as colored dots/filled chars
-          var starX=bx+(xfW-xfGap)/2 - (5*10)/2 + 5;
-          for(var si=1;si<=5;si++){
-            doc.setTextColor(si<=cat.v?C.amber:C.border);
-            doc.setFontSize(14);
-            doc.text(si<=cat.v?'★':'☆',starX+(si-1)*10,y+30,{align:'center'});
-          }
-          // score
-          doc.setTextColor(cat.v>0?C.hdr:C.sub);doc.setFontSize(11);doc.setFont('helvetica','bold');
-          doc.text(cat.v+'/5',bx+(xfW-xfGap)/2,y+44,{align:'center'});
-          // note if present
-          if(cat.note){
-            doc.setTextColor(C.sub);doc.setFontSize(6.5);doc.setFont('helvetica','normal');
-            var noteLines=doc.splitTextToSize(cat.note,xfW-xfGap-8);
-            // just show first line
-            doc.text(noteLines[0]||'',bx+(xfW-xfGap)/2,y+xfH-4,{align:'center'});
-          }
-        });
-        y+=xfH+10;
-      }
-
-      // ── COACHING INSIGHTS (bottom) ──
-      if(_pdInsights){
-        var insSections=[
-          {key:'celebrate',title:'What They\'re Doing Well',accentColor:C.green},
-          {key:'focus',title:'Focus Area',accentColor:C.amber},
-          {key:'plan',title:'Action Plan',accentColor:C.blue}
-        ];
-        var hasAny=insSections.some(function(s){return !!_pdInsights[s.key];});
-        if(hasAny){
-          sectionTitle('Coaching Insights');
-          insSections.forEach(function(sec){
-            var data=_pdInsights[sec.key];
-            if(!data) return;
-            // gather text lines
-            var lines=[];
-            if(data.title) lines.push(data.title);
-            if(data.insights&&data.insights.length)
-              data.insights.forEach(function(ins){
-                if(ins.title) lines.push(ins.title+(ins.badge_val?' ('+ins.badge_val+' '+ins.badge_lbl+')':''));
-                if(ins.text){var t=doc.splitTextToSize(ins.text,col-22);t.forEach(function(l){lines.push('  '+l);});}
-              });
-            if(data.bullets&&data.bullets.length)
-              data.bullets.forEach(function(b){
-                var t=doc.splitTextToSize('• '+b,col-22);t.forEach(function(l){lines.push(l);});
-              });
-            if(data.drills&&data.drills.length)
-              data.drills.forEach(function(d){
-                lines.push('Drill: '+d.name+' ('+d.duration+')');
-                var t=doc.splitTextToSize(d.goal,col-22);t.forEach(function(l){lines.push('  '+l);});
-              });
-            if(!lines.length) return;
-            var lineH=11, padT=14, padB=8;
-            var boxH=padT+lines.length*lineH+padB;
-            checkPage(boxH+6);
-            // card bg + border
-            doc.setFillColor(C.bg2);
-            doc.roundedRect(margin,y,col,boxH,4,4,'F');
-            doc.setDrawColor(C.border);doc.setLineWidth(.4);
-            doc.roundedRect(margin,y,col,boxH,4,4,'S');
-            // left accent bar
-            doc.setFillColor(sec.accentColor);
-            doc.roundedRect(margin,y,4,boxH,2,2,'F');
-            // section title
-            doc.setTextColor(sec.accentColor);doc.setFontSize(8);doc.setFont('helvetica','bold');
-            doc.text(sec.title.toUpperCase(),margin+10,y+10);
-            // content lines
-            var ly=y+padT;
-            lines.forEach(function(l,li){
-              var isTitleLine=li===0&&data.title;
-              doc.setTextColor(isTitleLine?C.hdr:C.sub);
-              doc.setFontSize(isTitleLine?9:7.5);
-              doc.setFont('helvetica',isTitleLine?'bold':'normal');
-              doc.text(l,margin+10,ly);
-              ly+=lineH;
-            });
-            y+=boxH+6;
-          });
-        }
-      }
-
-      // ── FOOTER (all pages) ──
-      var totalPages=doc.internal.getNumberOfPages();
-      for(var pg=1;pg<=totalPages;pg++){
-        doc.setPage(pg);
-        hline(pageH-22,C.border);
-        doc.setTextColor(C.sub);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
-        doc.text('SBA Red 12U · '+(ov.displayName||name)+' · '+dateStr,margin,pageH-10);
-        doc.text('Page '+pg+' of '+totalPages,W-margin,pageH-10,{align:'right'});
-      }
-
-      doc.save((name.replace(/\s+/g,'_'))+'_SBA_Report.pdf');
-
-    }catch(e){
-      console.error('PDF error:',e);
-      alert('PDF generation failed: '+e.message);
+    // ── hero row (batting-only players skip S% and WHIP) ──
+    var heroStats=[
+      {lbl:'OPS',val:p.ops.toFixed(3),key:'ops',num:p.ops},
+      {lbl:'AVG',val:p.avg.toFixed(3),key:'avg',num:p.avg},
+      {lbl:'OBP',val:p.obp.toFixed(3),key:'obp',num:p.obp}
+    ];
+    if(isP){
+      heroStats.push({lbl:'S%',val:pit.sp.toFixed(1)+'%',key:'sp',num:pit.sp});
+      heroStats.push({lbl:'WHIP',val:pit.whip.toFixed(2),key:'whip',num:pit.whip});
     }
-    if(btn){btn.innerHTML='<svg style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> PDF Report';btn.disabled=false;}
-  },60);
+    var heroCols='repeat('+heroStats.length+',1fr)';
+    var heroHtml=heroStats.map(function(s){
+      var c=pcls(s.key,s.num);
+      return '<div class="hero-stat"><div class="hero-stat-val">'+pfmt(s.val,c)+'</div><div class="hero-stat-lbl">'+s.lbl+'</div></div>';
+    }).join('');
+
+    // ── pitching section ──
+    var pitSection=isP?[
+      '<div class="section-title">Season Pitching Summary</div>',
+      '<div class="stat-grid">',
+        pCell('S%',   pit.sp>0?pit.sp.toFixed(1)+'%':'—','sp',pit.sp),
+        pCell('FPS%', pit.fps>0?pit.fps.toFixed(1)+'%':'—','fps',pit.fps),
+        pCell('WHIP', pit.whip>0?pit.whip.toFixed(2):'—','whip',pit.whip),
+        pCell('BB/INN',bbinn2,'bbinn',pit.ip>0?pit.bb/pit.ip:null),
+        pCell('FIP',  fip2,'fip',parseFloat(fip2)),
+        pCell('K/BB', kbb2,'kbb',parseFloat(kbb2)),
+        pCell('ERA',  pit.era>0?pit.era.toFixed(2):'—','era',pit.era),
+        pCell('BB',   pit.bb,null),
+        pCell('SO',   pit.k,null),
+        pCell('Pitches',pit.np||'—',null),
+        pCell('P/Inn',pinn2,null),
+        pCell('IP',   pit.ip.toFixed(1),null),
+      '</div>',
+      '<div class="section-title">Strike % Trend</div>',
+      '<div class="chart-wrap"><div class="chart-sub">Per-game S% · 3-game rolling avg · Season '+pit.sp.toFixed(1)+'% S%</div>',
+      '<div class="chart-img-wrap"><img src="'+chartImgs.sp+'" style="width:100%;height:130px;object-fit:fill;display:block"/></div></div>',
+      '<div class="section-title">Pitch Count per Outing</div>',
+      '<div class="chart-wrap"><div class="chart-sub">Pitches thrown · 85-pitch max (12U)</div>',
+      '<div class="chart-img-wrap"><img src="'+chartImgs.pc+'" style="width:100%;height:130px;object-fit:fill;display:block"/></div></div>',
+      '<div class="section-title">Pitching Log</div>',
+      '<table class="log-table"><thead><tr><th>Game</th><th>IP</th><th>#P</th><th>S%</th><th>BB</th><th>K</th></tr></thead>',
+      '<tbody>'+pitLogRows(p.pitGames)+'</tbody></table>'
+    ].join('') : '';
+
+    // ── xfactor section ──
+    var xfSection=(xf.mindset||xf.iq||xf.passion)?[
+      '<div class="section-title">X-Factor</div>',
+      '<div class="xf-grid">',
+        '<div class="xf-cell"><div class="xf-label">Mindset</div><div class="xf-stars">'+stars(xf.mindset||0)+'</div><div class="xf-score">'+(xf.mindset||0)+' / 5</div></div>',
+        '<div class="xf-cell"><div class="xf-label">Baseball IQ</div><div class="xf-stars">'+stars(xf.iq||0)+'</div><div class="xf-score">'+(xf.iq||0)+' / 5</div></div>',
+        '<div class="xf-cell"><div class="xf-label">Passion</div><div class="xf-stars">'+stars(xf.passion||0)+'</div><div class="xf-score">'+(xf.passion||0)+' / 5</div></div>',
+      '</div>'
+    ].join('') : '';
+
+    // ── coaching insights ──
+    function insightCard(accentColor,labelColor,labelText,data){
+      if(!data) return '';
+      var body='<div class="insight-section-label" style="color:'+labelColor+'">'+labelText+'</div>';
+      if(data.title) body+='<div class="insight-title">'+data.title+'</div>';
+      if(data.insights&&data.insights.length){
+        data.insights.forEach(function(ins,ii){
+          if(ii>0) body+='<div style="margin-top:10px">';
+          if(ins.badge_val) body+='<div class="insight-badge" style="background:'+labelColor+'22;color:'+labelColor+'">'+ins.badge_val+' '+ins.badge_lbl+'</div>';
+          body+='<div class="insight-title">'+ins.title+'</div>';
+          body+='<div class="insight-text">'+ins.text+'</div>';
+          if(ii>0) body+='</div>';
+        });
+      }
+      if(data.bullets&&data.bullets.length){
+        body+='<ul style="list-style:none;margin:8px 0;display:flex;flex-direction:column;gap:5px">';
+        data.bullets.forEach(function(b){body+='<li class="insight-text">• '+b+'</li>';});
+        body+='</ul>';
+      }
+      if(data.drills&&data.drills.length){
+        data.drills.forEach(function(d){
+          body+='<div class="drill-card"><div class="drill-hdr"><span class="drill-name">'+d.name+'</span><span class="drill-time">'+d.duration+'</span></div>'
+            +'<div class="drill-goal">Goal: '+d.goal+'</div><div class="drill-desc">'+d.instructions+'</div></div>';
+        });
+      }
+      return '<div class="insight-card"><div class="insight-accent" style="background:'+accentColor+'"></div><div class="insight-body">'+body+'</div></div>';
+    }
+    var insSection='';
+    if(_pdInsights){
+      var hasSome=_pdInsights.celebrate||_pdInsights.focus||_pdInsights.plan;
+      if(hasSome){
+        insSection='<div class="section-title">Coaching Insights</div>'
+          +insightCard('#16a34a','#16a34a',"What They're Doing Well",_pdInsights.celebrate)
+          +insightCard('#d97706','#d97706','Focus Area',_pdInsights.focus)
+          +insightCard('#2563eb','#2563eb','Action Plan',_pdInsights.plan);
+      }
+    }
+
+    // ── positions ──
+    var posBadgesHtml=buildPdfPosBadges(ov);
+    var posRow=posBadgesHtml?'<div class="pdf-pos-badges">'+posBadgesHtml+'</div>':'';
+
+    // ── full HTML ──
+    var CSS='*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}'
+      +':root{--bg:#fff;--card:#fff;--cell:#f9fafb;--border:#e5e7eb;--hdr:#111827;--sub:#6b7280;--muted:#9ca3af;--red:#dc2626;--green:#16a34a;--amber:#d97706;--blue:#2563eb;--purple:#7c3aed}'
+      +'body{font-family:"Segoe UI",sans-serif;background:#fff;margin:0;padding:0}'
+      +'.page{background:#fff;width:816px}'
+      +'.pdf-header{background:#fff;border-bottom:2px solid #e5e7eb;padding:22px 36px 18px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}'
+      +'.pdf-header-left{display:flex;align-items:flex-start;gap:12px}'
+      +'.pdf-jersey{font-size:36px;font-weight:800;color:#9ca3af;line-height:1;padding-top:2px}'
+      +'.pdf-name{font-size:26px;font-weight:800;color:#111827;line-height:1;letter-spacing:-.4px}'
+      +'.pdf-meta{font-size:11px;color:#6b7280;font-weight:500;margin-top:5px}'
+      +'.pdf-pos-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}'
+      +'.pdf-pos-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#f6f3f4;border:1px solid #ebe6e7;border-radius:20px;font-size:10.5px;font-weight:600;color:#364153}'
+      +'.pdf-pos-badge.canplay{color:#16a34a}'
+      +'.pdf-header-right{text-align:right;flex-shrink:0}'
+      +'.pdf-team{font-size:11px;font-weight:700;color:#111827;letter-spacing:.06em;text-transform:uppercase}'
+      +'.pdf-date{font-size:10px;color:#9ca3af;margin-top:3px}'
+      +'.pdf-body{padding:24px 36px 36px;background:#fff}'
+      +'.hero-stats{display:grid;grid-template-columns:'+heroCols+';gap:8px;margin-bottom:16px}'
+      +'.hero-stat{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 10px 10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}'
+      +'.hero-stat-val{font-size:20px;font-weight:800;line-height:1;margin-bottom:5px}'
+      +'.hero-stat-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6b7280}'
+      +'.c-elite{color:#7c3aed}.c-good{color:#16a34a}.c-warn{color:#d97706}.c-bad{color:#dc2626}.c-base{color:#111827}'
+      +'.qab-banner{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}'
+      +'.qab-info-title{font-size:11px;font-weight:700;color:#111827}.qab-info-sub{font-size:9px;color:#6b7280;margin-top:2px}'
+      +'.qab-val{font-size:22px;font-weight:800}.qab-goal{font-size:9px;font-weight:600;text-align:right;margin-top:2px}'
+      +'.section-title{font-size:11px;font-weight:700;color:#111827;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}'
+      +'.section-title::after{content:"";flex:1;height:1px;background:#e5e7eb}'
+      +'.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px}'
+      +'.stat-cell{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 8px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}'
+      +'.stat-cell-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;margin-bottom:4px}'
+      +'.stat-cell-val{font-size:17px;font-weight:800;color:#111827;line-height:1}'
+      +'.chart-wrap{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px 12px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}'
+      +'.chart-sub{font-size:9px;color:#6b7280;margin-bottom:10px}'
+      +'.log-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid #e5e7eb}'
+      +'.log-table thead tr{background:#f3f4f6}'
+      +'.log-table th{padding:7px 10px;font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;text-align:center}'
+      +'.log-table th:first-child{text-align:left}'
+      +'.log-table td{padding:7px 10px;text-align:center;color:#111827;font-weight:600;border-bottom:1px solid #e5e7eb}'
+      +'.log-table td:first-child{text-align:left}'
+      +'.log-table tbody tr:last-child td{border-bottom:none}'
+      +'.log-table tbody tr:nth-child(even){background:#f9fafb}'
+      +'.log-game{font-weight:600;color:#111827;font-size:11px}.log-date{font-size:9px;color:#6b7280;font-weight:400}'
+      +'.xf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}'
+      +'.xf-cell{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 12px 12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}'
+      +'.xf-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6b7280;margin-bottom:8px}'
+      +'.xf-stars{font-size:18px;margin-bottom:6px;letter-spacing:2px;color:#d97706}'
+      +'.xf-score{font-size:12px;font-weight:700;color:#111827}'
+      +'.insight-card{border-radius:10px;border:1px solid #e5e7eb;background:#fff;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex}'
+      +'.insight-accent{width:4px;flex-shrink:0}'
+      +'.insight-body{padding:13px 16px;flex:1}'
+      +'.insight-section-label{font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}'
+      +'.insight-title{font-size:12px;font-weight:700;color:#111827;margin-bottom:5px}'
+      +'.insight-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;margin-bottom:6px}'
+      +'.insight-text{font-size:10.5px;color:#6b7280;line-height:1.55}'
+      +'.drill-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin-top:8px}'
+      +'.drill-hdr{display:flex;justify-content:space-between;margin-bottom:3px}'
+      +'.drill-name{font-size:10.5px;font-weight:700;color:#111827}'
+      +'.drill-time{font-size:9px;font-weight:600;color:#6b7280}'
+      +'.drill-goal{font-size:9px;color:#2563eb;font-weight:600;margin-bottom:3px}'
+      +'.drill-desc{font-size:9px;color:#6b7280;line-height:1.5}'
+      +'.pdf-footer{border-top:1px solid #e5e7eb;padding:10px 36px;display:flex;justify-content:space-between;background:#fff}'
+      +'.pdf-footer span{font-size:9px;color:#9ca3af}';
+
+    var HTML='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+CSS+'</style></head><body>'
+      +'<div class="page">'
+      +'<div class="pdf-header">'
+        +'<div><div class="pdf-header-left">'
+          +'<div class="pdf-jersey">#'+(ov.num||p.num||'0')+'</div>'
+          +'<div><div class="pdf-name">'+(ov.displayName||name)+'</div>'
+            +'<div class="pdf-meta">Age '+(ov.age||12)+' &nbsp;·&nbsp; '+(isP?'Pitcher / ':'')+'Batter &nbsp;·&nbsp; '+p.gp+' GP</div>'
+            +posRow
+          +'</div>'
+        +'</div></div>'
+        +'<div class="pdf-header-right"><div class="pdf-team">SBA Red 12U</div><div class="pdf-date">'+dateStr+'</div></div>'
+      +'</div>'
+      +'<div class="pdf-body">'
+        +'<div class="hero-stats">'+heroHtml+'</div>'
+        +'<div class="qab-banner">'
+          +'<div><div class="qab-info-title">Season QAB%</div><div class="qab-info-sub">Quality At-Bats ÷ PA × 100 · walk / hit / HHB / moved runner / full count</div></div>'
+          +'<div><div class="qab-val">'+pfmt((p.qab_pct||0).toFixed(1)+'%',qc)+'</div><div class="qab-goal" style="color:'+qgoalColor+'">'+qgoalText+'</div></div>'
+        +'</div>'
+        +'<div class="section-title">Season Batting Summary</div>'
+        +'<div class="stat-grid">'
+          +pCell('AVG',p.avg.toFixed(3),'avg',p.avg)
+          +pCell('OBP',p.obp.toFixed(3),'obp',p.obp)
+          +pCell('OPS',p.ops.toFixed(3),'ops',p.ops)
+          +pCell('BB',p.bb,null)
+          +pCell('K',p.so,null)
+          +pCell('H',p.h,null)
+          +pCell('PA',p.pa,null)
+          +pCell('HR',p.hr||0,null)
+        +'</div>'
+        +'<div class="section-title">OPS Trend</div>'
+        +'<div class="chart-wrap"><div class="chart-sub">Per-game OPS · 3-game rolling avg · Season '+p.ops.toFixed(3)+' OPS</div>'
+          +'<img src="'+chartImgs.ops+'" style="width:100%;height:130px;object-fit:fill;display:block"/></div>'
+        +'<div class="section-title">Contact % Trend</div>'
+        +'<div class="chart-wrap"><div class="chart-sub">(AB − K) ÷ AB × 100 · target 70%+</div>'
+          +'<img src="'+chartImgs.con+'" style="width:100%;height:130px;object-fit:fill;display:block"/></div>'
+        +'<div class="section-title">Batting Log</div>'
+        +'<table class="log-table"><thead><tr><th>Game</th><th>AB</th><th>H</th><th>RBI</th><th>BB</th><th>K</th><th>OPS</th></tr></thead>'
+          +'<tbody>'+batLogRows(p.games)+'</tbody></table>'
+        +pitSection
+        +xfSection
+        +insSection
+      +'</div>'
+      +'<div class="pdf-footer"><span>SBA Red 12U · '+(ov.displayName||name)+' · '+dateStr+'</span><span>Generated by X-Factor Dashboard</span></div>'
+      +'</div>'
+      +'</body></html>';
+
+    // ── render in hidden iframe → html2canvas → jsPDF ──
+    var iframe=document.createElement('iframe');
+    iframe.style.cssText='position:fixed;left:-9999px;top:0;width:816px;height:1px;border:none;visibility:hidden';
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(HTML);
+    iframe.contentDocument.close();
+
+    setTimeout(function(){
+      var target=iframe.contentDocument.querySelector('.page');
+      html2canvas(target,{
+        scale:2,
+        useCORS:true,
+        backgroundColor:'#ffffff',
+        width:816,
+        windowWidth:816
+      }).then(function(canvas){
+        var imgData=canvas.toDataURL('image/png');
+        var jsPDF=window.jspdf.jsPDF;
+        var doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
+        var pW=doc.internal.pageSize.getWidth();
+        var pH=doc.internal.pageSize.getHeight();
+        var imgW=pW;
+        var imgH=canvas.height*(pW/canvas.width);
+        var pageH=pH;
+        var pos=0;
+        // paginate
+        doc.addImage(imgData,'PNG',0,pos,imgW,imgH);
+        while(pos+imgH>pageH){
+          pos-=pageH;
+          doc.addPage();
+          doc.addImage(imgData,'PNG',0,pos,imgW,imgH);
+        }
+        doc.save((name.replace(/\s+/g,'_'))+'_SBA_Report.pdf');
+        document.body.removeChild(iframe);
+        if(btn){btn.innerHTML='<svg style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> PDF Report';btn.disabled=false;}
+      }).catch(function(e){
+        console.error('html2canvas error:',e);
+        alert('PDF generation failed: '+e.message);
+        document.body.removeChild(iframe);
+        if(btn){btn.innerHTML='PDF Report';btn.disabled=false;}
+      });
+    },600);
+  }
 }
 </script>
 
