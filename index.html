@@ -6382,14 +6382,15 @@ function renderPitchCountPage(){
     } else {
       statusHtml='<div class="pc-status-badge pc-status-ok">✅ Available</div>';
     }
+
+    var statusText=daysUntil>0?eligStr:(lastDate?'Ready to pitch':'No outings recorded');
+    if(hitLimit&&daysUntil===0) statusText='Available today';
+
     // Game availability overrides pitch-count status
     if(!isPlayerAvailable(p.name)){
       statusHtml='<div class="pc-status-badge pc-status-unavail">🚫 Unavailable</div>';
       statusText='';
     }
-
-    var statusText=daysUntil>0?eligStr:(lastDate?'Ready to pitch':'No outings recorded');
-    if(hitLimit&&daysUntil===0) statusText='Available today';
 
     // Last outing line
     var lastOutingHtml='';
