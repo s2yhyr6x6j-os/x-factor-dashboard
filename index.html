@@ -180,7 +180,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
   .sb-overlay{top:60px;left:0;right:0;bottom:0}
   /* Main: offset below fixed header */
   .main{margin-left:0;padding:68px 12px 20px;height:auto;min-height:100vh;overflow-y:visible}
-  #page-roster.page.active, #page-games.page.active, #page-rotation.page.active{max-width:100%!important;}
+  #page-roster.page.active, #page-games.page.active, #page-rotation.page.active,#page-lineup.page.active{max-width:100%!important;}
   #page-roster.page.active,#page-games.page.active{width:90%!important;margin:0 auto}
 
   .stat-kpi-val{font-size:28px!important;font-family:var(--ff)!important;white-space:nowrap;transform:translateZ(0)}
@@ -838,7 +838,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .met-lb-fill{height:100%;border-radius:3px;transition:width .4s ease}
 .met-lb-target-line{position:absolute;top:-3px;bottom:-3px;width:2px;background:#3b82f6;border-radius:1px}
 .met-section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:12px;margin-top:4px}
-#page-roster.page.active,#page-games.page.active,#page-rotation.page.active{max-width:75%;}
+#page-roster.page.active,#page-games.page.active,#page-rotation.page.active,#page-lineup.page.active{max-width:75%;}
 .roster-page-hdr{margin-bottom:22px}
 button#gen-all-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:8px 14px;background:0;color:#f59e0b;border:1px solid #f59e0b;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;margin-top:4px;transition:all .18s}
 button#gen-all-btn:hover{background:#f59e0b;color:#fff}
@@ -1314,9 +1314,9 @@ body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
 .pc-warning-icon{font-size:18px}
 .pc-warning-text{font-size:13px;font-weight:600;color:#f59e0b}
 .pc-warning-sub{font-size:11px;color:#f59e0b;margin-top:2px}
-.pc-card{background:#101828;border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.pc-card{background:#101828;border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:all ease .15s}
 .pc-card:hover {background: #1e2939;cursor: pointer;}
-body.light-mode .pc-card:hover {background:#fbf9fa;}
+body.light-mode .pc-card:hover {background:rgba(229,232,234,0.3);}
 .pc-card-hdr{padding:14px 18px 10px}
 .pc-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
 .pc-card-name{font-size:16px;font-weight:800;color:var(--hdr)}
@@ -1348,17 +1348,17 @@ body.light-mode .pc-card:hover {background:#fbf9fa;}
 .pc-hist-hdr span:nth-child(2){text-align:left}
 .pc-hist-row{display:grid;grid-template-columns:90px 120px 55px 65px 65px 45px 45px 55px 55px;gap:4px;padding:8px 18px;font-size:12px;color:var(--sub);border-bottom:1px solid rgba(51,65,85,.3);text-align:center}
 .pc-hist-row:last-child{border-bottom:none}
-.pc-hist-row span:first-child{color:var(--hdr);text-align:left}
+.pc-hist-row span:first-child{text-align:left}
 .pc-hist-row span:nth-child(2){text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc-ll-rules{background:#0a1120;border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:8px}
 .pc-ll-title{font-size:13px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
-.pc-ll-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pc-ll-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:0 20px}
 .pc-ll-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(51,65,85,.2)}
 .pc-ll-row:last-child{border-bottom:none}
 .pc-ll-label{color:var(--sub)}
 .pc-ll-val{color:var(--hdr);font-weight:600}
-body.light-mode .pc-card{background:#fff}
-body.light-mode .pc-ll-rules{background:#f8f9fa}
+body.light-mode .pc-card{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);}
+body.light-mode .pc-ll-rules{background:none;border:0}
 body.light-mode .pc-bar-track{background:rgba(0,0,0,.08);border-radius:4px}
 body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px}
 </style>
