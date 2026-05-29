@@ -497,13 +497,14 @@ body.light-mode .gl-boxscore{background:#fff;}
 .lineup-strategy-btn:hover{border-color:var(--sub)}
 .lineup-strategy-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
 .lineup-suggested-card{background:#101828;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px}
-.no-card {background: none !important;border: none !important;padding: 14px 0;box-shadow:none!important}
+.no-card {background: none !important;border: none !important;padding: 14px 0 4px;box-shadow:none!important}
 .lineup-suggested-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.lineup-suggested-title{font-size:13px;font-weight:700;color:var(--hdr);display:flex;align-items:center;gap:6px}
-.lineup-suggested-sub{font-size:11px;color:var(--sub);margin-top:10px}
+.lineup-suggested-title{font-size:14px;font-weight:700;color:var(--hdr);display:flex;align-items:center;gap:6px}
+.lineup-suggested-sub{font-size:12px;color:var(--sub);margin-top:10px}
 .lineup-suggested-sub span{font-weight:800}
 .notes-toggle{display:flex;align-items:center;gap:6px;font-family:var(--ff);font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;border:none;cursor:pointer;transition:all .15s}
 .notes-toggle.on{background:rgba(245,158,11,.15);color:var(--amber)}
+.notes-toggle.on:hover{background:rgba(245,158,11,1);color:#fff}
 .notes-toggle.off{background:rgba(255,255,255,.06);color:var(--sub)}
 /* Player rows */
 .lu-player-row{background:#101828;border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;cursor:grab;transition:all .15s;user-select:none}
@@ -2183,9 +2184,11 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       <div class="lineup-suggested-card no-card">
         <div class="lineup-suggested-hdr">
           <div class="lineup-suggested-title"><span>📋</span> Recommended Batting Order</div>
-          <button class="notes-toggle on" id="notes-toggle-btn" onclick="toggleLineupNotes()">📝 Notes ON</button>
         </div>
         <div class="lineup-suggested-sub" id="lineup-suggested-sub">OBP → QAB% tiebreaker · Power bats nudged to slots 3–5</div>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button class="notes-toggle on" id="notes-toggle-btn" onclick="toggleLineupNotes()">📝 Notes ON</button>
+        </div>
       </div>
       <div id="lineup-slots"></div>
     </div>
