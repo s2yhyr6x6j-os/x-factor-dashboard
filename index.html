@@ -493,7 +493,7 @@ body.light-mode .gl-boxscore{background:#fff;}
   .pd-hero-stat-val{font-size:16px}
   .pd-hero-stat-lbl{font-size:9px}
 }
-.lineup-strategy-btn{display:flex;align-items:center;gap:6px;font-family:var(--ff);font-size:13px;font-weight:600;padding:8px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--hdr);cursor:pointer;transition:all .15s}
+.lineup-strategy-btn{font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:#7c3aed;border:1px solid var(--border);border-radius:8px;color:#fff;cursor:pointer;transition:all .15s}
 .lineup-strategy-btn:hover{border-color:var(--sub)}
 .lineup-strategy-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
 .lineup-suggested-card{background:#101828;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px}
@@ -2168,8 +2168,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       </div>
     </div>
     <button class="lineup-strategy-btn" id="lineup-strategy-btn" onclick="autoLineup()">
-      <span id="lineup-strategy-icon">🧠</span>
-      <span id="lineup-strategy-label">Smart Lineup</span>
+      <span id="lineup-strategy-icon">⚡</span>
+      <span id="lineup-strategy-label">Lineup Optimizer</span>
       <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
   </div>
@@ -2186,9 +2186,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         <div class="lineup-suggested-sub" id="lineup-suggested-sub">OBP → QAB% tiebreaker · Power bats nudged to slots 3–5</div>
       </div>
       <div id="lineup-slots"></div>
-      <div class="lu-rbi-note" id="lu-rbi-note" class="svg-hidden">
-        💡 Slots 3–5 highlighted as RBI spots. 12 & Under assumes roster bat.
-      </div>
     </div>
   </div>
   <div class="lu-footer-note">
@@ -4771,7 +4768,7 @@ function renderLineup(){
   if(subEl) subEl.textContent='Based on '+gameLog.length+' regular season games of data';
 
   document.getElementById('lineup-suggested-sub').textContent=
-    'Table Setters (1-2) · Best Hitter (3) · Power (4-5) · Trend + X-Factor (6-9)';
+    'High OBP/QAB% (1-2) · High OBP/QAB%/AVG (3) · Power/High OPS (4-5) · Trend ↑ + X-Factor (6-9)';
 
   // Rebuild from smart algorithm
   var names=players.map(function(p){return p.name;});
