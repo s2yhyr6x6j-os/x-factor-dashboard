@@ -4769,7 +4769,7 @@ function renderLineup(){
   var subEl=document.getElementById('lineup-page-sub');
   if(subEl) subEl.textContent='Based on '+gameLog.length+' regular season games of data';
 
-  document.getElementById('lineup-suggested-sub').textContent=
+  document.getElementById('lineup-suggested-sub').innerHTML=
     '<span>1-2</span> (High OBP/QAB%) · <span>3</span> (High OBP/QAB%/AVG) · <span>4-5</span> (Power/High OPS) · <span>6-9</span> (Trend ↑ + X-Factor)';
 
   // Rebuild from smart algorithm
