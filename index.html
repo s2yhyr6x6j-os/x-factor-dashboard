@@ -872,6 +872,7 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 .roster-trend.hot{color:var(--amber)}
 .roster-trend.ok{color:var(--green)}
 .roster-edit{background:none;border:none;color:rgba(148,163,184,.3);cursor:pointer;padding:4px 8px;transition:color .15s;flex-shrink:0;display:flex;align-items:center}
+body.light-mode .roster-edit {color:#ccc;}
 .roster-edit:hover{color:var(--sub)}
 .roster-edit svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 /* Edit modal — full redesign */
@@ -1145,11 +1146,11 @@ body.light-mode .pd-btn-outline{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,
 .sc-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sc-stat-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
 .sc-stat-cell.good{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.32)}
-.sc-stat-cell.warn{background:rgba(217,119,6,.2);border-color:rgba(217,119,6,.32)}
+.sc-stat-cell.warn{background:rgba(245,158,11,.22);border-color:var(--amber);}
 .sc-stat-label{font-size:10px;color:var(--sub);margin-bottom:3px;display:flex;align-items:center;justify-content:space-between}
 .sc-stat-val{font-size:22px;font-weight:800;color:var(--hdr);line-height:1}
 .sc-stat-val.good{color:#4ade80}
-.sc-stat-val.warn{color:#f87171}
+.sc-stat-val.warn{color:var(--amber}
 .sc-coach-note{padding:10px 16px;font-size:12px;color:var(--sub);font-style:italic;border-top:1px solid #1e2939;line-height:1.5}
 
 /* Edit tab */
@@ -1189,7 +1190,7 @@ body.light-mode .pd-btn-outline{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,
 .pd-log-tbl tr:hover{background:rgba(0,0,0,.2)}
 body.light-mode .pd-log-tbl tr:hover{background:#f9f9f9}
 /* 35. Light-mode position badge overrides */
-body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3f4;border-color:#ebe6e7;color:#364153}
+body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3f4;border-color:#ccc;color:#364153}
 /* Insights toggle */
 .pd-insights-toggle{display:flex;align-items:center;gap:8px}
 /* Drill cards */
@@ -5831,8 +5832,8 @@ function kvLoad(callback){
 // ── X-FACTOR ──
 var XF_CATS=['mindset','iq','passion'];
 var XF_LABELS={mindset:'Mindset',iq:'Baseball IQ',passion:'Passion'};
-var XF_DESCS={mindset:'Focus & Composure',iq:'Instincts & Anticipation',passion:'Effort, Attitude & Enthusiasm'};
-var XF_TIERS=['','Low X-Factor','Low X-Factor','Average','Average','Average','High X-Factor','High X-Factor','High X-Factor','Elite X-Factor','Elite X-Factor ⚡'];
+var XF_DESCS={mindset:'(Focus & Composure)',iq:'(Instincts & Anticipation)',passion:'(Effort, Attitude & Enthusiasm)'};
+var XF_TIERS=['','Low X-Factor','Low X-Factor','Average','Average','Average','High X-Factor','High X-Factor','High X-Factor','Locked In⚡','Locked In⚡'];
 var _reXF={mindset:0,iq:0,passion:0,mindsetNote:'',iqNote:'',passionNote:''};
 
 function calcXFScore(xf){
