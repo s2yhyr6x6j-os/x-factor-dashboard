@@ -756,10 +756,10 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-page-title svg,.gl-page-title svg, .up-title svg{width:22px;height:22px;stroke:#51a2ff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .pit-page-sub{font-size:12px;color:var(--sub);margin-top:5px;margin-bottom:30px}
 .pit-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:30px}
-.pit-kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0;position:relative;perspective:600px}
+.pit-kpi-card{background:var(--bg2);border-radius:12px;padding:0;position:relative;perspective:600px}
 .pit-kpi-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .pit-kpi-card.flipped .pit-kpi-card-inner{transform:rotateY(180deg)}
-.pit-kpi-front,.pit-kpi-back{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.pit-kpi-front,.pit-kpi-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--border);}
 .pit-kpi-front{position:absolute;inset:0;background:var(--bg2);border-radius:12px;padding:14px 12px;box-sizing:border-box;z-index:1;display:flex;flex-direction:column}
 .pit-kpi-back{position:absolute;inset:0;transform:rotateY(180deg);background:var(--bg2);border-radius:12px;padding:0;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;z-index:0}
 .pit-kpi-card.expanded{height:auto}
@@ -1904,7 +1904,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">QAB% <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-qab',event)">✕</button></div>
             <div class="pit-kpi-back-desc">Quality At-Bat %</div>
-            <div class="pit-kpi-back-def">Any PA that accomplishes something useful: walk, hit, HHB, moved runner, or full count (6+ pitches). 70%+ is elite.</div>
+            <div class="pit-kpi-back-def">Any PA resulting in a walk, hit, HHB, moved runner, or full count (6+ pitches).</div>
           </div>
         </div>
       </div>
@@ -1937,7 +1937,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         <div class="pit-kpi-back" onclick="flipPitCard('bkpi-obp',event)">
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">OBP <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-obp',event)">✕</button></div>
-            <div class="pit-kpi-back-desc">On Base Percentage</div>
+            <div class="pit-kpi-back-desc">On Base %</div>
             <div class="pit-kpi-back-def">How often a hitter reaches base. More valuable than AVG because a walk is just as good as a single.</div>
           </div>
         </div>
@@ -1955,7 +1955,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">Contact% <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-con',event)">✕</button></div>
             <div class="pit-kpi-back-desc">Contact Rate</div>
-            <div class="pit-kpi-back-def">(AB − K) ÷ AB × 100. How often a batter puts the ball in play. 80%+ is elite.</div>
+            <div class="pit-kpi-back-def">(AB − K) ÷ AB × 100. How often a batter puts the ball in play.</div>
           </div>
         </div>
       </div>
