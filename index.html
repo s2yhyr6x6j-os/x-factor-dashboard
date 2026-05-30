@@ -761,7 +761,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-card.flipped .pit-kpi-card-inner{transform:rotateY(180deg)}
 .pit-kpi-front,.pit-kpi-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--border);}
 .pit-kpi-front{position:absolute;inset:0;background:var(--bg2);border-radius:12px;padding:14px 12px;box-sizing:border-box;z-index:1;display:flex;flex-direction:column}
-.pit-kpi-back{position:absolute;inset:0;transform:rotateY(180deg);background:var(--bg2);border-radius:12px;padding:0;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;z-index:0}
+.pit-kpi-back{position:absolute;inset:0;transform:rotateY(180deg);background:var(--bg2);border-color:var(--blue);border-radius:12px;padding:0;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;z-index:0}
 .pit-kpi-card.expanded{height:auto}
 .pit-kpi-card.expanded .pit-kpi-card-inner{height:auto}
 .pit-kpi-card.expanded .pit-kpi-back{position:relative;inset:auto}
@@ -1559,7 +1559,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="stat-kpi-back" onclick="flipCard('kpi-qab',event)">
             <div class="stat-kpi-back-title">QAB% <button class="back-close" onclick="flipCard('kpi-qab',event)">✕</button></div>
             <div class="stat-kpi-back-desc">Quality At-Bat %</div>
-            <div class="stat-kpi-back-def">Any PA that accomplishes something useful: a walk, a hit, a sacrifice, a hard-hit ball, a full count. Measures plate discipline and process — not luck. A hitter with 60% QAB% is doing the right things even when results don't show in AVG.</div>
+            <div class="stat-kpi-back-def">Any PA resulting in a walk, a hit, a sacrifice, a hard-hit ball, a full count. Measures plate discipline and process — not luck. A hitter with 60% QAB% is doing the right things even when results don't show in AVG.</div>
           </div>
         </div>
       </div>
@@ -1904,7 +1904,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">QAB% <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-qab',event)">✕</button></div>
             <div class="pit-kpi-back-desc">Quality At-Bat %</div>
-            <div class="pit-kpi-back-def">Any PA resulting in a walk, hit, HHB, moved runner, or full count (6+ pitches).</div>
+            <div class="pit-kpi-back-def">Any PA resulting in a walk, hit, HHB, moved runner, or full count (6+ pitches) is a quality at-bat.</div>
           </div>
         </div>
       </div>
@@ -1921,7 +1921,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">OPS <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-ops',event)">✕</button></div>
             <div class="pit-kpi-back-desc">On Base Plus Slugging</div>
-            <div class="pit-kpi-back-def">OBP + SLG combined. The quickest single read on a hitter's overall offensive value.</div>
+            <div class="pit-kpi-back-def">OBP + SLG combined in one number. Captures both the ability to get on base and hit for power./div>
           </div>
         </div>
       </div>
@@ -1955,7 +1955,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">Contact% <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-con',event)">✕</button></div>
             <div class="pit-kpi-back-desc">Contact Rate</div>
-            <div class="pit-kpi-back-def">(AB − K) ÷ AB × 100. How often a batter puts the ball in play.</div>
+            <div class="pit-kpi-back-def">How often a batter puts the ball in play. (AB − K) ÷ AB × 100.</div>
           </div>
         </div>
       </div>
