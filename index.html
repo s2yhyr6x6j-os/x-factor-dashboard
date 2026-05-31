@@ -4840,6 +4840,8 @@ function renderPitchingPlan(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var pitchers=getPitchers().filter(function(p){return EXCLUDED.indexOf(p.name)<0;});
   var el=document.getElementById('pp-ranked-rows');
+if(!el) return;
+
   if(!pitchers.length){
     el.innerHTML='<div style="padding:16px;font-size:12px;color:var(--sub)">No pitching data — upload PDF box scores</div>';
     return;
