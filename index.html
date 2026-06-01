@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>X-Factor · Baseball Stats Analytics</title>
+<title>X-Factor · Baseball Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>if(typeof Chart==='undefined'){document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -28,8 +28,8 @@
 body.light-mode{
   --bg1:#f3f4f6;
   --bg2:#ffffff;
-  --border:#ccc;
-  --hdr:#585d67;
+  --border:#e5e7eb;
+  --hdr:#111827;
   --sub:#6b7280;
   --green:#16a34a;
   --amber:#d97706;
@@ -41,7 +41,7 @@ body.light-mode{
 }
 body.light-mode .sb-header,
 body.light-mode .sidebar,
-body.light-mode aside#sidebar{background:#ffffff;border-color:var(--border)}
+body.light-mode aside#sidebar{background:#ffffff;border-color:#e5e7eb}
 body.light-mode .sb-header .sb-team-name{color:#111827}
 body.light-mode .sb-header .sb-season,body.light-mode .sb-header .sb-record-sub{color:#6b7280}
 body.light-mode .sb-header .sb-record{color:#111827}
@@ -49,13 +49,13 @@ body.light-mode .sb-item{color:#374151}
 body.light-mode .sb-item:hover{background:#f3f4f6;color:#111827}
 body.light-mode .sb-item.active{background:#2563eb;color:#ffffff}
 body.light-mode .sb-item.active .sb-icon{color:#ffffff}
-body.light-mode .sb-group-label{color:#9ca3afvar(--sub);font-size:10px}
+body.light-mode .sb-group-label{color:#9ca3af;font-size:10px}
 body.light-mode .theme-toggle{color:#6b7280}
 body.light-mode .sb-hamburger{color:#374151}
-body.light-mode #page-home .stat-kpi-front,body.light-mode #page-home .stat-kpi-back {background: #dedede;border:1px solid var(--border)}
+body.light-mode #page-home .stat-kpi-front,body.light-mode #page-home .stat-kpi-back {background: #f5f5f5;border:1px solid var(--border)}
 body.light-mode #page-home .stat-kpi-cell{box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 4px;
     border-radius: 10px;}
-body.light-mode #page-home .stat-player-row{border-bottom: 1px solid var(--border);}
+body.light-mode #page-home .stat-player-row{border-bottom: 1px solid #e5e7eb;}
 body.light-mode .card,body.light-mode .stat-section,body.light-mode .donut-card,
 body.light-mode .bat-kpi-card,body.light-mode .bat-lb-card,body.light-mode .bat-pa-card,
 body.light-mode .pit-lb-card,body.light-mode .ps-card,
@@ -64,19 +64,19 @@ body.light-mode .lineup-suggested-card,body.light-mode .lu-footer-note,
 body.light-mode .roster-row,body.light-mode .met-lb-card,
 body.light-mode .pd-section,body.light-mode .pd-hero,
 body.light-mode .gl-card,body.light-mode .pit-kpi-card,
-body.light-mode #page-upload .card{background:#ffffff;border-color:var(--border);box-shadow:0 1px 3px rgba(0,0,0,.22)}
-body.light-mode .pd-overlay,body.light-mode .pd-topbar{background:#dedede}
-body.light-mode .main{background:#dedede}
-body.light-mode .pd-stat-cell,body.light-mode .met-stat-cell{background:#f3f4f6;border-radius:8px;border: 1px solid var(--border);
+body.light-mode #page-upload .card{background:#ffffff;border-color:#e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+body.light-mode .pd-overlay,body.light-mode .pd-topbar{background:#f5f5f5}
+body.light-mode .main{background:#f5f5f5}
+body.light-mode .pd-stat-cell,body.light-mode .met-stat-cell{background:#f3f4f6;border-radius:8px;border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0, 0, 0, .06);}
 body.light-mode .pit-kpi-front,body.light-mode .pit-kpi-back{background:#ffffff}
 body.light-mode .pit-kpi-card-inner .pit-kpi-front{background:#ffffff}
 body.light-mode .pit-kpi-label{color:#6b7280}
 body.light-mode .pit-kpi-desc{color:#9ca3af}
-body.light-mode .pit-lb-detail-inner,body.light-mode .bat-lb-detail-inner{background:#dedede}
-body.light-mode .pit-lb-track,.bat-lb-track,.met-lb-track{background:var(--border)}
+body.light-mode .pit-lb-detail-inner,body.light-mode .bat-lb-detail-inner{background:#f5f5f5}
+body.light-mode .pit-lb-track,.bat-lb-track,.met-lb-track{background:#e5e7eb}
 body.light-mode .stbl tr:hover{background:rgba(0,0,0,.03)}
-body.light-mode input,body.light-mode select,body.light-mode textarea{background:#e5e5e5;border-color:var(--border);color:var(--hdr)}
+body.light-mode input,body.light-mode select,body.light-mode textarea{background:#f8fafc;border-color:var(--border);color:var(--hdr)}
 
 body.light-mode .roster-num-badge,body.light-mode .met-num-badge{background:none;transition:all .18s;}
 body.light-mode .roster-row:hover{border: 1px solid rgba(81, 162, 255, 0.5);box-shadow: 0 1px 3px rgba(81, 162, 255, 0.75);}
@@ -84,7 +84,7 @@ body.light-mode .roster-row:hover .roster-num-badge, body.light-mode .roster-row
 body.light-mode .re-modal-card,.light-mode .roster-edit-card{background:#ffffff}
 body.light-mode .pit-lb-track,.light-mode .bat-lb-track,.light-mode .met-lb-track{background:rgba(0,0,0,.08)}
 body.light-mode .pp-ranked-row{background:#ffffff;border-color:var(--border)}
-body.light-mode #ps-tooltip{background:#dedede!important;border-color:var(--border)!important;box-shadow:0 1px 3px rgba(0,0,0,.22ƒ)!important}
+body.light-mode #ps-tooltip{background:#f5f5f5!important;border-color:#e5e7eb!important;box-shadow:0 1px 3px rgba(0,0,0,.12)!important}
 body.light-mode #ps-tt-name,body.light-mode #ps-tt-balls,body.light-mode #ps-tt-strikes{color:var(--sub)!important}
 body.light-mode .stat-view-link{border-top:none}
 /* Theme toggle button */
@@ -343,7 +343,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .stat-kpi-back-def{font-size:10px;color:var(--sub);line-height:1.55;text-align:left;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .stat-kpi-cell.expanded .stat-kpi-back-def{display:block;overflow:visible;-webkit-line-clamp:unset}
-.stat-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1;}
+.stat-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1;transform:translateZ(0);-webkit-transform:translateZ(0)}
 .stat-kpi-lbl{font-size:11px;color:var(--sub);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
 .stat-kpi-lbl .info{width:15px;height:15px;border-radius:50%;border:1px solid var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--blue);cursor:pointer;flex-shrink:0;transition:all .15s}
 .stat-kpi-lbl .info:hover{background:var(--blue);color:#fff}
@@ -663,7 +663,7 @@ body.light-mode .pd-ins-tab.active{background:var(--blue);color:#fff;border-colo
 .pd-ins-badge{min-width:75px;width:75px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;flex-shrink:0}
 textarea#ins-coach-context{width: 100%;font-family: var(--ff);font-size: 12px;padding: 9px 12px;background: rgba(3,7,18,0.4);border: 1px solid var(--border);border-radius: 8px;color: var(--sub);resize: none;outline: none;box-sizing: border-box;
   line-height: 1.5;transition: border-color .15s;}
-body.light-mode textarea#ins-coach-context{background:#e5e5e5;}
+body.light-mode textarea#ins-coach-context{background:#f5f5f5;}
 .pd-ins-badge-val{font-size:20px;font-weight:800;color:var(--green);line-height:1.1}
 .pd-ins-badge-lbl{font-size:9px;color:var(--green);opacity:.75;margin-top:3px;line-height:1.2}
 .pd-ins-body{}
@@ -722,7 +722,7 @@ body.light-mode textarea#ins-coach-context{background:#e5e5e5;}
 .pd-ins-section-title{font-size:15px;font-weight:700;color:var(--hdr);padding-top:10px;margin-bottom:10px}
 #pd-insights-body{background:#030712;margin:0 18px 12px;padding:0 10px;border:1px solid #1e2939;border-radius:8px}
 .pd-drill-card{background:rgba(3,7,18,0.4);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
-body.light-mode #pd-insights-body{margin:0 18px 12px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;background:#dedede;}
+body.light-mode #pd-insights-body{margin:0 18px 12px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;background:#f5f5f5;}
 body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pd-drill-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .pd-drill-name{font-size:14px;font-weight:700;color:var(--hdr)}
@@ -756,12 +756,12 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-page-title svg,.gl-page-title svg, .up-title svg{width:22px;height:22px;stroke:#51a2ff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .pit-page-sub{font-size:12px;color:var(--sub);margin-top:5px;margin-bottom:30px}
 .pit-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:30px}
-.pit-kpi-card{background:var(--bg2);border-radius:12px;padding:0;position:relative;perspective:600px}
+.pit-kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0;position:relative;perspective:600px}
 .pit-kpi-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .pit-kpi-card.flipped .pit-kpi-card-inner{transform:rotateY(180deg)}
-.pit-kpi-front,.pit-kpi-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--border);}
+.pit-kpi-front,.pit-kpi-back{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .pit-kpi-front{position:absolute;inset:0;background:var(--bg2);border-radius:12px;padding:14px 12px;box-sizing:border-box;z-index:1;display:flex;flex-direction:column}
-.pit-kpi-back{position:absolute;inset:0;transform:rotateY(180deg);background:var(--bg2);border-color:var(--blue);border-radius:12px;padding:0;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;z-index:0}
+.pit-kpi-back{position:absolute;inset:0;transform:rotateY(180deg);background:var(--bg2);border-radius:12px;padding:0;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;z-index:0}
 .pit-kpi-card.expanded{height:auto}
 .pit-kpi-card.expanded .pit-kpi-card-inner{height:auto}
 .pit-kpi-card.expanded .pit-kpi-back{position:relative;inset:auto}
@@ -872,7 +872,6 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 .roster-trend.hot{color:var(--amber)}
 .roster-trend.ok{color:var(--green)}
 .roster-edit{background:none;border:none;color:rgba(148,163,184,.3);cursor:pointer;padding:4px 8px;transition:color .15s;flex-shrink:0;display:flex;align-items:center}
-body.light-mode .roster-edit {color:#ccc;}
 .roster-edit:hover{color:var(--sub)}
 .roster-edit svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 /* Edit modal — full redesign */
@@ -1111,13 +1110,13 @@ body.light-mode .ics-input{background:#f3f4f6}
 @media(min-width:480px){.sc-overlay{align-items:center}}
 .sc-modal{background:#101828;border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:460px;height:90vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
 body.light-mode .sc-modal, body.light-mode .sc-preview-footer{background:#ffffff;}
-body.light-mode #sc-pane-preview{background:#dedede}
-body.light-mode .sc-inner-card{background:#fff; border:1px solid var(--border); box-shadow:0 1px 3px rgba(0,0,0,.12)}
+body.light-mode #sc-pane-preview{background:#f5f5f5}
+body.light-mode .sc-inner-card{background:#fff; border:1px solid #e5e7eb; box-shadow:0 1px 3px rgba(0,0,0,.12)}
 body.light-mode .sc-card-topbar{background:#eee;}
 body.light-mode .sc-tab {border: 1px solid #e5e7eb;margin: 0 8px 0 0;}
 body.light-mode .sc-tab.active {border-bottom: 3px solid #51a2ff;}
 body.light-mode .sc-tab:hover {background: rgba(0, 0, 0, 0.06);}
-body.light-mode .pd-btn-outline{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.22)}
+body.light-mode .pd-btn-outline{background:#fff}
 @media(min-width:480px){.sc-modal{border-radius:16px}}
 .sc-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding: 20px 20px 10px;border-bottom: 1px solid var(--border);}
 .sc-hdr-title{font-size:16px;font-weight:800;color:var(--hdr)}
@@ -1145,12 +1144,12 @@ body.light-mode .pd-btn-outline{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,
 .sc-stat-section-hdr{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .sc-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sc-stat-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
-.sc-stat-cell.good{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.32)}
-.sc-stat-cell.warn{background:rgba(245,158,11,.22);border-color:var(--amber);}
+.sc-stat-cell.good{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.2)}
+.sc-stat-cell.warn{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2)}
 .sc-stat-label{font-size:10px;color:var(--sub);margin-bottom:3px;display:flex;align-items:center;justify-content:space-between}
 .sc-stat-val{font-size:22px;font-weight:800;color:var(--hdr);line-height:1}
 .sc-stat-val.good{color:#4ade80}
-.sc-stat-val.warn{color:var(--amber)}
+.sc-stat-val.warn{color:#f87171}
 .sc-coach-note{padding:10px 16px;font-size:12px;color:var(--sub);font-style:italic;border-top:1px solid #1e2939;line-height:1.5}
 
 /* Edit tab */
@@ -1190,7 +1189,7 @@ body.light-mode .pd-btn-outline{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,
 .pd-log-tbl tr:hover{background:rgba(0,0,0,.2)}
 body.light-mode .pd-log-tbl tr:hover{background:#f9f9f9}
 /* 35. Light-mode position badge overrides */
-body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3f4;border-color:#ccc;color:#364153}
+body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3f4;border-color:#ebe6e7;color:#364153}
 /* Insights toggle */
 .pd-insights-toggle{display:flex;align-items:center;gap:8px}
 /* Drill cards */
@@ -1198,7 +1197,7 @@ body.light-mode .roster-pos-badge,body.light-mode .pd-pos-badge{background:#f6f3
 .pd-ins-bullets li{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:4px}
 .pd-ins-section-title{font-size:15px;font-weight:700;color:var(--hdr);padding:12px 18px 8px}
 .pd-drill-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:8px 18px}
-body.light-mode .pd-drill-card{background:#ffffff;border-color:var(--border)}
+body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
 .pd-drill-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .pd-drill-name{font-size:14px;font-weight:700;color:var(--hdr)}
 .pd-drill-time{font-size:12px;font-weight:600;color:var(--sub)}
@@ -1282,6 +1281,20 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 .up-complete-again:hover{text-decoration:underline}
 body.light-mode .up-complete-card.success{background:#f0fdf4}
 body.light-mode .up-complete-card.error{background:#fff1f2}
+/* Boxscore result card */
+.bs-result-game{font-size:13px;font-weight:600;color:var(--hdr);margin:4px 0 16px;line-height:1.5}
+.bs-result-section{margin-bottom:16px}
+.bs-result-section-hdr{font-size:12px;font-weight:700;color:var(--hdr);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.bs-result-pit-hdr{color:var(--sub);font-weight:600}
+.bs-result-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(51,65,85,.25);font-size:12px}
+.bs-result-row:last-child{border-bottom:none}
+.bs-result-name{color:var(--hdr);font-weight:600}
+.bs-result-stat{color:var(--sub)}
+body.light-mode .bs-result-game{color:#111827}
+body.light-mode .bs-result-row{border-bottom-color:#e5e7eb}
+/* Spinning baseball */
+@keyframes spinBaseball{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spinning-baseball{display:inline-block;animation:spinBaseball 1s linear infinite;font-size:18px;margin-right:4px;vertical-align:middle}
 
 /* ── LEADERBOARD FILTERS ── */
 .lb-filter-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap}
@@ -1374,7 +1387,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <div class="sb-logo"><svg viewBox="0 0 100 105" xmlns="http://www.w3.org/2000/svg" width="40" height="42"><path d="M5 5 L95 5 L95 65 L50 100 L5 65 Z" fill="#1a1a1a" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><line x1="28" y1="22" x2="72" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/><line x1="72" y1="22" x2="28" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/></svg></div>
   <div class="sb-header-text">
     <div class="sb-team-name">X-FACTOR</div>
-    <div class="sb-season">Analytics</div>
+    <div class="sb-season">Baseball</div>
   </div>
   <div class="sb-record-wrap">
     <div class="sb-record" id="sb-record">—</div>
@@ -1560,7 +1573,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="stat-kpi-back" onclick="flipCard('kpi-qab',event)">
             <div class="stat-kpi-back-title">QAB% <button class="back-close" onclick="flipCard('kpi-qab',event)">✕</button></div>
             <div class="stat-kpi-back-desc">Quality At-Bat %</div>
-            <div class="stat-kpi-back-def">Any PA resulting in a walk, a hit, a sacrifice, a hard-hit ball, a full count. Measures plate discipline and process — not luck. A hitter with 60% QAB% is doing the right things even when results don't show in AVG.</div>
+            <div class="stat-kpi-back-def">Any PA that accomplishes something useful: a walk, a hit, a sacrifice, a hard-hit ball, a full count. Measures plate discipline and process — not luck. A hitter with 60% QAB% is doing the right things even when results don't show in AVG.</div>
           </div>
         </div>
       </div>
@@ -1574,7 +1587,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="stat-kpi-back" onclick="flipCard('kpi-ops',event)">
             <div class="stat-kpi-back-title">OPS <button class="back-close" onclick="flipCard('kpi-ops',event)">✕</button></div>
             <div class="stat-kpi-back-desc">On Base Plus Slugging</div>
-            <div class="stat-kpi-back-def">OBP + SLG combined in one number. Captures both the ability to get on base and hit for power. A quick single read on a hitter's overall offensive value.</div>
+            <div class="stat-kpi-back-def">OBP and SLG combined in one number. Captures both the ability to get on base and hit for power. A quick single read on a hitter's overall offensive value.</div>
           </div>
         </div>
       </div>
@@ -1905,7 +1918,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">QAB% <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-qab',event)">✕</button></div>
             <div class="pit-kpi-back-desc">Quality At-Bat %</div>
-            <div class="pit-kpi-back-def">Any PA resulting in a walk, hit, HHB, moved runner, or full count (6+ pitches) is a quality at-bat.</div>
+            <div class="pit-kpi-back-def">Any PA that accomplishes something useful: walk, hit, HHB, moved runner, or full count (6+ pitches). 70%+ is elite.</div>
           </div>
         </div>
       </div>
@@ -1922,7 +1935,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">OPS <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-ops',event)">✕</button></div>
             <div class="pit-kpi-back-desc">On Base Plus Slugging</div>
-            <div class="pit-kpi-back-def">OBP + SLG combined in one number. Captures both the ability to get on base and hit for power.</div>
+            <div class="pit-kpi-back-def">OBP + SLG combined. The quickest single read on a hitter's overall offensive value.</div>
           </div>
         </div>
       </div>
@@ -1938,7 +1951,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         <div class="pit-kpi-back" onclick="flipPitCard('bkpi-obp',event)">
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">OBP <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-obp',event)">✕</button></div>
-            <div class="pit-kpi-back-desc">On Base %</div>
+            <div class="pit-kpi-back-desc">On Base Percentage</div>
             <div class="pit-kpi-back-def">How often a hitter reaches base. More valuable than AVG because a walk is just as good as a single.</div>
           </div>
         </div>
@@ -1956,7 +1969,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div class="pit-kpi-back-inner">
             <div class="pit-kpi-back-title">Contact% <button class="pit-kpi-back-close" onclick="flipPitCard('bkpi-con',event)">✕</button></div>
             <div class="pit-kpi-back-desc">Contact Rate</div>
-            <div class="pit-kpi-back-def">How often a batter puts the ball in play. (AB − K) ÷ AB × 100.</div>
+            <div class="pit-kpi-back-def">(AB − K) ÷ AB × 100. How often a batter puts the ball in play. 80%+ is elite.</div>
           </div>
         </div>
       </div>
@@ -4313,7 +4326,8 @@ function buildBoxScore(gl, opp){
       if(g.isSeason) return false;
       if(g.date!==dateVal) return false;
       var gOpp=g.opp.toLowerCase();
-      return gOpp===oppLower||gOpp.indexOf(oppLower.split(' ')[0])>=0||oppLower.indexOf(gOpp.split(' ')[0])>=0;
+      function _ww(n,h){if(n.length<3)return false;try{return new RegExp('\\b'+n+'\\b').test(h);}catch(e){return false;}}
+      return gOpp===oppLower||_ww(oppLower.split(' ')[0],gOpp)||_ww(gOpp.split(' ')[0],oppLower);
     });
   }
   // Fallback: any import on that date
@@ -4840,8 +4854,7 @@ function renderPitchingPlan(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var pitchers=getPitchers().filter(function(p){return EXCLUDED.indexOf(p.name)<0;});
   var el=document.getElementById('pp-ranked-rows');
-if(!el) return;
-
+  if(!el) return; // pp-ranked-rows only exists when renderRotationPage() remaps IDs
   if(!pitchers.length){
     el.innerHTML='<div style="padding:16px;font-size:12px;color:var(--sub)">No pitching data — upload PDF box scores</div>';
     return;
@@ -5834,8 +5847,8 @@ function kvLoad(callback){
 // ── X-FACTOR ──
 var XF_CATS=['mindset','iq','passion'];
 var XF_LABELS={mindset:'Mindset',iq:'Baseball IQ',passion:'Passion'};
-var XF_DESCS={mindset:'(Focus & Composure)',iq:'(Instincts & Anticipation)',passion:'(Effort, Attitude & Enthusiasm)'};
-var XF_TIERS=['','Low X-Factor','Low X-Factor','Average','Average','Average','High X-Factor','High X-Factor','High X-Factor','Locked In ⚡','Locked In ⚡'];
+var XF_DESCS={mindset:'Focus & Composure',iq:'Instincts & Anticipation',passion:'Effort, Attitude & Enthusiasm'};
+var XF_TIERS=['','Low X-Factor','Low X-Factor','Average','Average','Average','High X-Factor','High X-Factor','High X-Factor','Elite X-Factor','Elite X-Factor ⚡'];
 var _reXF={mindset:0,iq:0,passion:0,mindsetNote:'',iqNote:'',passionNote:''};
 
 function calcXFScore(xf){
@@ -6557,12 +6570,8 @@ function processUploadFile(file){
 // ── CLAUDE VISION PDF PARSER ──
 function parsePDFWithVision(file,apiKey,callback){
   var status=document.getElementById('up-status');
-  status.textContent='Reading Box Score with Claude Vision';
-  var _dotCount=0;
-  var _dotAnim=setInterval(function(){
-    _dotCount=(_dotCount+1)%4;
-    status.textContent='Reading Box Score with Claude Vision'+'.'.repeat(_dotCount||1);
-  },500);
+  status.innerHTML='<span class="spinning-baseball">⚾</span><span style="font-size:12px;font-weight:600;color:var(--sub);vertical-align:middle">Reading Box Score with Claude Vision…</span>';
+  var _dotAnim=null; // CSS animation handles visual feedback
 
   var reader=new FileReader();
   reader.onload=function(ev){
@@ -6718,7 +6727,11 @@ function storeGameImport(result,fileName,status){
       if(g.dateVal!==result.date) return false;
       var a=g.opp.toLowerCase(),b=(result.opp||'').toLowerCase();
       var aFirst=a.split(' ')[0],bFirst=b.split(' ')[0];
-      return a===b||a.indexOf(bFirst)>=0||b.indexOf(aFirst)>=0;
+      function wholeWord(needle,haystack){
+        if(needle.length<3) return false;
+        try{return new RegExp('\\b'+needle+'\\b').test(haystack);}catch(e){return false;}
+      }
+      return a===b||wholeWord(bFirst,a)||wholeWord(aFirst,b);
     });
     if(already){
       // Update existing entry with any new data
@@ -6741,17 +6754,72 @@ function storeGameImport(result,fileName,status){
   // Show syncing status while KV saves
   status.className='up-status';status.textContent='';
   // Show completion card
+  // ── Show result card ──
   var card=document.getElementById('up-complete-card');
   var dropZone=document.getElementById('up-drop-zone');
   if(card){
-    card.className='up-complete-card success';
-    card.style.display='block';
-    document.getElementById('up-complete-icon').textContent='✅';
-    document.getElementById('up-complete-title').textContent='Upload complete';
-    var detail=isSeason
-      ?'Updated '+result.players.length+' players from '+fileName
-      :'Added box score'+(result.opp?' vs '+result.opp:'')+(result.usScore!=null?' ('+result.usScore+'-'+result.themScore+')':'')+' from '+fileName;
-    document.getElementById('up-complete-detail').textContent=detail;
+    if(isSeason){
+      // CSV: simple summary
+      card.className='up-complete-card success';
+      card.style.display='block';
+      card.innerHTML='<div class="up-complete-hdr"><span class="up-complete-icon">✅</span><span>Season stats updated</span></div>'
+        +'<div class="up-complete-detail">Updated '+result.players.length+' players from '+fileName+'</div>'
+        +'<button class="up-complete-again" onclick="resetUploadZone()">Upload another file</button>';
+    } else {
+      // PDF: rich boxscore card
+      var locStr=result.loc==='A'?'away':result.loc==='H'?'home':'neutral';
+      var scoreStr=result.usScore!=null?result.usScore+'–'+result.themScore:'';
+      var resLabel=result.gameResult||'';
+      var gameParts=[];
+      if(result.date) gameParts.push(result.date);
+      if(locStr) gameParts.push(locStr);
+      if(result.opp) gameParts.push('vs '+result.opp);
+      if(scoreStr) gameParts.push('<span style="font-weight:800;color:'+(result.gameResult==='W'?'var(--green)':'#fb7185')+'">'+scoreStr+' '+resLabel+'</span>');
+
+      var batters=(result.players||[]).filter(function(p){return p.batting&&(p.batting.ab>0||p.batting.bb>0);});
+      var pitchers=(result.players||[]).filter(function(p){return p.pitching&&p.pitching.ip>0;});
+
+      var batHtml=batters.map(function(p){
+        var b=p.batting;
+        // Try to find full name from roster
+        var fullName=p.name;
+        var players2=getPlayers();
+        var pLast=p.name.split(' ').pop().toLowerCase();
+        var match=players2.find(function(x){return x.name.toLowerCase().split(' ').pop()===pLast;});
+        if(match){var ov2=rosterOverrides[match.name]||{};fullName=ov2.displayName||match.name;}
+        return '<div class="bs-result-row">'
+          +'<span class="bs-result-name">'+fullName+'</span>'
+          +'<span class="bs-result-stat">'+b.h+'-'+b.ab+', '+b.rbi+' RBI'+(b.bb>0?' · '+b.bb+' BB':'')+'</span>'
+          +'</div>';
+      }).join('');
+
+      var pitHtml=pitchers.map(function(p){
+        var pit=p.pitching;
+        var sp=pit.np>0&&pit.ns>0?(pit.ns/pit.np*100).toFixed(1)+'%':pit.sp>0?pit.sp.toFixed(1)+'%':'—';
+        var fullName=p.name;
+        var players2=getPlayers();
+        var pLast=p.name.split(' ').pop().toLowerCase();
+        var match=players2.find(function(x){return x.name.toLowerCase().split(' ').pop()===pLast;});
+        if(match){var ov2=rosterOverrides[match.name]||{};fullName=ov2.displayName||match.name;}
+        return '<div class="bs-result-row">'
+          +'<span class="bs-result-name">'+fullName+'</span>'
+          +'<span class="bs-result-stat">'+pit.ip.toFixed(1)+'IP, '+pit.bb+'BB, '+pit.k+'K · '+sp+' S%</span>'
+          +'</div>';
+      }).join('');
+
+      card.className='up-complete-card success';
+      card.style.display='block';
+      card.innerHTML=
+        '<div class="up-complete-hdr"><span class="up-complete-icon">✅</span><span>Boxscore parsed</span></div>'
+        +'<div class="bs-result-game">'+gameParts.join(' · ')+'</div>'
+        +(batters.length?'<div class="bs-result-section">'
+          +'<div class="bs-result-section-hdr">⚾ Batting ('+batters.length+')</div>'
+          +batHtml+'</div>':'')
+        +(pitchers.length?'<div class="bs-result-section">'
+          +'<div class="bs-result-section-hdr bs-result-pit-hdr">Pitching ('+pitchers.length+')</div>'
+          +pitHtml+'</div>':'')
+        +'<button class="up-complete-again" onclick="resetUploadZone()" style="margin-top:8px">Upload another file</button>';
+    }
     if(dropZone) dropZone.style.display='none';
   }
   if(_isVercel){
@@ -7715,7 +7783,7 @@ function exportPlayerPDF(){
 
   // ── shared CSS ──
   var CSS='*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}'
-    +':root{--bg:#fff;--border:#ccc;--hdr:#585d67;--sub:#6b7280;--muted:#9ca3af}'
+    +':root{--bg:#fff;--border:#e5e7eb;--hdr:#111827;--sub:#6b7280;--muted:#9ca3af}'
     +'body{font-family:"Segoe UI",sans-serif;background:#fff;margin:0;padding:0}'
     +'.page{background:#fff;width:816px;padding:36px 36px 32px}'
     +'.pdf-header{border-bottom:2px solid #e5e7eb;padding-bottom:16px;margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}'
