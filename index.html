@@ -53,6 +53,7 @@ body.light-mode .sb-group-label{color:#9ca3af;font-size:10px}
 body.light-mode .theme-toggle{color:#6b7280}
 body.light-mode .sb-hamburger{color:#374151}
 body.light-mode #page-home .stat-kpi-front,body.light-mode #page-home .stat-kpi-back {background: var(--bg1);border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.16)}
+body.light-mode #page-home .stat-kpi-back{border-color:#51a2ff;}
 body.light-mode #page-home .stat-kpi-cell{border-radius: 10px;}
 body.light-mode #page-home .stat-player-row{border-bottom: 1px solid var(--border);}
 body.light-mode .card,body.light-mode .stat-section,body.light-mode .donut-card,
@@ -67,6 +68,7 @@ body.light-mode .pd-overlay,body.light-mode .pd-topbar{background:var(--bg1)}
 body.light-mode .main{background:var(--bg1)}
 body.light-mode .pd-stat-cell,body.light-mode .met-stat-cell{background:#f3f4f6;border-radius:8px;border: 1px solid #e5e7eb;box-shadow: 0 1px 3px rgba(0, 0, 0, .06);}
 body.light-mode .pit-kpi-front,body.light-mode .pit-kpi-back{background:#ffffff}
+body.light-mode .pit-kpi-card-inner .pit-kpi-back{border: 1px solid #51a2ff;}
 body.light-mode .pit-kpi-card-inner .pit-kpi-front{background:#ffffff}
 body.light-mode .pit-kpi-label{color:#6b7280}
 body.light-mode .pit-kpi-desc{color:#9ca3af}
@@ -757,7 +759,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .pit-kpi-card.flipped .pit-kpi-card-inner{transform:rotateY(180deg)}
 .pit-kpi-front,.pit-kpi-back{backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12)}
-.pit-kpi-front{position:absolute;inset:0;background:var(--bg2);border-radius:12px;padding:14px 12px;box-sizing:border-box;z-index:1;display:flex;flex-direction:column}
+.pit-kpi-front{position:absolute;inset:0;background:var(--bg2);border-radius:12px;padding:14px 12px;box-sizing:border-box;z-index:1;display:flex;flex-direction:column;align-items:center}
 .pit-kpi-back{position:absolute;inset:0;transform:rotateY(180deg);background:var(--bg2);border-radius:12px;padding:0;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;z-index:0}
 .pit-kpi-card.expanded{height:auto}
 .pit-kpi-card.expanded .pit-kpi-card-inner{height:auto}
@@ -1013,7 +1015,7 @@ body.light-mode .up-hist-row{box-shadow:0 1px 3px rgba(0,0,0,.12)}
 #file-input{display:none}
 
 /* ── NEXT GAME CARD ── */
-.next-game-card{background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.5);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.next-game-card{background:rgba(59, 130, 246, .2);border:1px solid rgba(59, 130, 246, .5);border-radius:14px;padding:16px 18px;margin-bottom:16px}
 .next-game-label{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#51a2ff;display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .next-game-opp{font-size:16px;font-weight:700;color:var(--hdr);margin-bottom:4px}
 .next-game-details{font-size:12px;color:var(--sub);line-height:1.6}
@@ -1324,10 +1326,10 @@ body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
 .pc-page-title span{font-size:22px;color:#51a2ff;}
 .pc-page-sub{font-size:12px;color:var(--sub);margin-bottom:16px}
 .pc-next-game{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:#51a2ff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.pc-warning{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.pc-warning{background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .pc-warning-icon{font-size:18px}
-.pc-warning-text{font-size:13px;font-weight:600;color:#f59e0b}
-.pc-warning-sub{font-size:11px;color:#f59e0b;margin-top:2px}
+.pc-warning-text{font-size:13px;font-weight:600;color:var(--amber)}
+.pc-warning-sub{font-size:11px;color:var(--amber);margin-top:2px}
 .pc-card{background:#101828;border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:all ease .15s}
 .pc-card:hover {background: #1e2939;cursor: pointer;}
 body.light-mode .pc-card:hover {background:rgba(229,232,234,0.3);}
