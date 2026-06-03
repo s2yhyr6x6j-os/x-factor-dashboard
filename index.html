@@ -6335,7 +6335,7 @@ function renderPitchCountPage(){
   if(nextGames.length&&nextGameEl&&nextGameText){
     var ng=nextGames[0];
     var ngDate=ng.date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    nextGameText.textContent='Next game: '+ngDate+' vs '+ng.opp;
+    nextGameText.textContent='Next game: '+ngDate+' · '+ng.opp;
     nextGameEl.style.display='flex';
   }
 
