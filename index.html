@@ -3003,7 +3003,13 @@ function getPlayers(){
       var nmLast=nm.toLowerCase().split(' ').pop();
       var existKey=Object.keys(map).find(function(k){
         var kLast=k.toLowerCase().split(' ').pop();
-        if(kLast===nmLast) return true;
+        var kNum=map[k].num||'';
+        var nmNum=b.num||'';
+        // Same last name but different jersey numbers = different players
+        if(kLast===nmLast){
+          if(kNum&&nmNum&&kNum!==nmNum) return false;
+          return true;
+        }
         var shorter=nmLast.length<kLast.length?nmLast:kLast;
         var longer=nmLast.length<kLast.length?kLast:nmLast;
         return shorter.length>=4&&longer.startsWith(shorter.slice(0,Math.min(shorter.length,6)));
@@ -6342,7 +6348,8 @@ function renderPitchCountPage(){
 
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var pitchers=getPlayers().filter(function(p){
-    return p.pit&&p.pit.ip>0&&EXCLUDED.indexOf(p.name)<0;
+    var ov=rosterOverrides[p.name]||{};
+    return p.pit&&p.pit.ip>0&&EXCLUDED.indexOf(p.name)<0&&!ov.hidden;
   });
 
   // Sort: resting first (most days needed), then available
@@ -6492,7 +6499,7 @@ function renderPitchCountPage(){
   if(warnEl&&warnText){
     if(restCount>0){
       warnEl.style.display='flex';
-      warnText.textContent=restCount+' pitcher'+(restCount!==1?'s are':'is')+' serving mandatory rest';
+      warnText.textContent=restCount+(restCount===1?' pitcher is':' pitchers are')+' serving mandatory rest';
     } else {
       warnEl.style.display='none';
     }
