@@ -1666,6 +1666,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <div class="gen-progress-track"><div class="gen-progress-fill" id="gen-progress-fill"></div></div>
   </div>
   <div id="roster-list"></div>
+  <div id="roster-hidden-section"></div>
 </div>
 
 
@@ -3624,6 +3625,7 @@ function renderRoster(){
       +'<button class="roster-edit" onclick="openRosterEdit(\''+esc(p.name)+'\',event)" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 1 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
       +'</div>';
   }).join('');
+  renderRosterHidden();
 }
 
 // ── ROSTER EDIT MODAL ──
@@ -3814,6 +3816,39 @@ function removeFromRoster(){
 
 function loadRosterOverrides(){
   try{var r=localStorage.getItem('sba_roster_v1');if(r)rosterOverrides=JSON.parse(r);}catch(e){}
+}
+
+function restorePlayer(name){
+  if(!rosterOverrides[name]) return;
+  delete rosterOverrides[name].hidden;
+  try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  kvSave();
+  renderRoster();
+  renderAll();
+}
+
+function renderRosterHidden(){
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var el=document.getElementById('roster-hidden-section');
+  if(!el) return;
+  var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var hidden=allPlayers.filter(function(p){return rosterOverrides[p.name]&&rosterOverrides[p.name].hidden;});
+  if(!hidden.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border)">'
+    +'<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px">Hidden Players</div>'
+    +hidden.map(function(p){
+      var ov=rosterOverrides[p.name]||{};
+      var dispName=ov.displayName||p.name;
+      var num=ov.num!=null?ov.num:p.num;
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;opacity:.6">'
+        +'<div style="display:flex;align-items:center;gap:10px">'
+          +'<span style="font-size:22px;font-weight:800;color:var(--sub)">#'+num+'</span>'
+          +'<span style="font-size:14px;font-weight:700;color:var(--hdr)">'+dispName+'</span>'
+        +'</div>'
+        +'<button onclick="restorePlayer(\''+esc(p.name)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;cursor:pointer">↩ Restore</button>'
+      +'</div>';
+    }).join('')
+    +'</div>';
 }
 
 // ── HITTING PAGE ──
