@@ -3062,6 +3062,27 @@ function getPlayers(){
     return _csvPitMap[low]||_csvPitMap['_last_'+low.split(' ').pop()]||null;
   }
 
+  // Surface CSV-only players (no PDF import matched them — e.g. Vision misidentified every appearance)
+  var latestSeasonForSurface=seasonImports.length?seasonImports[seasonImports.length-1]:null;
+  if(latestSeasonForSurface&&gameImports.length){
+    latestSeasonForSurface.players.forEach(function(cp){
+      var b=cp.batting;
+      if(!b.name||!(b.ab>0)) return;
+      var csvName=b.name;
+      var csvNum=String(b.num||'').replace('#','').trim();
+      // Already in map by name?
+      if(map[csvName]) return;
+      // Already in map by jersey number?
+      var numMatch=csvNum&&Object.keys(map).find(function(k){
+        var kNum=String(map[k].num||'').replace('#','').trim();
+        return kNum===csvNum;
+      });
+      if(numMatch) return;
+      // Not found — add a CSV-only stub so the overlay loop populates it
+      map[csvName]={name:csvName,num:csvNum,games:[],pitGames:[]};
+    });
+  }
+
   var GLOBAL_EXCLUDE=['E Smith','E. Smith','Easton Smith'];
   var _players=Object.values(map).filter(function(p){return GLOBAL_EXCLUDE.indexOf(p.name)<0;}).map(function(p){
     var gs=p.games;
