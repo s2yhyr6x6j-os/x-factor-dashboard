@@ -1271,7 +1271,7 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 .gen-progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:4px;transition:width .3s ease;width:0%}
 
 /* ── UPLOAD COMPLETION CARD ── */
-.up-complete-card{display:none;border-radius:14px;padding:22px 24px;margin-top:16px}
+.up-complete-card{display:none;border-radius:14px;padding:22px 24px;margin:16px 0}
 .up-complete-card.success{background:#0d1f15;border:1px solid rgba(34,197,94,.3)}
 .up-complete-card.error{background:#1f0d0d;border:1px solid rgba(251,113,133,.3)}
 .up-complete-hdr{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;color:var(--hdr);margin-bottom:10px}
@@ -3916,7 +3916,7 @@ function renderHittingPage(){
   var lbEl=document.getElementById('bat-lb-rows');
   if(!lbEl||!players.length){if(lbEl)lbEl.innerHTML='<div class="empty">Upload season CSV to populate</div>';return;}
   var getVal=cfg.getVal;
-  var lbSorted=[].concat(players).filter(function(p){return p.pa>=3;});
+  var lbSorted=[].concat(players).filter(function(p){var ov=rosterOverrides[p.name]||{};return p.pa>=3&&!ov.hidden;});
   lbSorted.sort(function(a,b){return cfg.goodHigh?getVal(b)-getVal(a):getVal(a)-getVal(b);});
   var maxVal=lbSorted.reduce(function(m,p){return Math.max(m,getVal(p)||0);},0)||1;
 
@@ -4118,7 +4118,7 @@ function renderPitchingPage(){
   // Build CSV sp lookup for authoritative values
   var getVal=cfg.getVal||function(p){return p.pit[pitLbTog]||0;};
 
-  var sorted=[].concat(pitchers).filter(function(p){return getVal(p)!=null&&p.pit.ip>0;});
+  var sorted=[].concat(pitchers).filter(function(p){var ov=rosterOverrides[p.name]||{};return getVal(p)!=null&&p.pit.ip>0&&!ov.hidden;});
   sorted.sort(function(a,b){return cfg.goodHigh?getVal(b)-getVal(a):getVal(a)-getVal(b);});
 
   // Max value for bar scaling
@@ -4707,7 +4707,7 @@ function isPlayerAvailable(name){
 
 function autoLineup(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allP=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var allP=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!ov.hidden;});
   // Split available and unavailable
   var players=allP.filter(function(p){return isPlayerAvailable(p.name);});
   var unavailable=allP.filter(function(p){return !isPlayerAvailable(p.name);});
@@ -4779,7 +4779,7 @@ function toggleLineupNotes(){
 
 function renderLineup(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!ov.hidden;});
   var ls=document.getElementById('lineup-slots');
   if(!ls) return;
   if(!players.length){ls.innerHTML='<div class="empty" style="padding:40px 0">Upload season CSV to generate lineup</div>';return;}
@@ -4852,7 +4852,7 @@ function renderLineup(){
 
 function renderPitchingPlan(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var pitchers=getPitchers().filter(function(p){return EXCLUDED.indexOf(p.name)<0;});
+  var pitchers=getPitchers().filter(function(p){var ov=rosterOverrides[p.name]||{};return EXCLUDED.indexOf(p.name)<0&&!ov.hidden;});
   var el=document.getElementById('pp-ranked-rows');
   if(!el) return; // pp-ranked-rows only exists when renderRotationPage() remaps IDs
   if(!pitchers.length){
@@ -6810,7 +6810,7 @@ function storeGameImport(result,fileName,status){
       card.className='up-complete-card success';
       card.style.display='block';
       card.innerHTML=
-        '<div class="up-complete-hdr"><span class="up-complete-icon">✅</span><span>Boxscore parsed</span></div>'
+        '<div class="up-complete-hdr"><span class="up-complete-icon">✅</span><span>Box Score Analyzed</span></div>'
         +'<div class="bs-result-game">'+gameParts.join(' · ')+'</div>'
         +(batters.length?'<div class="bs-result-section">'
           +'<div class="bs-result-section-hdr">⚾ Batting ('+batters.length+')</div>'
