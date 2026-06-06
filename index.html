@@ -3819,8 +3819,12 @@ function loadRosterOverrides(){
 }
 
 function restorePlayer(name){
-  if(!rosterOverrides[name]) return;
-  delete rosterOverrides[name].hidden;
+  // Clear hidden on both the exact key and any rosterOverrides key matching this name
+  Object.keys(rosterOverrides).forEach(function(k){
+    if(k===name||(rosterOverrides[k].displayName||k)===name){
+      delete rosterOverrides[k].hidden;
+    }
+  });
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
   renderRoster();
@@ -3831,21 +3835,40 @@ function renderRosterHidden(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var el=document.getElementById('roster-hidden-section');
   if(!el) return;
+
+  var seen={}; // dedup by display name
+
+  // 1. Hidden players from getPlayers() output
   var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
-  var hidden=allPlayers.filter(function(p){return rosterOverrides[p.name]&&rosterOverrides[p.name].hidden;});
-  if(!hidden.length){el.innerHTML='';return;}
+  allPlayers.forEach(function(p){
+    var ov=rosterOverrides[p.name]||{};
+    if(!ov.hidden) return;
+    var dispName=ov.displayName||p.name;
+    if(seen[dispName]) return;
+    seen[dispName]={key:p.name,name:dispName,num:ov.num!=null?ov.num:p.num};
+  });
+
+  // 2. rosterOverrides keys with hidden=true not already covered above
+  Object.keys(rosterOverrides).forEach(function(k){
+    if(!rosterOverrides[k].hidden||EXCLUDED.indexOf(k)>=0) return;
+    var ov=rosterOverrides[k];
+    var dispName=ov.displayName||k;
+    if(seen[dispName]) return;
+    seen[dispName]={key:k,name:dispName,num:ov.num!=null?ov.num:'?'};
+  });
+
+  var entries=Object.values(seen);
+  if(!entries.length){el.innerHTML='';return;}
+
   el.innerHTML='<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border)">'
     +'<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px">Hidden Players</div>'
-    +hidden.map(function(p){
-      var ov=rosterOverrides[p.name]||{};
-      var dispName=ov.displayName||p.name;
-      var num=ov.num!=null?ov.num:p.num;
+    +entries.map(function(e){
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;opacity:.6">'
         +'<div style="display:flex;align-items:center;gap:10px">'
-          +'<span style="font-size:22px;font-weight:800;color:var(--sub)">#'+num+'</span>'
-          +'<span style="font-size:14px;font-weight:700;color:var(--hdr)">'+dispName+'</span>'
+          +'<span style="font-size:22px;font-weight:800;color:var(--sub)">'+(e.num!=='?'?'#'+e.num:'—')+'</span>'
+          +'<span style="font-size:14px;font-weight:700;color:var(--hdr)">'+e.name+'</span>'
         +'</div>'
-        +'<button onclick="restorePlayer(\''+esc(p.name)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;cursor:pointer">↩ Restore</button>'
+        +'<button onclick="restorePlayer(\''+esc(e.name)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;cursor:pointer">↩ Restore</button>'
       +'</div>';
     }).join('')
     +'</div>';
