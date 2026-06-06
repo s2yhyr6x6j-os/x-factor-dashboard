@@ -3062,7 +3062,7 @@ function getPlayers(){
     return _csvPitMap[low]||_csvPitMap['_last_'+low.split(' ').pop()]||null;
   }
 
-  // Surface CSV-only players (no PDF import matched them — e.g. Vision misidentified every appearance)
+  // Surface CSV-only players (no PDF import matched them)
   var latestSeasonForSurface=seasonImports.length?seasonImports[seasonImports.length-1]:null;
   if(latestSeasonForSurface&&gameImports.length){
     latestSeasonForSurface.players.forEach(function(cp){
@@ -3070,15 +3070,8 @@ function getPlayers(){
       if(!b.name||!(b.ab>0)) return;
       var csvName=b.name;
       var csvNum=String(b.num||'').replace('#','').trim();
-      // Already in map by name?
+      // Only skip if the exact name is already in the map
       if(map[csvName]) return;
-      // Already in map by jersey number?
-      var numMatch=csvNum&&Object.keys(map).find(function(k){
-        var kNum=String(map[k].num||'').replace('#','').trim();
-        return kNum===csvNum;
-      });
-      if(numMatch) return;
-      // Not found — add a CSV-only stub so the overlay loop populates it
       map[csvName]={name:csvName,num:csvNum,games:[],pitGames:[]};
     });
   }
