@@ -3063,7 +3063,7 @@ function getPlayers(){
   }
 
   var GLOBAL_EXCLUDE=['E Smith','E. Smith','Easton Smith'];
-  return Object.values(map).filter(function(p){return GLOBAL_EXCLUDE.indexOf(p.name)<0;}).map(function(p){
+  var _players=Object.values(map).filter(function(p){return GLOBAL_EXCLUDE.indexOf(p.name)<0;}).map(function(p){
     var gs=p.games;
     var gpTotal=useSeason?gs.reduce(function(s,g){return s+(g.gp||1);},0):gs.length;
     var tot={name:p.name,num:p.num,gp:gpTotal,pa:sum(gs,'pa'),ab:sum(gs,'ab'),h:sum(gs,'h'),s1b:sum(gs,'s1b'),d:sum(gs,'d'),t:sum(gs,'t'),hr:sum(gs,'hr'),rbi:sum(gs,'rbi'),r:sum(gs,'run'),bb:sum(gs,'bb'),so:sum(gs,'so'),hbp:sum(gs,'hbp'),sb:sum(gs,'sb'),qab:sum(gs,'qab'),games:gs,pitGames:p.pitGames};
@@ -3099,16 +3099,17 @@ function getPlayers(){
         var cpName=cp.batting.name.toLowerCase();
         var pName=p.name.toLowerCase();
         if(cpName===pName) return true;
+        var cpNum=String(cp.batting.num||'').replace('#','').trim();
+        var pNum=String(p.num||'').replace('#','').trim();
         var cpLast=cpName.split(' ').pop(), pLast=pName.split(' ').pop();
         if(cpLast===pLast){
-          // Use jersey number to disambiguate when last names match (e.g. two Millers)
-          var cpNum=String(cp.batting.num||'').replace('#','').trim();
-          var pNum=String(p.num||'').replace('#','').trim();
-          if(cpNum&&pNum) return cpNum===pNum; // num decides it
-          return true; // no nums to compare, fall back to last name match
+          if(cpNum&&pNum) return cpNum===pNum;
+          return true;
         }
         if(pLast.length>=4&&cpLast.startsWith(pLast.slice(0,4))) return true;
         if(cpLast.length>=4&&pLast.startsWith(cpLast.slice(0,4))) return true;
+        // Last resort: jersey number match catches Vision misidentification
+        if(cpNum&&pNum&&cpNum===pNum) return true;
         return false;
       });
       if(csvPlayer){
@@ -3180,6 +3181,13 @@ function getPlayers(){
 
     return tot;
   });
+  // Deduplicate by name — keep the entry with more PA (handles Vision misidentification duplicates)
+  var _seen={};
+  return _players.filter(function(p){
+    if(!_seen[p.name]){_seen[p.name]=p;return true;}
+    if(p.pa>_seen[p.name].pa){_seen[p.name]=p;return false;}// will be replaced
+    return false;
+  }).map(function(p){return _seen[p.name]||p;});
 }
 function sum(arr,k){return arr.reduce(function(s,x){return s+(x[k]||0)},0);}
 function avg(arr,k){return arr.length?sum(arr,k)/arr.length:0;}
@@ -3824,13 +3832,8 @@ function loadRosterOverrides(){
   try{var r=localStorage.getItem('sba_roster_v1');if(r)rosterOverrides=JSON.parse(r);}catch(e){}
 }
 
-function restorePlayer(name){
-  // Clear hidden on both the exact key and any rosterOverrides key matching this name
-  Object.keys(rosterOverrides).forEach(function(k){
-    if(k===name||(rosterOverrides[k].displayName||k)===name){
-      delete rosterOverrides[k].hidden;
-    }
-  });
+function restorePlayer(key){
+  if(rosterOverrides[key]) delete rosterOverrides[key].hidden;
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
   renderRoster();
@@ -3874,7 +3877,7 @@ function renderRosterHidden(){
           +'<span style="font-size:22px;font-weight:800;color:var(--sub)">'+(e.num!=='?'?'#'+e.num:'—')+'</span>'
           +'<span style="font-size:14px;font-weight:700;color:var(--hdr)">'+e.name+'</span>'
         +'</div>'
-        +'<button onclick="restorePlayer(\''+esc(e.name)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;cursor:pointer">↩ Restore</button>'
+        +'<button onclick="restorePlayer(\''+esc(e.key)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;cursor:pointer">↩ Restore</button>'
       +'</div>';
     }).join('')
     +'</div>';
