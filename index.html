@@ -3214,7 +3214,7 @@ function renderOverview(){
 
   // ── Pitching section ──
   var _excl=['E Smith','E. Smith','Easton Smith'];
-  var pitchers=getPitchers().filter(function(p){return _excl.indexOf(p.name)<0;});
+  var pitchers=getPitchers().filter(function(p){var ov=rosterOverrides[p.name]||{};return _excl.indexOf(p.name)<0&&!ov.hidden;});
   var tSP=0,tFPS=0,tWhip=0,tip=0;
   if(pitchers.length){
     tip=pitchers.reduce(function(s,p){return s+p.pit.ip},0);
@@ -3251,7 +3251,7 @@ function renderOverview(){
   renderDonut(pitchers);
 
   // ── Batting section ──
-  var batters=players.filter(function(p){return p.ab>0;});
+  var batters=players.filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&!ov.hidden;});
   // QAB only comes from CSV — use only players who have it (qab_pct > 0)
   var qabPlayers=players.filter(function(p){return p.qab_pct>0;});
   var totalQAB=sum(qabPlayers,'qab'),totalQABpa=sum(qabPlayers,'pa');
