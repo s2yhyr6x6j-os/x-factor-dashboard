@@ -3100,7 +3100,13 @@ function getPlayers(){
         var pName=p.name.toLowerCase();
         if(cpName===pName) return true;
         var cpLast=cpName.split(' ').pop(), pLast=pName.split(' ').pop();
-        if(cpLast===pLast) return true;
+        if(cpLast===pLast){
+          // Use jersey number to disambiguate when last names match (e.g. two Millers)
+          var cpNum=String(cp.batting.num||'').replace('#','').trim();
+          var pNum=String(p.num||'').replace('#','').trim();
+          if(cpNum&&pNum) return cpNum===pNum; // num decides it
+          return true; // no nums to compare, fall back to last name match
+        }
         if(pLast.length>=4&&cpLast.startsWith(pLast.slice(0,4))) return true;
         if(cpLast.length>=4&&pLast.startsWith(cpLast.slice(0,4))) return true;
         return false;
