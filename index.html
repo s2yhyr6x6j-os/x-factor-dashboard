@@ -6066,13 +6066,13 @@ function setBatFilter(filter, btn){
 // Get player stats filtered to last N games
 function getFilteredPlayers(filter){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var allPlayers=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!ov.hidden;});
   if(filter==='season') return allPlayers;
 
   // Use uploaded filtered CSV if available
   if(_filteredSeasons[filter]){
     var fs=_filteredSeasons[filter];
-    return fs.filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+    return fs.filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!ov.hidden;});
   }
 
   var n=filter==='last10'?10:filter==='last5'?5:3;
@@ -6114,7 +6114,7 @@ function getFilteredPlayers(filter){
 
 function getFilteredPitchers(filter){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var allPlayers=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!ov.hidden;});
   if(filter==='season') return allPlayers.filter(function(p){return p.pit&&p.pit.ip>0;});
 
   var n=filter==='last10'?10:filter==='last5'?5:3;
