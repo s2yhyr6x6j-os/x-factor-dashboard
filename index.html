@@ -3001,6 +3001,9 @@ function getPlayers(){
     var appearedInGame={};
     game.players.forEach(function(p){
       var b=p.batting,nm=b.name;
+      // Allow remapping misidentified players (e.g. "Maze Milsap" → "Grady Miller")
+      var nmRov=rosterOverrides[nm]||{};
+      if(nmRov.remapTo) nm=nmRov.remapTo;
       var nmLast=nm.toLowerCase().split(' ').pop();
       var existKey=Object.keys(map).find(function(k){
         var kLast=k.toLowerCase().split(' ').pop();
@@ -3060,20 +3063,6 @@ function getPlayers(){
   function getCsvPit(name){
     var low=name.toLowerCase();
     return _csvPitMap[low]||_csvPitMap['_last_'+low.split(' ').pop()]||null;
-  }
-
-  // Surface CSV-only players (no PDF import matched them)
-  var latestSeasonForSurface=seasonImports.length?seasonImports[seasonImports.length-1]:null;
-  if(latestSeasonForSurface&&gameImports.length){
-    latestSeasonForSurface.players.forEach(function(cp){
-      var b=cp.batting;
-      if(!b.name||!(b.ab>0)) return;
-      var csvName=b.name;
-      var csvNum=String(b.num||'').replace('#','').trim();
-      // Only skip if the exact name is already in the map
-      if(map[csvName]) return;
-      map[csvName]={name:csvName,num:csvNum,games:[],pitGames:[]};
-    });
   }
 
   var GLOBAL_EXCLUDE=['E Smith','E. Smith','Easton Smith'];
@@ -3845,6 +3834,23 @@ function restorePlayer(key){
   renderAll();
 }
 
+function openRemapModal(key){
+  var current=rosterOverrides[key]&&rosterOverrides[key].remapTo||'';
+  var newName=window.prompt('Remap "'+key+'" to which player?\n\nEnter the correct full name (e.g. "Grady Miller").\nThis will attribute all of '+key+'\'s game data to that player.\nLeave blank to clear an existing remap.',current);
+  if(newName===null) return; // cancelled
+  rosterOverrides[key]=rosterOverrides[key]||{};
+  if(newName.trim()){
+    rosterOverrides[key].remapTo=newName.trim();
+    rosterOverrides[key].hidden=true; // keep hidden from leaderboards
+  } else {
+    delete rosterOverrides[key].remapTo;
+  }
+  try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  kvSave();
+  renderRoster();
+  renderAll();
+}
+
 function renderRosterHidden(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var el=document.getElementById('roster-hidden-section');
@@ -3882,7 +3888,10 @@ function renderRosterHidden(){
           +'<span style="font-size:22px;font-weight:800;color:var(--sub)">'+(e.num!=='?'?'#'+e.num:'—')+'</span>'
           +'<span style="font-size:14px;font-weight:700;color:var(--hdr)">'+e.name+'</span>'
         +'</div>'
+        +'<div style="display:flex;gap:8px">'
+        +'<button onclick="openRemapModal(\''+esc(e.key)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 12px;background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3);border-radius:8px;cursor:pointer">🔄 Remap</button>'
         +'<button onclick="restorePlayer(\''+esc(e.key)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;cursor:pointer">↩ Restore</button>'
+        +'</div>'
       +'</div>';
     }).join('')
     +'</div>';
