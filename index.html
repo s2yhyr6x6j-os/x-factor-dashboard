@@ -3182,6 +3182,39 @@ function getPlayers(){
       }
     }
 
+    // Apply remap using the RESOLVED name (e.g. "Maze Millsap" → "Grady Miller")
+    // This runs after CSV overlay so the name is fully resolved before checking
+    var rov2=rosterOverrides[tot.name]||{};
+    if(rov2.remapTo){
+      tot.name=rov2.remapTo;
+      // Re-apply CSV overlay for the target player's stats
+      if(latestSeason){
+        var remapCsv=latestSeason.players.find(function(cp){
+          return cp.batting.name.toLowerCase()===rov2.remapTo.toLowerCase();
+        });
+        if(remapCsv){
+          var cb2=remapCsv.batting;
+          if(cb2.pa) tot.pa=cb2.pa;if(cb2.ab) tot.ab=cb2.ab;if(cb2.h) tot.h=cb2.h;
+          if(cb2.s1b) tot.s1b=cb2.s1b;if(cb2.d) tot.d=cb2.d;if(cb2.t) tot.t=cb2.t;
+          if(cb2.hr) tot.hr=cb2.hr;if(cb2.rbi) tot.rbi=cb2.rbi;if(cb2.r) tot.r=cb2.r;
+          if(cb2.bb) tot.bb=cb2.bb;if(cb2.so) tot.so=cb2.so;if(cb2.hbp) tot.hbp=cb2.hbp;
+          if(cb2.sb) tot.sb=cb2.sb;if(cb2.qab) tot.qab=cb2.qab;if(cb2.gp) tot.gp=cb2.gp;
+          var ab2=tot.ab,h2=tot.h,bb2=tot.bb,hbp2=tot.hbp;
+          tot.avg=ab2>0?h2/ab2:0;
+          tot.obp=(ab2+bb2+hbp2)>0?(h2+bb2+hbp2)/(ab2+bb2+hbp2):0;
+          var tb2=tot.s1b+tot.d*2+tot.t*3+tot.hr*4;tot.slg=ab2>0?tb2/ab2:0;
+          tot.ops=tot.obp+tot.slg;tot.qab_pct=tot.pa>0?tot.qab/tot.pa*100:0;
+          if(cb2.num) tot.num=String(cb2.num);
+          if(remapCsv.pitching&&remapCsv.pitching.ip>0){
+            var cp2=remapCsv.pitching;
+            tot.pit={gp:cp2.gp,ip:cp2.ip,w:cp2.w,l:cp2.l,h:cp2.h,er:cp2.er,
+              bb:cp2.bb,k:cp2.k,np:cp2.np||0,bf:cp2.bf||0,games:tot.pitGames,
+              era:cp2.era,whip:cp2.whip,sp:cp2.sp,fps:cp2.fps,fpso:cp2.fpso,hr:cp2.hr||0};
+          }
+        }
+      }
+    }
+
     return tot;
   });
 }
