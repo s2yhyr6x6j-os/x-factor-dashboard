@@ -3242,7 +3242,17 @@ function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 // A player is hidden unless they are the TARGET of a remapTo — remap targets are always shown
 function isHidden(name){
   var ov=rosterOverrides[name]||{};
-  if(!ov.hidden) return false;
+  if(!ov.hidden){
+    // Also check if a same-last-name entry is hidden (catches spelling variants like Milsap/Millsap)
+    var pLast=name.toLowerCase().split(' ').pop();
+    var variantHidden=Object.keys(rosterOverrides).some(function(k){
+      if(!rosterOverrides[k].hidden) return false;
+      if(rosterOverrides[k].remapTo) return false; // remapped players are not hidden variants
+      return k.toLowerCase().split(' ').pop()===pLast;
+    });
+    if(!variantHidden) return false;
+  }
+  // Not hidden if this player is a remap target
   return !Object.keys(rosterOverrides).some(function(k){return rosterOverrides[k].remapTo===name;});
 }
 
