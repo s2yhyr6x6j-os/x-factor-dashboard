@@ -3068,7 +3068,7 @@ function getPlayers(){
   }
 
   var GLOBAL_EXCLUDE=['E Smith','E. Smith','Easton Smith'];
-  return Object.values(map).filter(function(p){return GLOBAL_EXCLUDE.indexOf(p.name)<0;}).map(function(p){
+  var _mapped=Object.values(map).filter(function(p){return GLOBAL_EXCLUDE.indexOf(p.name)<0;}).map(function(p){
     var gs=p.games;
     var gpTotal=useSeason?gs.reduce(function(s,g){return s+(g.gp||1);},0):gs.length;
     var tot={name:p.name,num:p.num,gp:gpTotal,pa:sum(gs,'pa'),ab:sum(gs,'ab'),h:sum(gs,'h'),s1b:sum(gs,'s1b'),d:sum(gs,'d'),t:sum(gs,'t'),hr:sum(gs,'hr'),rbi:sum(gs,'rbi'),r:sum(gs,'run'),bb:sum(gs,'bb'),so:sum(gs,'so'),hbp:sum(gs,'hbp'),sb:sum(gs,'sb'),qab:sum(gs,'qab'),games:gs,pitGames:p.pitGames};
@@ -3217,6 +3217,13 @@ function getPlayers(){
 
     return tot;
   });
+  // Deduplicate by resolved name — keeps the entry with most PA
+  var _dedup={};
+  return _mapped.filter(function(p){
+    if(!_dedup[p.name]){_dedup[p.name]=p;return true;}
+    if((p.pa||0)>(_dedup[p.name].pa||0)){_dedup[p.name]=p;}
+    return false;
+  }).map(function(p){return _dedup[p.name];});
 }
 function sum(arr,k){return arr.reduce(function(s,x){return s+(x[k]||0)},0);}
 function avg(arr,k){return arr.length?sum(arr,k)/arr.length:0;}
