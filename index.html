@@ -6886,21 +6886,11 @@ function checkGuestPlayers(result,fileName,status){
   var unknown=(result.players||[]).filter(function(p){
     if(EXCLUDED.indexOf(p.name)>=0) return false;
     var pLast=p.name.toLowerCase().split(' ').pop();
-    var pNum=String(p.num||'').replace('#','').trim();
-    // Check against season CSV
-    var inCSV=latestSeason.players.some(function(cp){
-      var cpLast=cp.batting.name.toLowerCase().split(' ').pop();
-      var cpNum=String(cp.batting.num||'').replace('#','').trim();
-      if(cpLast===pLast) return true;
-      if(pNum&&cpNum&&pNum===cpNum) return true;
-      return false;
+    // Only the season CSV is the authoritative roster — no jersey number matching
+    // to avoid false positives (e.g. guest wearing a rostered player's number)
+    return !latestSeason.players.some(function(cp){
+      return cp.batting.name.toLowerCase().split(' ').pop()===pLast;
     });
-    if(inCSV) return false;
-    // Check against rosterOverrides (manual additions)
-    var inRoster=Object.keys(rosterOverrides).some(function(k){
-      return k.toLowerCase().split(' ').pop()===pLast;
-    });
-    return !inRoster;
   });
   if(!unknown.length){storeGameImport(result,fileName,status);return;}
   showGuestModal(unknown,result,fileName,status);
