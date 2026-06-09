@@ -3195,6 +3195,7 @@ function isHidden(name){
   return !Object.keys(rosterOverrides).some(function(k){return rosterOverrides[k].remapTo===name;});
 }
 
+function trendBadge(p){
   var games=p.games?p.games.length:0;
   if(games<2)return '<span class="badge badge-ok">—</span>';
   var t=p.trend||0,pt=p.pitTrend;
