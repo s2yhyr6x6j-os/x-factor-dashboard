@@ -3841,7 +3841,10 @@ function openRemapModal(key){
   rosterOverrides[key]=rosterOverrides[key]||{};
   if(newName.trim()){
     rosterOverrides[key].remapTo=newName.trim();
-    rosterOverrides[key].hidden=true; // keep hidden from leaderboards
+    rosterOverrides[key].hidden=true; // keep source hidden from leaderboards
+    // Clear hidden flag on the target in case it was accidentally set earlier
+    var targetKey=newName.trim();
+    if(rosterOverrides[targetKey]) delete rosterOverrides[targetKey].hidden;
   } else {
     delete rosterOverrides[key].remapTo;
   }
