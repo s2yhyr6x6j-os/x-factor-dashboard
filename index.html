@@ -3856,6 +3856,7 @@ function toggleRosterDebug(){
   }
 }
 
+function restorePlayer(key){
   if(rosterOverrides[key]) delete rosterOverrides[key].hidden;
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
