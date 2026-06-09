@@ -6879,6 +6879,7 @@ function buildPlayersFromVision(data){
 }
 
 function checkGuestPlayers(result,fileName,status){
+  var seasonImports=importedGames.filter(function(g){return g.isSeason;});
   var latestSeason=seasonImports.length?seasonImports[seasonImports.length-1]:null;
   if(!latestSeason||!result.players){storeGameImport(result,fileName,status);return;}
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
