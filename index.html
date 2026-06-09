@@ -1281,7 +1281,16 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 .up-complete-again:hover{text-decoration:underline}
 body.light-mode .up-complete-card.success{background:#f0fdf4}
 body.light-mode .up-complete-card.error{background:#fff1f2}
-/* Boxscore result card */
+/* Guest player modal */
+.guest-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0}
+.guest-modal-inner{background:var(--bg1);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
+.guest-modal-title{font-size:18px;font-weight:800;color:var(--hdr);margin-bottom:4px}
+.guest-modal-sub{font-size:13px;color:var(--sub);margin-bottom:20px;line-height:1.5}
+.guest-player-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.guest-player-row:last-of-type{border-bottom:none}
+.guest-toggle-guest{background:#ef4444;color:#fff;border:none}
+.guest-toggle-roster{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.4)}
+body.light-mode .guest-modal-inner{background:#fff}
 .bs-result-game{font-size:13px;font-weight:600;color:var(--hdr);margin:4px 0 16px;line-height:1.5}
 .bs-result-section{margin-bottom:16px}
 .bs-result-section-hdr{font-size:12px;font-weight:700;color:var(--hdr);margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -6715,7 +6724,7 @@ function processUploadFile(file){
     }
     parsePDFWithVision(file,apiKey,function(result,err){
       if(err||!result){showUploadError(err||'Could not parse PDF.');return;}
-      storeGameImport(result,file.name,status);
+      checkGuestPlayers(result,file.name,status);
     });
   } else {
     var reader=new FileReader();
@@ -6867,6 +6876,86 @@ function buildPlayersFromVision(data){
   if(!players.length) return null;
   return {players:players,date:gameDate,opp:opp,usScore:usScore,themScore:themScore,
     gameResult:usScore!=null&&themScore!=null?(usScore>themScore?'W':usScore<themScore?'L':'T'):null,loc:loc};
+}
+
+function checkGuestPlayers(result,fileName,status){
+  var latestSeason=seasonImports.length?seasonImports[seasonImports.length-1]:null;
+  if(!latestSeason||!result.players){storeGameImport(result,fileName,status);return;}
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var unknown=(result.players||[]).filter(function(p){
+    if(EXCLUDED.indexOf(p.name)>=0) return false;
+    var pLast=p.name.toLowerCase().split(' ').pop();
+    var pNum=String(p.num||'').replace('#','').trim();
+    // Check against season CSV
+    var inCSV=latestSeason.players.some(function(cp){
+      var cpLast=cp.batting.name.toLowerCase().split(' ').pop();
+      var cpNum=String(cp.batting.num||'').replace('#','').trim();
+      if(cpLast===pLast) return true;
+      if(pNum&&cpNum&&pNum===cpNum) return true;
+      return false;
+    });
+    if(inCSV) return false;
+    // Check against rosterOverrides (manual additions)
+    var inRoster=Object.keys(rosterOverrides).some(function(k){
+      return k.toLowerCase().split(' ').pop()===pLast;
+    });
+    return !inRoster;
+  });
+  if(!unknown.length){storeGameImport(result,fileName,status);return;}
+  showGuestModal(unknown,result,fileName,status);
+}
+
+function showGuestModal(unknown,result,fileName,status){
+  var existing=document.getElementById('guest-modal');
+  if(existing) existing.remove();
+  var guestMap={};
+  unknown.forEach(function(p){guestMap[p.name]=true;});
+  var modal=document.createElement('div');
+  modal.className='guest-modal';modal.id='guest-modal';
+
+  function render(){
+    modal.innerHTML='<div class="guest-modal-inner">'
+      +'<div class="guest-modal-title">New Players Detected</div>'
+      +'<div class="guest-modal-sub">These players aren\'t on your season roster. Mark as Guest to exclude their stats — or Roster to keep them.</div>'
+      +unknown.map(function(p){
+        var isGuest=guestMap[p.name];
+        var b=p.batting||{};
+        var statStr=b.h!=null?(b.h+'-'+(b.ab||0)+', '+(b.rbi||0)+' RBI'):'';
+        var pitStr=p.pitching&&p.pitching.ip>0?p.pitching.ip.toFixed(1)+'IP':'';
+        return '<div class="guest-player-row">'
+          +'<div>'
+            +'<div style="font-size:14px;font-weight:700;color:var(--hdr)">'+p.name+(p.num?' #'+p.num:'')+'</div>'
+            +'<div style="font-size:12px;color:var(--sub)">'+(statStr||pitStr||'')+'</div>'
+          +'</div>'
+          +'<button class="guest-toggle-'+(isGuest?'guest':'roster')+'" onclick="_guestToggle(\''+esc(p.name)+'\')" style="font-size:12px;font-weight:700;padding:7px 16px;border-radius:20px;cursor:pointer;font-family:var(--ff)">'
+            +(isGuest?'Guest ✕':'✓ Roster')
+          +'</button>'
+        +'</div>';
+      }).join('')
+      +'<div style="display:flex;gap:10px;margin-top:20px">'
+        +'<button onclick="_guestConfirm()" style="flex:1;font-family:var(--ff);font-size:14px;font-weight:700;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:12px;cursor:pointer">Save Game</button>'
+        +'<button onclick="document.getElementById(\'guest-modal\').remove()" style="font-family:var(--ff);font-size:14px;font-weight:700;padding:14px 18px;background:var(--bg2);color:var(--sub);border:1px solid var(--border);border-radius:12px;cursor:pointer">Cancel</button>'
+      +'</div>'
+    +'</div>';
+  }
+  render();
+  document.body.appendChild(modal);
+
+  window._guestToggle=function(name){guestMap[name]=!guestMap[name];render();};
+  window._guestConfirm=function(){
+    var guests=Object.keys(guestMap).filter(function(k){return guestMap[k];});
+    // Mark confirmed guests as hidden so future uploads auto-flag them
+    guests.forEach(function(name){
+      rosterOverrides[name]=rosterOverrides[name]||{};
+      rosterOverrides[name].hidden=true;
+    });
+    if(guests.length) kvSave();
+    // Filter guests from result before saving
+    var filtered=JSON.parse(JSON.stringify(result));
+    filtered.players=(result.players||[]).filter(function(p){return !guestMap[p.name];});
+    document.getElementById('guest-modal').remove();
+    storeGameImport(filtered,fileName,status);
+  };
 }
 
 function storeGameImport(result,fileName,status){
