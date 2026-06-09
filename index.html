@@ -1667,6 +1667,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
   <div id="roster-list"></div>
   <div id="roster-hidden-section"></div>
+  <div id="roster-debug" style="margin-top:24px;padding:16px;background:rgba(255,255,0,.05);border:1px solid rgba(255,255,0,.2);border-radius:10px;font-size:11px;font-family:monospace;color:var(--sub);white-space:pre-wrap;display:none"></div>
+  <button onclick="toggleRosterDebug()" style="margin-top:8px;font-size:11px;color:var(--sub);background:none;border:none;cursor:pointer;font-family:var(--ff)">🔍 Debug</button>
 </div>
 
 
@@ -3833,7 +3835,27 @@ function loadRosterOverrides(){
   try{var r=localStorage.getItem('sba_roster_v1');if(r)rosterOverrides=JSON.parse(r);}catch(e){}
 }
 
-function restorePlayer(key){
+function toggleRosterDebug(){
+  var el=document.getElementById('roster-debug');
+  if(!el) return;
+  if(el.style.display==='none'){
+    var lines=[];
+    lines.push('=== rosterOverrides keys ===');
+    Object.keys(rosterOverrides).forEach(function(k){
+      var o=rosterOverrides[k];
+      lines.push(k+': hidden='+o.hidden+' remapTo='+o.remapTo+' displayName='+o.displayName);
+    });
+    lines.push('\n=== getPlayers() output ===');
+    getPlayers().forEach(function(p){
+      lines.push(p.name+' #'+p.num+' pa='+p.pa+' ab='+p.ab+' hidden='+isHidden(p.name));
+    });
+    el.textContent=lines.join('\n');
+    el.style.display='block';
+  } else {
+    el.style.display='none';
+  }
+}
+
   if(rosterOverrides[key]) delete rosterOverrides[key].hidden;
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
