@@ -1391,11 +1391,11 @@ body.light-mode .pc-card:hover {background:rgba(229,232,234,0.3);}
 .pc-rest-note{font-size:11px;color:var(--sub);padding:0 18px 6px}
 .pc-toggle-hist{font-size:11px;color:var(--sub);cursor:pointer;padding:0 18px 10px;display:block}
 .pc-history{display:none;border-top:1px solid var(--border)}
-.pc-history.open{display:block;margin-bottom:10px;}
-.pc-hist-hdr{display:grid;grid-template-columns:90px 120px 55px 65px 65px 45px 45px 55px 55px;gap:4px;padding:8px 18px;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);text-align:center}
+.pc-history.open{display:block;margin-bottom:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.pc-hist-hdr{display:grid;grid-template-columns:90px minmax(120px,1fr) 55px 65px 65px 45px 45px 55px 55px;gap:4px;padding:8px 18px;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);text-align:right;min-width:max-content}
 .pc-hist-hdr span:first-child{text-align:left}
 .pc-hist-hdr span:nth-child(2){text-align:left}
-.pc-hist-row{display:grid;grid-template-columns:90px 120px 55px 65px 65px 45px 45px 55px 55px;gap:4px;padding:8px 18px;font-size:12px;color:var(--sub);border-bottom:1px solid rgba(51,65,85,.3);text-align:center}
+.pc-hist-row{display:grid;grid-template-columns:90px minmax(120px,1fr) 55px 65px 65px 45px 45px 55px 55px;gap:4px;padding:8px 18px;font-size:12px;color:var(--sub);border-bottom:1px solid rgba(51,65,85,.3);text-align:right;min-width:max-content}
 .pc-hist-row:last-child{border-bottom:none}
 .pc-hist-row span:first-child{text-align:left}
 .pc-hist-row span:nth-child(2){text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3732,16 +3732,17 @@ function renderRoster(){
     var num=ov.num!=null?ov.num:p.num;
     var age=ov.age!=null?ov.age:12;
     var pm=pitchMax(age);
-    // Real pitch availability from last outing
+    // Real pitch availability from last outing — uses the SAME canonical rest
+    // calculation as the Pitch Count page (daysRestRequired/pcDaysUntilEligible),
+    // so a player never shows "Arm Ready" here while still resting there.
     var pitchAvail='';
     if(p.pit&&p.pit.ip>0){
-      var _today=new Date();
-      var _lastPG=p.pitGames&&p.pitGames.length?[].concat(p.pitGames).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');})[0]:null;
+      var _merged=mergeOutingsByDate(p.pitGames||[]).sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+      var _lastPG=_merged[0]||null;
       if(_lastPG&&_lastPG.date&&_lastPG.np){
-        var _days=Math.floor((_today-new Date(_lastPG.date+'T12:00:00'))/86400000);
-        var _need=_lastPG.np>=66?4:_lastPG.np>=51?3:_lastPG.np>=36?2:_lastPG.np>=21?1:0;
-        pitchAvail=_days<_need
-          ?'<span class="roster-pitch-avail warn">⏱ '+(_need-_days)+'d rest</span>'
+        var _daysLeft=pcDaysUntilEligible(_lastPG.date,_lastPG.np);
+        pitchAvail=_daysLeft>0
+          ?'<span class="roster-pitch-avail warn">⏱ '+_daysLeft+'d rest</span>'
           :'<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
       } else {
         pitchAvail='<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
@@ -6541,16 +6542,16 @@ function daysRestRequired(np){
 
 function pcEligibleDate(lastDate, np){
   var needed=daysRestRequired(np);
-  if(!needed) return 'Today';
+  if(!needed) return 'Eligible Today';
   var d=new Date(lastDate+'T12:00:00');
   // Eligible on the day AFTER the required rest days
   // e.g. pitched Sat, needs 4 rest days (Sun/Mon/Tue/Wed), eligible Thu = Sat + 5
   d.setDate(d.getDate()+needed+1);
   var today=new Date(); today.setHours(0,0,0,0);
   var ed=new Date(d); ed.setHours(0,0,0,0);
-  if(ed<=today) return 'Today';
+  if(ed<=today) return 'Eligible Today';
   var diff=Math.round((ed-today)/86400000);
-  if(diff===1) return 'Tomorrow';
+  if(diff===1) return 'Eligible Tomorrow';
   return 'Eligible '+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 
@@ -6708,7 +6709,7 @@ function renderPitchCountPage(){
             +'<div class="pc-card-np">'+totalNP+'</div>'
             +'<div class="pc-card-np-lbl">season pitches</div>'
             +(remaining>=0?'<div class="pc-card-np-detail" style="color:'+(remaining<20?'#f59e0b':'var(--sub)')+'">'+remaining+' left</div>':'')
-            +(pinn>0?'<div class="pc-card-np-detail">~'+pinn+' inn @ '+pinn+'P/inn</div>':'')
+            +(pinn>0?'<div class="pc-card-np-detail">'+pinn+' P/INN</div>':'')
           +'</div>'
         +'</div>'
       +'</div>'
@@ -6729,7 +6730,7 @@ function renderPitchCountPage(){
       +restNote
       +'<span class="pc-toggle-hist" id="pc-tog-'+idx+'" onclick="togglePcHistory('+idx+')">▼ View outing history</span>'
       +'<div class="pc-history" id="pc-hist-'+idx+'">'
-        +'<div class="pc-hist-hdr"><span>Date</span><span>Opponent</span><span>IP</span><span>P (GC)</span><span>MLB PSG</span><span>K</span><span>BB</span><span>S%</span><span style="text-align:center">Rest</span></div>'
+        +'<div class="pc-hist-hdr"><span>Date</span><span>Opponent</span><span>IP</span><span>P (GC)</span><span>MLB PSG</span><span>K</span><span>BB</span><span>S%</span><span>Rest</span></div>'
         +histRows
       +'</div>'
       +'</div>';
