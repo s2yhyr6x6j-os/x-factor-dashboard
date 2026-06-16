@@ -1680,7 +1680,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <div class="gen-progress-bar" id="gen-progress-bar">
     <div class="gen-progress-hdr">
       <div class="gen-progress-title">✨ <span id="gen-progress-title">Generating insights... 0/0</span></div>
-      <div class="gen-progress-batch" id="gen-progress-batch"></div>
     </div>
     <div class="gen-progress-track"><div class="gen-progress-fill" id="gen-progress-fill"></div></div>
   </div>
@@ -3656,6 +3655,7 @@ function renderCharts(){
 // ── ROSTER ──
 // ── ROSTER PAGE ──
 var rosterOverrides={};  // {name: {num, age, displayName}}
+var playerInsights={};  // {name: {insights, generatedAt, player}} — synced via KV so insights generated on one device show on all
 var rosterEditTarget=null;
 
 
@@ -5692,13 +5692,12 @@ function generateAllInsights(){
   var apiKey=getApiKey();
   if(!apiKey&&!(window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&window.location.protocol==='https:')){alert('Set your Anthropic API key in the Upload page first.');return;}
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
   if(!players.length){alert('No player data found. Upload the season CSV first.');return;}
   var btn=document.getElementById('gen-all-btn');
   var progressBar=document.getElementById('gen-progress-bar');
   var progressTitle=document.getElementById('gen-progress-title');
   var progressFill=document.getElementById('gen-progress-fill');
-  var progressBatch=document.getElementById('gen-progress-batch');
   var total=players.length;
   var done=0;
   var failed=[];
@@ -5728,7 +5727,6 @@ function generateAllInsights(){
     }
     var p=players[idx++];
     var prompt=buildPrompt(p);
-    if(progressBatch) progressBatch.textContent='Batch '+idx+'/'+total+'...';
 
     callClaude({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
     .then(function(data){
@@ -5737,7 +5735,9 @@ function generateAllInsights(){
       raw=raw.replace(/```json|```/g,'').trim();
       var insights=JSON.parse(raw);
       var stored={insights:insights,generatedAt:new Date().toISOString(),player:p.name};
+      playerInsights[p.name]=stored;
       try{localStorage.setItem('sba_insights_'+p.name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
+      kvSave();
       done++;updateProgress();
     })
     .catch(function(e){failed.push(p.name.split(' ').pop());done++;updateProgress();})
@@ -6031,7 +6031,8 @@ function kvSave(){
     kvSet('sba_gl_v2', gameLog),
     kvSet('sba_roster_v1', rosterOverrides),
     kvSet('sba_notes_v1', _pdCoachNotes),
-    kvSet('sba_lineup_v2', lineupOrder)
+    kvSet('sba_lineup_v2', lineupOrder),
+    kvSet('sba_insights_v1', playerInsights)
   ];
   if(gcSchedule&&gcSchedule.length) saves.push(kvSet('sba_schedule', gcSchedule));
   var icsUrl=localStorage.getItem('sba_ics_url');
@@ -6045,7 +6046,7 @@ function kvSave(){
 
 function kvLoad(callback){
   if(!_isVercel){callback();return;}
-  var keys=['sba_games_v2','sba_gl_v2','sba_roster_v1','sba_notes_v1','sba_lineup_v2','sba_schedule','sba_ics_url','sba_ics_last'];
+  var keys=['sba_games_v2','sba_gl_v2','sba_roster_v1','sba_notes_v1','sba_lineup_v2','sba_schedule','sba_ics_url','sba_ics_last','sba_insights_v1'];
   Promise.all(keys.map(kvGet)).then(function(vals){
     try{
       function parse(v){
@@ -6063,12 +6064,14 @@ function kvLoad(callback){
       }
       var iu=vals[6]; if(iu){try{localStorage.setItem('sba_ics_url',iu);}catch(e){}}
       var il=vals[7]; if(il){try{localStorage.setItem('sba_ics_last',il);}catch(e){}}
+      var pi=parse(vals[8]); if(pi) playerInsights=pi;
       // Safety guards — ensure arrays
       if(!Array.isArray(importedGames)) importedGames=[];
       if(!Array.isArray(gameLog)) gameLog=[];
       if(!Array.isArray(lineupOrder)) lineupOrder=[];
       if(typeof rosterOverrides!=='object'||Array.isArray(rosterOverrides)) rosterOverrides={};
       if(typeof _pdCoachNotes!=='object'||Array.isArray(_pdCoachNotes)) _pdCoachNotes={};
+      if(typeof playerInsights!=='object'||Array.isArray(playerInsights)) playerInsights={};
       _kvSynced=true;
       console.log('KV loaded: games='+importedGames.length+', gl='+gameLog.length);
       if(gcSchedule.length) renderNextGame();
@@ -7271,9 +7274,13 @@ var _pdInsights=null;
 
 function loadCachedInsights(name){
   try{
-    var stored=localStorage.getItem('sba_insights_'+name.replace(/\s+/g,'_'));
-    if(!stored) return false;
-    var obj=JSON.parse(stored);
+    var obj=playerInsights[name];
+    if(!obj){
+      // Fallback for insights generated before KV sync was added
+      var stored=localStorage.getItem('sba_insights_'+name.replace(/\s+/g,'_'));
+      if(!stored) return false;
+      obj=JSON.parse(stored);
+    }
     var age=(Date.now()-new Date(obj.generatedAt).getTime())/(1000*60*60*24);
     if(age>7) return false; // expired
     _pdInsights=obj.insights;
@@ -7868,7 +7875,9 @@ function regenerateInsights(){
     console.log('pd-insights-body exists:', !!pd_body);
     var now=new Date();
     var stored={insights:_pdInsights,generatedAt:now.toISOString(),player:name};
-    try{localStorage.setItem('sba_insights_'+name.replace(/\s+/g,'_'),JSON.stringify(stored));console.log('Saved insights for',name);}catch(e){console.error('Save failed',e);}
+    playerInsights[name]=stored;
+    try{localStorage.setItem('sba_insights_'+name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
+    kvSave();
     document.getElementById('pd-insights-when').textContent='Generated: Today'+(customContext?' · with your context':'');
     var tabsEl2=document.getElementById('pd-insight-tabs');
     var bodyEl2=document.getElementById('pd-insights-body');
