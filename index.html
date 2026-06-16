@@ -52,7 +52,7 @@ body.light-mode .sb-item.active .sb-icon{color:#ffffff}
 body.light-mode .sb-group-label{color:#9ca3af;font-size:10px}
 body.light-mode .theme-toggle{color:#6b7280}
 body.light-mode .sb-hamburger{color:#374151}
-body.light-mode #page-home .stat-kpi-front,body.light-mode #page-home .stat-kpi-back {background: var(--bg1);border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.16)}
+body.light-mode #page-home .stat-kpi-front,body.light-mode #page-home .stat-kpi-back {background: var(--bg1);border:1px solid var(--border);box-shadow:0 1px 1px rgba(0,0,0,.16)}
 body.light-mode #page-home .stat-kpi-back{border-color:#51a2ff;}
 body.light-mode #page-home .stat-kpi-cell{border-radius: 10px;}
 body.light-mode #page-home .stat-player-row{border-bottom: 1px solid var(--border);}
@@ -63,6 +63,7 @@ body.light-mode .pp-card,body.light-mode .lu-player-row,body.light-mode .lu-sugg
 body.light-mode .lineup-suggested-card,body.light-mode .roster-row,body.light-mode .met-lb-card,
 body.light-mode .pd-section,body.light-mode .pd-hero,
 body.light-mode .gl-card,body.light-mode #page-upload .card{background:#ffffff;border-color:#e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+body.light-mode .gl-card:hover {box-shadow: 0 1px 3px rgba(0, 0, 0, 0);}
 body.light-mode .pd-overlay,body.light-mode .pd-topbar{background:var(--bg1)}
 body.light-mode .pd-topbar{border-bottom: 1px solid var(--border);box-shadow: 0 2px 3px -2px rgba(0, 0, 0, 0.1);}
 body.light-mode .main{background:var(--bg1)}
@@ -428,7 +429,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .gl-sort-btn:hover{color:var(--hdr);border-color:var(--sub)}
 /* Card — identical to original, just wrapped for expand */
 .gl-card-wrap{margin-bottom:8px}
-.gl-card{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;transition:background .15s;cursor:pointer}
+.gl-card{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;transition:all ease .15s;cursor:pointer}
 .gl-card:hover{background:rgba(255,255,255,.03)}
 .gl-card-wrap.expanded .gl-card{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
 .gl-result-badge{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;letter-spacing:.02em}
