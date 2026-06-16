@@ -358,7 +358,11 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
 .stat-player-left{display:flex;align-items:center;gap:0;flex:1;min-width:0}
 .stat-player-name{font-size:14px;font-weight:600;color:var(--hdr)}
 .stat-player-meta{font-size:11px;color:var(--sub);margin-left:8px;flex-shrink:0}
-.stat-player-val{font-size:14px;font-weight:700;color:var(--green);flex-shrink:0;margin-left:12px}
+.stat-player-val{font-size:14px;font-weight:700;color:var(--hdr);flex-shrink:0;margin-left:12px}
+.stat-player-val.elite{color:#a855f7}
+.stat-player-val.good{color:#22c55e}
+.stat-player-val.warn{color:#f59e0b}
+.stat-player-val.urgent{color:#ef4444}
 .stat-view-link{padding:12px 18px;border-top:1px solid var(--border)}
 .stat-view-link a{font-size:12px;font-weight:500;color:#51a2ff;text-decoration:none;transition:color .15s;cursor:pointer}
 .stat-view-link a:hover{color:var(--hdr)}
@@ -1144,12 +1148,16 @@ body.light-mode .pd-btn-outline{background:#fff}
 .sc-stat-section-hdr{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .sc-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sc-stat-cell{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.sc-stat-cell.elite{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.3)}
 .sc-stat-cell.good{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.2)}
-.sc-stat-cell.warn{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2)}
+.sc-stat-cell.warn{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2)}
+.sc-stat-cell.urgent{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2)}
 .sc-stat-label{font-size:10px;color:var(--sub);margin-bottom:3px;display:flex;align-items:center;justify-content:space-between}
 .sc-stat-val{font-size:22px;font-weight:800;color:var(--hdr);line-height:1}
+.sc-stat-val.elite{color:#a855f7}
 .sc-stat-val.good{color:#4ade80}
-.sc-stat-val.warn{color:#f87171}
+.sc-stat-val.warn{color:#f59e0b}
+.sc-stat-val.urgent{color:#f87171}
 .sc-coach-note{padding:10px 16px;font-size:12px;color:var(--sub);font-style:italic;border-top:1px solid #1e2939;line-height:1.5}
 
 /* Edit tab */
@@ -2866,7 +2874,7 @@ function applyStatClass(el, key, val, display){
   if(!el) return;
   var cls=statClass(key,val);
   var isElite=cls==='elite';
-  el.textContent=isElite?display+' 🔥':display;
+  el.textContent=isElite?display+'🔥':display;
   // Remove old stat classes
   el.classList.remove('stat-elite','stat-good','stat-warn','stat-urgent','elite','warn','urgent','bad');
   // Apply to both pit-kpi-val usage and table cell usage
@@ -3375,10 +3383,11 @@ function renderOverview(){
   var topPit=[].concat(pitchers).sort(function(a,b){return b.pit.ip-a.pit.ip;}).slice(0,3);
   document.getElementById('pit-player-list').innerHTML=topPit.length
     ? topPit.map(function(p){
+        var cls=statClass('sp',p.pit.sp);
         return '<div class="stat-player-row" onclick="openPlayer(\''+esc(p.name)+'\')">'
           +'<div class="stat-player-left"><span class="stat-player-name">'+p.name+'</span>'
           +'<span class="stat-player-meta">'+p.pit.ip.toFixed(1)+' IP</span></div>'
-          +'<span class="stat-player-val">'+p.pit.sp.toFixed(1)+'% S%</span>'
+          +'<span class="stat-player-val '+cls+'">'+p.pit.sp.toFixed(1)+'% S%'+(cls==='elite'?'🔥':'')+'</span>'
           +'</div>';
       }).join('')
     : '<div style="padding:16px 18px;font-size:12px;color:var(--sub)">Upload season CSV to populate</div>';
@@ -3407,10 +3416,11 @@ function renderOverview(){
   var topBat=[].concat(batters).sort(function(a,b){return b.ops-a.ops;}).slice(0,3);
   document.getElementById('bat-player-list').innerHTML=topBat.length
     ? topBat.map(function(p){
+        var cls=statClass('ops',p.ops);
         return '<div class="stat-player-row" onclick="openPlayer(\''+esc(p.name)+'\')">'
           +'<div class="stat-player-left"><span class="stat-player-name">'+p.name+'</span>'
           +'<span class="stat-player-meta">'+p.pa+' PA</span></div>'
-          +'<span class="stat-player-val">'+p.ops.toFixed(3)+' OPS</span>'
+          +'<span class="stat-player-val '+cls+'">'+p.ops.toFixed(3)+' OPS'+(cls==='elite'?'🔥':'')+'</span>'
           +'</div>';
       }).join('')
     : '<div style="padding:16px 18px;font-size:12px;color:var(--sub)">Upload season CSV to populate</div>';
@@ -4155,7 +4165,7 @@ function renderHittingPage(){
   lbEl.innerHTML=lbSorted.map(function(p){
     var val=getVal(p);
     var isElite=cfg.color(val)==='#a855f7';
-    var disp=cfg.fmt(val)+(isElite?' 🔥':'');
+    var disp=cfg.fmt(val)+(isElite?'🔥':'');
     var color=cfg.color(val);
     var effectiveMax=cfg.fixedMax!=null?cfg.fixedMax:maxVal;
     var barPct=cfg.noBar?0:cfg.goodHigh?(val/effectiveMax*100):Math.max(5,(1-val/effectiveMax)*90+5);
@@ -4323,7 +4333,7 @@ function renderPitchingPage(){
     function setKPI(id, val, display, cls, elite){
       var el=document.getElementById(id);
       if(!el) return;
-      el.textContent=elite?display+' 🔥':display;
+      el.textContent=elite?display+'🔥':display;
       el.className='pit-kpi-val'+( cls?' '+cls:'');
     }
 
@@ -4362,7 +4372,7 @@ function renderPitchingPage(){
     var cls=cfg.color?null:statClass('sp',val);
     var color=cfg.color(val);
     var isElite=color==='#a855f7';
-    var disp=cfg.fmt(val)+(isElite?' 🔥':'');
+    var disp=cfg.fmt(val)+(isElite?'🔥':'');
     var barPct, targetLinePct=null;
 
     if(cfg.noBar){
@@ -5857,11 +5867,7 @@ function saveShareSettings(){
 }
 
 function scStatClass(key,val){
-  var t=STAT_THRESHOLDS[key];
-  if(!t) return '';
-  var good=t.hi?val>=t.good:val<=t.good;
-  var warn=t.hi?val<t.warn:val>t.warn;
-  return good?'good':warn?'warn':'';
+  return statClass(key,val);
 }
 
 function renderSCPreview(){
@@ -5889,7 +5895,7 @@ function renderSCPreview(){
       var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
       batHtml+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
         +'<div class="sc-stat-label">'+s.lbl+'</div>'
-        +'<div class="sc-stat-val '+(cls?cls:'')+'" >'+s.val+'</div>'
+        +'<div class="sc-stat-val '+(cls?cls:'')+'" >'+s.val+(cls==='elite'?'🔥':'')+'</div>'
         +'</div>';
     });
     batHtml+='</div></div></div>';
@@ -5915,7 +5921,7 @@ function renderSCPreview(){
         var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
         pitHtml+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
           +'<div class="sc-stat-label">'+s.lbl+'</div>'
-          +'<div class="sc-stat-val '+(cls?cls:'')+'">'+s.val+'</div>'
+          +'<div class="sc-stat-val '+(cls?cls:'')+'">'+s.val+(cls==='elite'?'🔥':'')+'</div>'
           +'</div>';
       });
       pitHtml+='</div></div></div>';
@@ -7473,7 +7479,7 @@ function buildPdQab(p){
   var cls=statClass('qab',val);
   var color=cls==='elite'?'var(--purple)':cls==='good'?'var(--green)':cls==='warn'?'var(--amber)':'var(--red)';
   document.getElementById('pd-qab-val').style.color=color;
-  document.getElementById('pd-qab-val').textContent=val>0?val.toFixed(1)+'%'+(cls==='elite'?' 🔥':''):'—';
+  document.getElementById('pd-qab-val').textContent=val>0?val.toFixed(1)+'%'+(cls==='elite'?'🔥':''):'—';
   var sub=val>=60?'✓ Above 60% goal':val>=50?'⚠ below 60% goal':'▲ below 55% goal';
   document.getElementById('pd-qab-sub').textContent=sub;
   document.getElementById('pd-qab-sub').style.color=cls==='good'||cls==='elite'?'var(--green)':'var(--amber)';
@@ -8089,7 +8095,7 @@ function exportPlayerPDF(){
     return t.hi?(val>=t.elite?'elite':val>=t.good?'good':val>=t.warn?'warn':'bad')
               :(val<=t.elite?'elite':val<=t.good?'good':val<=t.warn?'warn':'bad');
   }
-  function pfmt(val,c){return '<span class="c-'+c+'">'+val+(c==='elite'?' 🔥':'')+'</span>';}
+  function pfmt(val,c){return '<span class="c-'+c+'">'+val+(c==='elite'?'🔥':'')+'</span>';}
   function pCell(lbl,display,key,num){
     var c=key?pcls(key,num!=null?num:parseFloat(display)):'base';
     return '<div class="stat-cell"><div class="stat-cell-lbl">'+lbl+'</div><div class="stat-cell-val">'+pfmt(display,c)+'</div></div>';
