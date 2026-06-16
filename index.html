@@ -877,6 +877,17 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 .roster-trend.hot{color:var(--amber)}
 .roster-trend.ok{color:var(--green)}
 .roster-edit{background:none;border:none;color:rgba(148,163,184,.3);cursor:pointer;padding:4px 8px;transition:color .15s;flex-shrink:0;display:flex;align-items:center}
+
+.roster-hidden-wrap{margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+.roster-hidden-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px}
+.roster-hidden-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;opacity:.6}
+.roster-hidden-left{display:flex;align-items:center;gap:10px}
+.roster-hidden-num{font-size:22px;font-weight:800;color:var(--sub)}
+.roster-hidden-name{font-size:14px;font-weight:700;color:var(--hdr)}
+.roster-hidden-actions{display:flex;gap:8px}
+.roster-hidden-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;border:1px solid}
+.roster-hidden-btn.remap{padding:6px 12px;background:rgba(168,85,247,.15);color:#a855f7;border-color:rgba(168,85,247,.3)}
+.roster-hidden-btn.restore{background:rgba(59,130,246,.15);color:var(--blue);border-color:rgba(59,130,246,.3)}
 .roster-edit:hover{color:var(--sub)}
 .roster-edit svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 /* Edit modal — full redesign */
@@ -1689,8 +1700,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
   <div id="roster-list"></div>
   <div id="roster-hidden-section"></div>
-  <div id="roster-debug" style="margin-top:24px;padding:16px;background:rgba(255,255,0,.05);border:1px solid rgba(255,255,0,.2);border-radius:10px;font-size:11px;font-family:monospace;color:var(--sub);white-space:pre-wrap;display:none"></div>
-  <button onclick="toggleRosterDebug()" style="margin-top:8px;font-size:11px;color:var(--sub);background:none;border:none;cursor:pointer;font-family:var(--ff)">🔍 Debug</button>
 </div>
 
 
@@ -3962,27 +3971,6 @@ function loadRosterOverrides(){
   try{var r=localStorage.getItem('sba_roster_v1');if(r)rosterOverrides=JSON.parse(r);}catch(e){}
 }
 
-function toggleRosterDebug(){
-  var el=document.getElementById('roster-debug');
-  if(!el) return;
-  if(el.style.display==='none'){
-    var lines=[];
-    lines.push('=== rosterOverrides keys ===');
-    Object.keys(rosterOverrides).forEach(function(k){
-      var o=rosterOverrides[k];
-      lines.push(k+': hidden='+o.hidden+' remapTo='+o.remapTo+' displayName='+o.displayName);
-    });
-    lines.push('\n=== getPlayers() output ===');
-    getPlayers().forEach(function(p){
-      lines.push(p.name+' #'+p.num+' pa='+p.pa+' ab='+p.ab+' hidden='+isHidden(p.name));
-    });
-    el.textContent=lines.join('\n');
-    el.style.display='block';
-  } else {
-    el.style.display='none';
-  }
-}
-
 function restorePlayer(key){
   if(rosterOverrides[key]) delete rosterOverrides[key].hidden;
   try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
@@ -4040,17 +4028,17 @@ function renderRosterHidden(){
   var entries=Object.values(seen);
   if(!entries.length){el.innerHTML='';return;}
 
-  el.innerHTML='<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border)">'
-    +'<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px">Hidden Players</div>'
+  el.innerHTML='<div class="roster-hidden-wrap">'
+    +'<div class="roster-hidden-title">Guest/Inactive Players</div>'
     +entries.map(function(e){
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;opacity:.6">'
-        +'<div style="display:flex;align-items:center;gap:10px">'
-          +'<span style="font-size:22px;font-weight:800;color:var(--sub)">'+(e.num!=='?'?'#'+e.num:'—')+'</span>'
-          +'<span style="font-size:14px;font-weight:700;color:var(--hdr)">'+e.name+'</span>'
+      return '<div class="roster-hidden-row">'
+        +'<div class="roster-hidden-left">'
+          +'<span class="roster-hidden-num">'+(e.num!=='?'?'#'+e.num:'—')+'</span>'
+          +'<span class="roster-hidden-name">'+e.name+'</span>'
         +'</div>'
-        +'<div style="display:flex;gap:8px">'
-        +'<button onclick="openRemapModal(\''+esc(e.key)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 12px;background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3);border-radius:8px;cursor:pointer">🔄 Remap</button>'
-        +'<button onclick="restorePlayer(\''+esc(e.key)+'\')" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:6px 14px;background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;cursor:pointer">↩ Restore</button>'
+        +'<div class="roster-hidden-actions">'
+        +'<button class="roster-hidden-btn remap" onclick="openRemapModal(\''+esc(e.key)+'\')">🔄 Remap</button>'
+        +'<button class="roster-hidden-btn restore" onclick="restorePlayer(\''+esc(e.key)+'\')">↩ Restore</button>'
         +'</div>'
       +'</div>';
     }).join('')
