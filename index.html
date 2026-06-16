@@ -1278,6 +1278,9 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 .gen-progress-batch{font-size:12px;color:var(--sub)}
 .gen-progress-track{height:6px;background:rgba(168,85,247,.2);border-radius:4px;overflow:hidden}
 .gen-progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:4px;transition:width .3s ease;width:0%}
+.gen-progress-result{font-size:12px;margin-top:10px;line-height:1.5}
+.gen-progress-result.ok{color:#22c55e}
+.gen-progress-result.partial{color:#f59e0b}
 
 /* ── UPLOAD COMPLETION CARD ── */
 .up-complete-card{display:none;border-radius:14px;padding:22px 24px;margin:16px 0}
@@ -1682,6 +1685,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       <div class="gen-progress-title">✨ <span id="gen-progress-title">Generating insights... 0/0</span></div>
     </div>
     <div class="gen-progress-track"><div class="gen-progress-fill" id="gen-progress-fill"></div></div>
+    <div class="gen-progress-result" id="gen-progress-result" style="display:none"></div>
   </div>
   <div id="roster-list"></div>
   <div id="roster-hidden-section"></div>
@@ -5704,6 +5708,8 @@ function generateAllInsights(){
   btn.disabled=true;
   btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;animation:spin .7s linear infinite"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Generating...';
   if(progressBar) progressBar.style.display='block';
+  var resultElStart=document.getElementById('gen-progress-result');
+  if(resultElStart) resultElStart.style.display='none';
 
   function updateProgress(){
     var pct=total>0?Math.round(done/total*100):0;
@@ -5720,9 +5726,14 @@ function generateAllInsights(){
     if(idx>=players.length){
       btn.disabled=false;
       btn.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Generate All Insights';
-      var msg='Done! Generated insights for '+(total-failed.length)+'/'+total+' players.';
-      if(failed.length) msg+='\nFailed: '+failed.join(', ');
-      alert(msg);
+      var resultEl=document.getElementById('gen-progress-result');
+      if(resultEl){
+        var msg='Done — generated insights for '+(total-failed.length)+'/'+total+' players.';
+        if(failed.length) msg+=' Failed: '+failed.join(', ')+'.';
+        resultEl.textContent=msg;
+        resultEl.className='gen-progress-result '+(failed.length?'partial':'ok');
+        resultEl.style.display='block';
+      }
       return;
     }
     var p=players[idx++];
