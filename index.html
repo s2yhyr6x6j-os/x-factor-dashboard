@@ -7894,6 +7894,7 @@ function loadTheme(){
 }
 
 function toggleSidebar(){
+  closePlayer();
   var sb=document.getElementById('sidebar');
   var ov=document.getElementById('sb-overlay');
   var isOpen=sb.classList.contains('mobile-open');
@@ -7908,6 +7909,7 @@ function closeMobileSidebar(){
 var pageNames={home:'Home',roster:'Roster',hitting:'Hitting',pitching:'Pitching',lineup:'Lineup',scouting:'Scouting',recs:'Recommendations',games:'Games',upload:'Upload History'};
 
 function goPage(id,btn){
+  closePlayer(); // Navigating away always dismisses the Player Detail view, never leaves it stuck on top
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active');});
   document.getElementById('page-'+id).classList.add('active');
