@@ -779,6 +779,8 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:30px}
 .pit-kpi-card{border-radius:10px;padding:0;position:relative;perspective:600px}
 .pit-kpi-card.h140{height:140px}
+.pit-kpi-card.h130{height:130px}
+.pit-kpi-grid.tight{margin-bottom:12px}
 .pit-kpi-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .pit-kpi-card.flipped .pit-kpi-card-inner{transform:rotateY(180deg)}
 .pit-kpi-front,.pit-kpi-back{border:1px solid var(--border);backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12)}
@@ -798,11 +800,6 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .pit-kpi-label .info{width:14px;height:14px;border-radius:50%;border:1px solid var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--blue);cursor:pointer;flex-shrink:0;transition:all .15s}
 .pit-kpi-label .info:hover{background:var(--blue);color:#fff}
-.pit-kpi-val{font-size:28px;font-weight:700;color:var(--green);line-height:1}
-.pit-kpi-val.warn{color:var(--amber)}
-.pit-kpi-val.bad{color:#fb7185}
-.pit-kpi-val.urgent{color:var(--red)}
-.pit-kpi-val.elite{color:var(--purple)}
 .pit-kpi-desc{font-size:10px;color:var(--sub);margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
 .pit-kpi-target{font-size:10px;color:#3b82f6;margin-top:3px;letter-spacing:.04em}
 #page-metrics .pit-kpi-front{padding:14px 10px}
@@ -839,6 +836,8 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .ps-legend{display:flex;gap:16px;margin-bottom:14px}
 .ps-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub)}
 .ps-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.ps-legend-dot.strikes{background:#22c55e}
+.ps-legend-dot.balls{background:#ef4444}
 .ps-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
 .ps-name{font-size:12px;font-weight:600;color:var(--sub);width:72px;text-align:right;flex-shrink:0;line-height:1.2}
 .ps-bar-wrap{flex:1;display:flex;height:14px;border-radius:4px;overflow:hidden}
@@ -2094,8 +2093,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <div class="pit-page-sub">SBA Red · Summer 2026</div>
 
   <!-- Row 1: Team S%, FPS%, WHIP -->
-  <div class="pit-kpi-grid" style="margin-bottom:12px">
-    <div class="pit-kpi-card" id="pkpi-sp" style="height:130px">
+  <div class="pit-kpi-grid tight">
+    <div class="pit-kpi-card h130" id="pkpi-sp">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Team S% <span class="info" onclick="flipPitCard('pkpi-sp',event)">i</span></div>
@@ -2112,7 +2111,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         </div>
       </div>
     </div>
-    <div class="pit-kpi-card" id="pkpi-fps" style="height:130px">
+    <div class="pit-kpi-card h130" id="pkpi-fps">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Team FPS% <span class="info" onclick="flipPitCard('pkpi-fps',event)">i</span></div>
@@ -2129,7 +2128,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         </div>
       </div>
     </div>
-    <div class="pit-kpi-card" id="pkpi-whip" style="height:130px">
+    <div class="pit-kpi-card h130" id="pkpi-whip">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Team WHIP <span class="info" onclick="flipPitCard('pkpi-whip',event)">i</span></div>
@@ -2149,12 +2148,12 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
 
   <!-- Row 2: FIP, BB/INN, K/BB -->
-  <div class="pit-kpi-grid" style="margin-bottom:30px">
-    <div class="pit-kpi-card" id="pkpi-fip" style="height:130px">
+  <div class="pit-kpi-grid">
+    <div class="pit-kpi-card h130" id="pkpi-fip">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">FIP <span class="info" onclick="flipPitCard('pkpi-fip',event)">i</span></div>
-          <div class="pit-kpi-val" id="pit-team-fip" style="color:var(--blue)">—</div>
+          <div class="pit-kpi-val" id="pit-team-fip">—</div>
           <div class="pit-kpi-desc">Fielding Independent Pitching</div>
           <div class="pit-kpi-target">Target &lt; 3.00</div>
         </div>
@@ -2167,7 +2166,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         </div>
       </div>
     </div>
-    <div class="pit-kpi-card" id="pkpi-bbinn" style="height:130px">
+    <div class="pit-kpi-card h130" id="pkpi-bbinn">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">BB/INN <span class="info" onclick="flipPitCard('pkpi-bbinn',event)">i</span></div>
@@ -2184,7 +2183,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         </div>
       </div>
     </div>
-    <div class="pit-kpi-card" id="pkpi-kbb" style="height:130px">
+    <div class="pit-kpi-card h130" id="pkpi-kbb">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">K/BB <span class="info" onclick="flipPitCard('pkpi-kbb',event)">i</span></div>
@@ -2203,14 +2202,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     </div>
   </div>
 
-  <!-- Toggle: S% / FIP / WHIP leaderboard 
-  <div class="lb-filter-row" style="margin-bottom:10px">
-    <button class="lb-filter-btn active" onclick="setPitFilter('season',this)">Season</button>
-    <button class="lb-filter-btn" onclick="setPitFilter('last10',this)">Last 10</button>
-    <button class="lb-filter-btn" onclick="setPitFilter('last5',this)">Last 5</button>
-    <button class="lb-filter-btn" onclick="setPitFilter('last3',this)">Last 3</button>
-
-  </div>-->
   <div class="lb-sample-warning" id="pit-sample-warning">⚠ Small sample — use for spotting trends, not evaluating ability</div>
   <div class="pit-tog-row">
     <button class="pit-tog active" id="pit-tog-sp" onclick="setPitLbTog('sp',this)">S%</button>
@@ -2235,8 +2226,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <div class="ps-card">
     <div class="ps-title">Pitches &amp; Strikes</div>
     <div class="ps-legend">
-      <div class="ps-legend-item"><div class="ps-legend-dot" style="background:#22c55e"></div>Strikes</div>
-      <div class="ps-legend-item"><div class="ps-legend-dot" style="background:#ef4444"></div>Balls</div>
+      <div class="ps-legend-item"><div class="ps-legend-dot strikes"></div>Strikes</div>
+      <div class="ps-legend-item"><div class="ps-legend-dot balls"></div>Balls</div>
     </div>
     <div id="ps-bars"></div>
   </div>
@@ -4306,20 +4297,11 @@ function setPitLbTog(key, btn){
 }
 
 function renderPitchingPage(){
-  var pitchers=getFilteredPitchers('season');
+  var pitchers=getSeasonPitchers();
   if(!pitchers.length) pitchers=getPitchers();
 
-  // Only recalculate thresholds for filtered views
-  var pitPool=pitchers.filter(function(p){return p.pit&&p.pit.ip>0;});
-  if(_pitFilter==='season'){
-    STAT_THRESHOLDS.sp={elite:70,good:60,warn:50,hi:true};
-    STAT_THRESHOLDS.whip={elite:0.99,good:1.5,warn:2.0,hi:false};
-  } else if(pitPool.length>1){
-    var poolSP=pitPool.reduce(function(s,p){return s+p.pit.sp;},0)/pitPool.length;
-    var poolWHIP=pitPool.reduce(function(s,p){return s+p.pit.whip;},0)/pitPool.length;
-    STAT_THRESHOLDS.sp={elite:+(poolSP*1.1).toFixed(1),good:+(poolSP*1.02).toFixed(1),warn:+(poolSP*0.9).toFixed(1),hi:true};
-    STAT_THRESHOLDS.whip={elite:+(poolWHIP*0.75).toFixed(2),good:+(poolWHIP*0.9).toFixed(2),warn:+(poolWHIP*1.2).toFixed(2),hi:false};
-  }
+  STAT_THRESHOLDS.sp={elite:70,good:60,warn:50,hi:true};
+  STAT_THRESHOLDS.whip={elite:0.99,good:1.5,warn:2.0,hi:false};
 
   // ── KPI row 1 ──
   if(pitchers.length){
@@ -6292,16 +6274,7 @@ function resetUploadZone(){
 
 
 // ── LEADERBOARD FILTERS ──
-var _pitFilter='season';
 var _batFilter='season';
-
-function getFilterLabel(filter){
-  if(filter==='season') return '';
-  if(filter==='last10') return 'Last 10 games';
-  if(filter==='last5') return 'Last 5 games';
-  if(filter==='last3') return 'Last 3 games';
-  return '';
-}
 
 function showSampleWarning(id, filter){
   var el=document.getElementById(id);
@@ -6320,14 +6293,6 @@ function updateFilterThrough(id, filter){
     var latest=dates[dates.length-1];
     if(latest){var d=new Date(latest+'T12:00:00');el.textContent='through '+(d.getMonth()+1)+'/'+d.getDate();}
   }
-}
-
-function setPitFilter(filter, btn){
-  _pitFilter=filter;
-  document.querySelectorAll('#page-pitching .lb-filter-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  showSampleWarning('pit-sample-warning', filter);
-  renderPitchingPage();
 }
 
 function setBatFilter(filter, btn){
@@ -6398,47 +6363,10 @@ function getFilteredPlayers(filter){
   }).filter(function(p){return p.pa>0;});
 }
 
-function getFilteredPitchers(filter){
+function getSeasonPitchers(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var allPlayers=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
-  if(filter==='season') return allPlayers.filter(function(p){return p.pit&&p.pit.ip>0;});
-
-  var n=filter==='last10'?10:filter==='last5'?5:3;
-
-  // Get the last N team game dates
-  var teamGames=importedGames.filter(function(g){return !g.isSeason&&g.date;});
-  teamGames.sort(function(a,b){return a.date.localeCompare(b.date);});
-  var cutoffDate=teamGames.length>=n?teamGames[teamGames.length-n].date:null;
-
-  return allPlayers.map(function(p){
-    if(!p.pitGames||!p.pitGames.length) return null;
-    // Filter to games on or after the cutoff date
-    var games=cutoffDate
-      ?p.pitGames.filter(function(g){return g.date&&g.date>=cutoffDate;})
-      :p.pitGames.slice(-n);
-    if(!games.length) return null;
-    var ip=games.reduce(function(s,g){return s+(g.ip||0);},0);
-    if(!ip) return null;
-    var h=games.reduce(function(s,g){return s+g.h;},0);
-    var bb=games.reduce(function(s,g){return s+g.bb;},0);
-    var k=games.reduce(function(s,g){return s+g.k;},0);
-    var er=games.reduce(function(s,g){return s+g.er;},0);
-    var np=games.reduce(function(s,g){return s+(g.np||0);},0);
-    var ns=games.reduce(function(s,g){return s+(g.ns||0);},0);
-    var bf=games.reduce(function(s,g){return s+(g.bf||0);},0);
-    var fps=games.reduce(function(s,g){return s+(g.fps||0);},0);
-    var whip=ip>0?(h+bb)/ip:0;
-    var era=ip>0?er/ip*9:0;
-    var sp=np>0?ns/np*100:p.pit.sp;
-    // fps: if stored as count recalculate as pct, else use as-is
-    // fps in pitGames may be raw count or pct — detect and convert
-    var fpsPct=bf>0&&fps>0&&fps<=bf?+(fps/bf*100).toFixed(1):fps>0?fps:(p.pit.fps||0);
-    var kbb=bb>0?k/bb:k>0?k:0;
-    var bbinn=ip>0?bb/ip:0;
-    var filtPit=Object.assign({},p.pit,{ip:ip,h:h,bb:bb,k:k,er:er,np:np,bf:bf,
-      whip:whip,era:era,sp:sp,fps:fpsPct,kbb:kbb,bbinn:bbinn,gp:games.length});
-    return Object.assign({},p,{pit:filtPit});
-  }).filter(Boolean);
+  return allPlayers.filter(function(p){return p.pit&&p.pit.ip>0;});
 }
 
 
