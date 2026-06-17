@@ -48,8 +48,7 @@ body.light-mode{
 body.light-mode .sb-header,
 body.light-mode .sidebar,
 body.light-mode aside#sidebar{background:#ffffff;border-color:#e5e7eb}
-body.light-mode .sb-header .sb-season,body.light-mode .sb-header .sb-record-sub{color:#6b7280}
-body.light-mode .sb-header .sb-record{color:#585d67}
+body.light-mode .sb-header .sb-season{color:#6b7280}
 body.light-mode .sb-item{color:#374151}
 body.light-mode .sb-item:hover{background:#f3f4f6;color:#585d67}
 body.light-mode .sb-item.active{background:#2563eb;color:#ffffff}
@@ -104,7 +103,7 @@ body.light-mode .up-type-card.selected {background:#fff}
 
 html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-height:100vh;overflow-x:hidden}
 .sb-icon svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;display:block}
-.sb-icon i{display:block;line-height:1}
+.sb-icon i{display:block;line-height:1;font-size:15px;width:20px;text-align:center}
 
 /* ── SITE HEADER ── */
 /* Desktop: fixed at top-left, same width as sidebar. Mobile: full-width fixed top bar. */
@@ -123,9 +122,6 @@ body.light-mode .sb-logo-light{display:block}
 .sb-header-text{flex:1;min-width:0;font-style:italic}
 .sb-team-name{font-size:15px;font-weight:700;color:var(--hdr);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
 .sb-season{font-size:11px;color:var(--sub);}
-.sb-record-wrap{display:none;text-align:right;flex-shrink:0}
-.sb-record{font-family:var(--fh);font-size:22px;color:var(--hdr);letter-spacing:.04em;line-height:1}
-.sb-record-sub{font-size:9px;color:var(--sub);margin-top:1px;white-space:nowrap}
 /* Hamburger: hidden on desktop, shown on mobile */
 .sb-hamburger{display:none;background:none;border:none;color:var(--sub);cursor:pointer;padding:4px;border-radius:6px;flex-shrink:0;transition:color .15s}
 .sb-hamburger:hover{color:var(--hdr)}
@@ -1476,11 +1472,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <div class="sb-team-name">Baseline</div>
     <div class="sb-season">Analytics</div>
   </div>
-  <div class="sb-record-wrap">
-    <div class="sb-record" id="sb-record">—</div>
-    <div class="sb-record-sub">Regular Season</div>
-  </div>
-  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"><svg id="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><svg id="theme-icon-moon" viewBox="0 0 24 24" class="svg-hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></button>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"><svg id="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><svg id="theme-icon-moon" viewBox="0 0 24 24" class="svg-hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   <button class="sb-hamburger" onclick="toggleSidebar()" title="Menu">
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
@@ -1496,10 +1488,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <div class="sb-team-name">SBA Red 12u</div>
     <div class="sb-team-season">Summer 2026</div>
   </div>
-  <div class="sb-record-wrap">
-    <div class="sb-record" id="sb-record">—</div>
-    <div class="sb-record-sub">Regular Season</div>
-  </div>
 </div></div>
     <div class="sb-group">
       <button class="sb-item active" onclick="goPage('home',this)" id="nav-home">
@@ -1512,7 +1500,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         <span class="sb-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Roster
       </button>
       <button class="sb-item" onclick="goPage('hitting',this)" id="nav-hitting">
-        <span class="sb-icon"><i class="fa-solid fa-baseball-bat-ball" style="font-size:15px;width:20px;text-align:center"></i></span> Batting
+        <span class="sb-icon"><i class="fa-solid fa-baseball-bat-ball"></i></span> Batting
       </button>
       <button class="sb-item" onclick="goPage('pitching',this)" id="nav-pitching">
         <span class="sb-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M4.93 4.93c4.08 4.08 10.06 4.08 14.14 0"></path><path d="M4.93 19.07c4.08-4.08 10.06-4.08 14.14 0"></path></svg></span> Pitching
@@ -7990,7 +7978,6 @@ function goPage(id,btn){
 
 function updateRecord(w,l){
   var rec=w+'-'+l;
-  var sbRec=document.getElementById('sb-record');if(sbRec)sbRec.textContent=rec;
   var hrec=document.getElementById('home-record');if(hrec)hrec.textContent=rec;
 }
 
