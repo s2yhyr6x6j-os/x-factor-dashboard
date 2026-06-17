@@ -418,19 +418,22 @@ body.light-mode .sb-logo-light{display:block}
 .section-sub{font-size:12px;color:var(--sub);margin-top:2px}
 
 /* ── GAMES ── */
-.game-form-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.game-form-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:16px;position:relative}
 .form-row{display:grid;grid-template-columns:150px 1fr 70px 70px 90px 1fr auto;gap:8px;align-items:end}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)}
 .field input,.field select{font-family:var(--ff);font-size:13px;padding:9px 12px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;color:var(--hdr);outline:none;width:100%;transition:border-color .2s}
-.field input:focus,.field select:focus{border-color:var(--red)}
+.field input:hover,.field select:hover{border-color:#51a2ff}
+.field input:focus,.field select:focus{border-color:#51a2ff}
 .field input[type=date]{color-scheme:dark}
 .csv-attach{display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;height:39px;cursor:pointer;transition:border-color .2s;overflow:hidden;min-width:0}
 .csv-attach:hover,.csv-attach.drag-over{border-color:var(--red)}
 .csv-attach-name{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
 .csv-attach-name.ready{color:var(--green);font-weight:600}
-.add-btn{font-family:var(--ff);font-weight:600;font-size:12px;padding:9px 20px;background:var(--red);color:#fff;border:none;cursor:pointer;height:39px;white-space:nowrap;border-radius:8px;transition:background .15s;letter-spacing:.02em}
-.add-btn:hover{background:var(--red-dk)}
+.add-btn{font-family:var(--ff);font-weight:600;font-size:12px;padding:9px 20px;background:#51a2ff;color:#fff;border:none;cursor:pointer;height:39px;white-space:nowrap;border-radius:8px;transition:background .15s;letter-spacing:.02em}
+.add-btn:hover{background:var(--blue)}
+.game-form-close{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:var(--sub);font-size:16px;line-height:1;padding:4px;transition:color .15s}
+.game-form-close:hover{color:var(--hdr)}
 .form-err{font-size:11px;color:var(--red);margin-top:8px;min-height:16px}
 .gl-wrap{margin-top:0}
 .gl-sort-row{display:flex;justify-content:flex-end;margin-bottom:10px}
@@ -2341,16 +2344,17 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <button class="gl-add-btn" onclick="toggleAddGame()">+ Add Game</button>
     <div id="gl-add-form" class="svg-hidden">
       <div class="game-form-card">
+        <button class="game-form-close" onclick="cancelAddGame()" aria-label="Cancel">✕</button>
         <div class="form-row">
           <div class="field"><label>Date</label><input type="date" id="f-date"></div>
           <div class="field"><label>Opponent</label><input type="text" id="f-opp" placeholder="e.g. Omaha Tigers 12U"></div>
-          <div class="field"><label>Us</label><input type="number" id="f-us" placeholder="0" min="0"></div>
-          <div class="field"><label>Them</label><input type="number" id="f-them" placeholder="0" min="0"></div>
+          <div class="field"><label>SBA</label><input type="number" id="f-us" placeholder="0" min="0"></div>
+          <div class="field"><label>OPP</label><input type="number" id="f-them" placeholder="0" min="0"></div>
           <div class="field"><label>Location</label>
             <select id="f-loc"><option value="">—</option><option value="H">Home</option><option value="A">Away</option><option value="N">Neutral</option></select>
           </div>
           <div class="field"><label>Stats CSV</label>
-            <div class="csv-attach" onclick="document.getElementById('file-input').click()"
+            <div class="csv-attach" onclick="document.getElementById('csv-attach-input').click()"
               ondragover="event.preventDefault();this.classList.add('drag-over')"
               ondragleave="this.classList.remove('drag-over')"
               ondrop="handleGameDrop(event)">
@@ -2360,7 +2364,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           </div>
           <button class="add-btn" onclick="addGame()">Save</button>
         </div>
-        <input type="file" id="csv-attach-input" accept=".csv" onchange="handleFileAttach(event)">
+        <input type="file" id="csv-attach-input" class="svg-hidden" accept=".csv" onchange="handleFileAttach(event)">
         <div class="form-err" id="form-err"></div>
       </div>
     </div>
@@ -4526,6 +4530,19 @@ function toggleGLSort(){
 function toggleAddGame(){
   var f=document.getElementById('gl-add-form');
   f.classList.toggle('svg-hidden');
+}
+
+function cancelAddGame(){
+  document.getElementById('f-date').value='';
+  document.getElementById('f-opp').value='';
+  document.getElementById('f-us').value='';
+  document.getElementById('f-them').value='';
+  document.getElementById('f-loc').value='';
+  document.getElementById('form-err').textContent='';
+  pendingCSVPlayers=null;pendingCSVFilename=null;
+  var fn=document.getElementById('csv-filename');
+  if(fn){fn.textContent='Click or drop CSV…';fn.className='csv-attach-name';}
+  document.getElementById('gl-add-form').classList.add('svg-hidden');
 }
 
 function renderGameLog(){
