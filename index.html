@@ -1491,12 +1491,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       <button class="sb-item" onclick="goPage('rotation',this)" id="nav-rotation">
         <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93c4.08 4.08 10.06 4.08 14.14 0"/><path d="M4.93 19.07c4.08-4.08 10.06-4.08 14.14 0"/></svg></span> Rotation
       </button>
-      <!--<button class="sb-item" onclick="goPage('scouting',this)" id="nav-scouting">
-        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="13.5" r="4"/><circle cx="17.5" cy="13.5" r="4"/><path d="M10.5 13.5 h3"/><path d="M2.5 10.5 L6 6 h3 l1.5 4"/><path d="M21.5 10.5 L18 6 h-3 l-1.5 4"/></svg></span> Scouting
-      </button>
-      <button class="sb-item" onclick="goPage('recs',this)" id="nav-recs">
-        <span class="sb-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> Recommendations
-      </button>-->
     </div>
     <div class="sb-group">
       <div class="sb-group-label">Data</div>
@@ -2238,7 +2232,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <button class="lineup-strategy-btn" id="lineup-strategy-btn" onclick="autoLineup()">
       <span id="lineup-strategy-icon">⚡</span>
       <span id="lineup-strategy-label">Lineup Optimizer</span>
-      <!--<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>-->
     </button>
   </div>
   <div class="lineup-page-sub" id="lineup-page-sub">Based on 0 regular season games of data</div>
@@ -3361,7 +3354,7 @@ function trendBadge(p){
 // ═══════════════════════════════════════
 //  RENDER ALL
 // ═══════════════════════════════════════
-var batSortKey='avg',pitSortKey='era',batTogKey='avg',pitTogKey='era';
+var batTogKey='avg',pitTogKey='era';
 
 function renderAll(){
   updateLabels();renderOverview();renderRoster();renderHittingPage();renderPitchingPage();
@@ -3687,24 +3680,6 @@ function renderCharts(){
 var rosterOverrides={};  // {name: {num, age, displayName}}
 var playerInsights={};  // {name: {insights, generatedAt, player}} — synced via KV so insights generated on one device show on all
 var rosterEditTarget=null;
-
-
-function buildPosBadges(ov, small){
-  var positions=ov.positions||{};
-  var posOrder=['P','C','1B','2B','3B','SS','LF','CF','RF','DH'];
-  var POS_ORDER_MAP={primary:0,canplay:1,learning:2};
-  var filtered=posOrder.filter(function(pos){
-    var st=positions[pos];return st&&st!=='never'&&st!=='';
-  }).sort(function(a,b){
-    return (POS_ORDER_MAP[positions[a]]||3)-(POS_ORDER_MAP[positions[b]]||3);
-  });
-  if(!filtered.length) return '';
-  return filtered.map(function(pos){
-    var st=positions[pos];
-    var icon=st==='primary'?'⭐':st==='canplay'?'<span style="color:#4ade80">✓</span>':'📘';
-    return '<div class="'+(small?'roster-pos-badge':'pd-pos-badge')+' '+st+'">'+icon+' '+pos+'</div>';
-  }).join('');
-}
 
 
 function buildPosBadges(ov, small){
@@ -4252,7 +4227,6 @@ function renderHittingPage(){
 }
 
 function renderBatTable(data){renderHittingPage();}
-function sortBat(k){batLbTog=k==='qab_pct'?'qab':k==='obp'?'obp':k==='ops'?'ops':k==='avg'?'avg':'qab';renderHittingPage();}
 
 // ── PITCHING PAGE ──
 var pitLbTog='sp';
@@ -4509,7 +4483,6 @@ function hidePsTooltip(){
 }
 
 function renderPitTable(data){renderPitchingPage();}
-function sortPit(k){pitLbTog=k==='era'||k==='whip'?'whip':k==='sp'||k==='fps'?'sp':'fip';renderPitchingPage();}
 
 // ── GAME LOG ──
 var glSortNewest=true;
@@ -8027,8 +8000,6 @@ function flipCard(id, event){
 
 function setBatTog(k,btn){batTogKey=k;document.querySelectorAll('#page-home .tog-row').forEach(function(r,i){if(i===0)r.querySelectorAll('.tog').forEach(function(t){t.classList.remove('on');});});btn.classList.add('on');renderBatBars();}
 function setPitTog(k,btn){batTogKey;pitTogKey=k;btn.closest('.tog-row').querySelectorAll('.tog').forEach(function(t){t.classList.remove('on');});btn.classList.add('on');renderPitBars();}
-function sortBat(k){batSortKey=k;renderBatTable();}
-function sortPit(k){pitSortKey=k;renderPitTable();}
 function filterBat(q){document.querySelectorAll('#bat-body tr').forEach(function(r){if(r.cells[0])r.style.display=r.cells[0].textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
 function filterPit(q){document.querySelectorAll('#pit-body tr').forEach(function(r){if(r.cells[0])r.style.display=r.cells[0].textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
 
