@@ -1115,6 +1115,20 @@ body.light-mode .ics-input{background:#f3f4f6}
 .font-hdr{font-size:17px;font-weight:700;color:var(--hdr)}
 .font-label{font-size:11px;font-weight:600;color:var(--sub);margin:14px 0 6px}
 .font-12-sub{font-size:12px;color:var(--sub);margin-top:2px}
+.card.trends-card{margin-top:0;padding:20px 20px 16px}
+.chart-wrap.h160{height:160px}
+.trends-hdr-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
+.trends-legend-row{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--sub)}
+.trends-legend-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.trends-legend-dot.win{background:var(--green)}
+.trends-legend-dot.loss{background:var(--red)}
+.trends-chart-hdr-row{display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px}
+.trends-chart-label{font-size:11px;font-weight:600;color:var(--sub)}
+.trends-legend-line{width:20px;height:2px;border-radius:2px;display:inline-block}
+.trends-legend-line.ops{background:#a855f7}
+.trends-legend-line.obp{background:#22c55e;border-top:2px dashed #22c55e}
+.trends-target-note{font-size:10px;color:var(--sub);margin-top:10px}
+.stat-player-list-empty{padding:16px 18px;font-size:12px;color:var(--sub)}
 .mt-2{margin-top:2px}
 .mt-4{margin-top:4px}
 .mb-6{margin-bottom:6px}
@@ -1695,33 +1709,33 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
 
   <!-- SEASON TRENDS -->
-  <div class="card" style="margin-top:0;padding:20px 20px 16px">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+  <div class="card trends-card">
+    <div class="trends-hdr-row">
       <div>
         <div class="font-hdr">Season Trends</div>
         <div class="font-12-sub" id="trends-sub">0 games played</div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;font-size:11px;color:var(--sub)">
-        <span class="flex-gap5"><span style="width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block"></span>Win</span>
-        <span class="flex-gap5"><span style="width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block"></span>Loss</span>
+      <div class="trends-legend-row">
+        <span class="flex-gap5"><span class="trends-legend-dot win"></span>Win</span>
+        <span class="flex-gap5"><span class="trends-legend-dot loss"></span>Loss</span>
       </div>
     </div>
 
     <!-- Strike % chart -->
     <div class="font-label">Team Strike % by Game</div>
-    <div class="chart-wrap" style="height:160px"><canvas id="spChart"></canvas></div>
+    <div class="chart-wrap h160"><canvas id="spChart"></canvas></div>
 
     <!-- OPS / OBP chart -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px">
-      <div style="font-size:11px;font-weight:600;color:var(--sub)">Team Batting by Game</div>
+    <div class="trends-chart-hdr-row">
+      <div class="trends-chart-label">Team Batting by Game</div>
       <div class="flex-gap14 font-sub-sm">
-        <span class="flex-gap4"><span style="width:20px;height:2px;background:#a855f7;display:inline-block;border-radius:2px"></span>OPS</span>
-        <span class="flex-gap4"><span style="width:20px;height:2px;background:#22c55e;display:inline-block;border-radius:2px;border-top:2px dashed #22c55e"></span>OBP</span>
+        <span class="flex-gap4"><span class="trends-legend-line ops"></span>OPS</span>
+        <span class="flex-gap4"><span class="trends-legend-line obp"></span>OBP</span>
       </div>
     </div>
-    <div class="chart-wrap" style="height:160px"><canvas id="batTrendChart"></canvas></div>
+    <div class="chart-wrap h160"><canvas id="batTrendChart"></canvas></div>
 
-    <div style="font-size:10px;color:var(--sub);margin-top:10px">
+    <div class="trends-target-note">
       Team OBP target: .450+ · OPS target: .800+
     </div>
   </div>
@@ -3450,7 +3464,7 @@ function renderOverview(){
           +'<span class="stat-player-val '+cls+'">'+p.pit.sp.toFixed(1)+'% S%'+(cls==='elite'?'🔥':'')+'</span>'
           +'</div>';
       }).join('')
-    : '<div style="padding:16px 18px;font-size:12px;color:var(--sub)">Upload season CSV to populate</div>';
+    : '<div class="stat-player-list-empty">Upload season CSV to populate</div>';
 
   // ── Innings Pitched donut ──
   renderDonut(pitchers);
@@ -3483,7 +3497,7 @@ function renderOverview(){
           +'<span class="stat-player-val '+cls+'">'+p.ops.toFixed(3)+' OPS'+(cls==='elite'?'🔥':'')+'</span>'
           +'</div>';
       }).join('')
-    : '<div style="padding:16px 18px;font-size:12px;color:var(--sub)">Upload season CSV to populate</div>';
+    : '<div class="stat-player-list-empty">Upload season CSV to populate</div>';
 
   renderCharts();
 }
