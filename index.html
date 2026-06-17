@@ -775,6 +775,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-val.elite{color:var(--purple)}
 .pit-page-title{font-size:24px;font-weight:700;color:var(--hdr);line-height:1;display:flex;align-items:center;gap:10px}
 .pit-page-title svg,.gl-page-title svg, .up-title svg{width:22px;height:22px;stroke:#51a2ff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.pit-page-title i{width:20px;text-align:center;font-size:17px;color:#51a2ff}
 .pit-page-sub{font-size:12px;color:var(--sub);margin-top:5px;margin-bottom:30px}
 .pit-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:30px}
 .pit-kpi-card{border-radius:10px;padding:0;position:relative;perspective:600px}
@@ -1968,12 +1969,12 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 <!-- HITTING -->
 <div class="page" id="page-hitting">
 
-  <div class="pit-page-title"><i class="fa-solid fa-baseball-bat-ball" style="font-size:17px;width:20px;text-align:center;color:#51a2ff"></i> Batting</div>
+  <div class="pit-page-title"><i class="fa-solid fa-baseball-bat-ball"></i> Batting</div>
   <div class="pit-page-sub">SBA Red · Summer 2026</div>
 
     <!-- 4 KPI cards — 1 row horizontal like pitching page -->
   <div class="bat-kpi-grid">
-    <div class="pit-kpi-card" id="bkpi-qab" style="height:130px">
+    <div class="pit-kpi-card h130" id="bkpi-qab">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Team QAB% <span class="info" onclick="flipPitCard('bkpi-qab',event)">i</span></div>
@@ -1990,7 +1991,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         </div>
       </div>
     </div>
-    <div class="pit-kpi-card" id="bkpi-ops" style="height:130px">
+    <div class="pit-kpi-card h130" id="bkpi-ops">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Team OPS <span class="info" onclick="flipPitCard('bkpi-ops',event)">i</span></div>
@@ -2007,7 +2008,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         </div>
       </div>
     </div>
-    <div class="pit-kpi-card" id="bkpi-obp" style="height:130px">
+    <div class="pit-kpi-card h130" id="bkpi-obp">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Team OBP <span class="info" onclick="flipPitCard('bkpi-obp',event)">i</span></div>
@@ -2024,7 +2025,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         </div>
       </div>
     </div>
-    <div class="pit-kpi-card" id="bkpi-con" style="height:130px">
+    <div class="pit-kpi-card h130" id="bkpi-con">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Contact% <span class="info" onclick="flipPitCard('bkpi-con',event)">i</span></div>
@@ -2052,11 +2053,11 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <div class="chart-wrap-square">
       <canvas id="paDonutChart"></canvas>
     </div>
-    <div class="donut-legend" id="pa-donut-legend" style="margin-top:14px"></div>
+    <div class="donut-legend" id="pa-donut-legend"></div>
   </div>
 
   <!-- Toggle tabs -->
-  <div class="lb-filter-row" style="margin-bottom:10px">
+  <div class="lb-filter-row">
     <button class="lb-filter-btn active" onclick="setBatFilter('season',this)">Season</button>
     <button class="lb-filter-btn" onclick="setBatFilter('last10',this)">Last 10</button>
     <button class="lb-filter-btn" onclick="setBatFilter('last5',this)">Last 5</button>
@@ -2921,6 +2922,15 @@ function applyStatClass(el, key, val, display){
     else if(cls==='warn') el.classList.add('warn');
     else if(cls==='urgent') el.classList.add('urgent');
   }
+}
+
+// Shared leaderboard color-by-threshold helper — avoids repeating this same
+// elite/good/warn/urgent → hex mapping in every batLbConfig/pitLbConfig entry
+function lbColor(key){
+  return function(v){
+    var c=statClass(key,v);
+    return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444';
+  };
 }
 
 var LS={games:'sba_games_v2',gamelog:'sba_gl_v2',lineup:'sba_lineup_v2',apikey:'sba_apikey_v1'};
@@ -4071,22 +4081,22 @@ var paDonutChartObj=null;
 var batLbConfig={
   qab:{sub:'Sorted by QAB% · Blue Line = 60% target',hint:"QAB% = Quality At-Bats ÷ PA × 100 · QAB: walk, hit, HHB, moved runner, full count (6+ pitches)",target:60,goodHigh:true,fixedMax:100,
     fmt:function(v){return v.toFixed(1)+'%'},key:'qab',secondary:function(p){return p.ops.toFixed(3)+' OPS'},
-    getVal:function(p){return p.qab_pct},color:function(v){var c=statClass('qab',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    getVal:function(p){return p.qab_pct},color:lbColor('qab')},
   obp:{sub:'Sorted by OBP · Blue Line = .450 target',hint:'OBP = On Base Percentage · Getting on base any way keeps innings alive',target:0.450,goodHigh:true,
     fmt:function(v){return v.toFixed(3)},key:'obp',secondary:function(p){return p.ops.toFixed(3)+' OPS'},
-    getVal:function(p){return p.obp},color:function(v){var c=statClass('obp',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    getVal:function(p){return p.obp},color:lbColor('obp')},
   ops:{sub:'Sorted by OPS · Blue Line = .800 target',hint:'OPS = OBP + Slugging · Single best offensive value indicator',target:0.800,goodHigh:true,
     fmt:function(v){return v.toFixed(3)},key:'ops',secondary:function(p){return p.qab_pct.toFixed(1)+'% QAB'},
-    getVal:function(p){return p.ops},color:function(v){var c=statClass('ops',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    getVal:function(p){return p.ops},color:lbColor('ops')},
   con:{sub:'Sorted by Contact% · Blue Line = 70% target',hint:'Contact% = (AB − K) ÷ AB × 100 · Ball in play rate',target:70,goodHigh:true,fixedMax:100,
     fmt:function(v){return v.toFixed(1)+'%'},key:'con',secondary:function(p){return p.avg.toFixed(3)+' AVG'},
-    getVal:function(p){return p.ab>0?(p.ab-p.so)/p.ab*100:0},color:function(v){var c=statClass('con',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    getVal:function(p){return p.ab>0?(p.ab-p.so)/p.ab*100:0},color:lbColor('con')},
   avg:{sub:'Sorted by AVG · bLue Line = .450 target',hint:'AVG = Hits ÷ At-Bats · Traditional batting average',target:0.450,goodHigh:true,noBar:true,
     fmt:function(v){return v.toFixed(3)},key:'avg',secondary:function(p){return p.ops.toFixed(3)+' OPS'},
-    getVal:function(p){return p.avg},color:function(v){var c=statClass('avg',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    getVal:function(p){return p.avg},color:lbColor('avg')},
   bbk:{sub:'Sorted by BB/K · Blue Line = 0.75 target',hint:'BB/K = Walks ÷ Strikeouts · Plate discipline ratio',target:0.75,goodHigh:true,noBar:true,
     fmt:function(v){return v.toFixed(2)},key:'bbk',secondary:function(p){return p.bb+' BB · '+p.so+' K'},
-    getVal:function(p){return p.so>0?p.bb/p.so:0},color:function(v){var c=statClass('bbk',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    getVal:function(p){return p.so>0?p.bb/p.so:0},color:lbColor('bbk')},
   rbi:{sub:'RBI = Runs Batted In',hint:'RBI = Runs Batted In · Total Runs Driven In',target:null,goodHigh:true,noBar:true,noColor:true,
     fmt:function(v){return Math.round(v)},key:'rbi',secondary:null,
     getVal:function(p){return p._filtRbi!=null?p._filtRbi:p.rbi},color:function(v){return 'var(--hdr)'}},  
@@ -4116,19 +4126,11 @@ function renderHittingPage(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var players=getFilteredPlayers(_batFilter);
 
-  // Only recalculate thresholds for filtered views, restore originals for season
-  if(_batFilter==='season'){
-    STAT_THRESHOLDS.obp={elite:.501,good:.450,warn:.350,hi:true};
-    STAT_THRESHOLDS.ops={elite:1.0,good:.800,warn:.700,hi:true};
-    STAT_THRESHOLDS.avg={elite:.451,good:.400,warn:.300,hi:true};
-    STAT_THRESHOLDS.qab={elite:70,good:60,warn:50,hi:true};
-  } else if(players.length>1){
-    // Use same fixed thresholds as season — no scaling
-    STAT_THRESHOLDS.obp={elite:.501,good:.450,warn:.350,hi:true};
-    STAT_THRESHOLDS.ops={elite:1.0,good:.800,warn:.700,hi:true};
-    STAT_THRESHOLDS.avg={elite:.451,good:.400,warn:.300,hi:true};
-    STAT_THRESHOLDS.qab={elite:70,good:60,warn:50,hi:true};
-  }
+  // Fixed thresholds — same for season and filtered views, no scaling
+  STAT_THRESHOLDS.obp={elite:.501,good:.450,warn:.350,hi:true};
+  STAT_THRESHOLDS.ops={elite:1.0,good:.800,warn:.700,hi:true};
+  STAT_THRESHOLDS.avg={elite:.451,good:.400,warn:.300,hi:true};
+  STAT_THRESHOLDS.qab={elite:70,good:60,warn:50,hi:true};
 
   // ── KPI cards ──
   var totalAB=0,totalH=0,totalBB=0,totalHBP=0,totalSO=0,totalQAB=0,totalPA=0,totalTB=0;
@@ -4245,19 +4247,19 @@ function renderBatTable(data){renderHittingPage();}
 var pitLbTog='sp';
 var pitLbConfig={
   sp:{label:'S%',sub:'Sorted by S% · blue line = 60% target',hint:'S% = Strikes ÷ Pitches × 100 · Target: 60%+ · Elite: 70%+',target:60,goodHigh:true,fmt:function(v){return v.toFixed(1)+'%'},getVal:function(p){return p.pit.sp||0},
-    color:function(v){var c=statClass('sp',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    color:lbColor('sp')},
   fip:{label:'FIP',sub:'Sorted by FIP · lower is better · target < 3.00',hint:'FIP = Fielding Independent Pitching · Measures only what the pitcher can control: K, BB, HR. Removes fielding errors.',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){var ip=pitIP(p.pit);var fip=p.pit.fip||(ip>0?((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/ip+3.1):0);return fip;},
-    color:function(v){var c=statClass('fip',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    color:lbColor('fip')},
   whip:{label:'WHIP',sub:'Sorted by WHIP · lower is better · target < 1.50',hint:'WHIP = (Walks + Hits) ÷ Innings Pitched · 1.0 = excellent at any level',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.whip||0},
-    color:function(v){var c=statClass('whip',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    color:lbColor('whip')},
   era:{label:'ERA',sub:'Sorted by ERA · lower is better',hint:'ERA = Earned Runs × 9 ÷ IP · Earned Run Average',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.era||0},
-    color:function(v){var c=statClass('fip',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    color:lbColor('era')},
   fps:{label:'FPS%',sub:'Sorted by FPS% · blue line = 60% target',hint:'FPS% = First Pitch Strikes ÷ Batters Faced · Target: 60%+',target:60,goodHigh:true,fmt:function(v){return v.toFixed(1)+'%'},getVal:function(p){return p.pit.fps||0},
-    color:function(v){var c=statClass('fps',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    color:lbColor('fps')},
   kbb:{label:'K/BB',sub:'Sorted by K/BB · higher is better · target > 2.0',hint:'K/BB = Strikeouts ÷ Walks · Command ratio. Elite: >3.0',target:null,goodHigh:true,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.kbb!=null?p.pit.kbb:(p.pit.bb>0?p.pit.k/p.pit.bb:p.pit.k||0)},
-    color:function(v){var c=statClass('kbb',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    color:lbColor('kbb')},
   bbinn:{label:'BB/INN',sub:'Sorted by BB/INN · lower is better · target < 1.0',hint:'BB/INN = Walks ÷ Innings Pitched · Command metric. Elite: <0.5',target:null,goodHigh:false,fmt:function(v){return v.toFixed(2)},getVal:function(p){return p.pit.bbinn!=null?p.pit.bbinn:(pitIP(p.pit)>0?p.pit.bb/pitIP(p.pit):0)},
-    color:function(v){var c=statClass('bbinn',v);return c==='elite'?'#a855f7':c==='good'?'#22c55e':c==='warn'?'#f59e0b':'#ef4444'}},
+    color:lbColor('bbinn')},
   k:{label:'K',sub:'Sorted by Strikeouts',hint:'K = Strikeouts · Total strikeouts in selected window',target:null,goodHigh:true,fmt:function(v){return Math.round(v)},noBar:true,getVal:function(p){return p.pit.k||0},
     color:function(v){return v>=10?'#a855f7':v>=5?'#22c55e':'var(--hdr)'}}
 };
