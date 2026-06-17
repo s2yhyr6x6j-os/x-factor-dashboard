@@ -857,8 +857,8 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .met-section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:12px;margin-top:4px}
 #page-roster.page.active,#page-games.page.active,#page-rotation.page.active,#page-lineup.page.active{max-width:75%;}
 .roster-page-hdr{margin-bottom:22px}
-button#gen-all-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:8px 14px;background:0;color:#f59e0b;border:1px solid #f59e0b;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;margin-top:4px;transition:all .18s}
-button#gen-all-btn:hover{background:#f59e0b;color:#fff}
+button#gen-all-btn{font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:rgba(124, 58, 237, 0.3);color:#fff;border:1px solid rgba(124, 58, 237, 0.8);border-radius:8px;cursor:pointer;margin-top:8px;transition:all .18s}
+button#gen-all-btn:hover{background:rgba(124, 58, 237, 0.8);}
 body.light-mode button#gen-all-btn{border-color: var(--purple);background: var(--purple);color: #fff;}
 body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .16);}
 .roster-page-title{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700;color:var(--hdr);margin-bottom:4px}
@@ -1706,10 +1706,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       </div>
       <div class="roster-page-sub">Tap <span>✏️</span> to edit name, jersey number, or league age</div>
     </div>
-    <button id="gen-all-btn" onclick="generateAllInsights()" title="Generate Coaching Insights for All Players (~5 min)" style="background:#7c3aed;color:#fff;border-color:#7c3aed">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      Generate All Insights
-    </button>
+    <button id="gen-all-btn" onclick="generateAllInsights()" title="Generate Coaching Insights for All Players (~5 min)">🪄Generate All Insights</button>
   </div>
   <div class="gen-progress-bar" id="gen-progress-bar">
     <div class="gen-progress-hdr">
