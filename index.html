@@ -82,9 +82,8 @@ body.light-mode .pit-lb-track,.bat-lb-track,.met-lb-track{background:#e5e7eb}
 body.light-mode .stbl tr:hover{background:rgba(0,0,0,.03)}
 body.light-mode input,body.light-mode select,body.light-mode textarea{background:#f8fafc;border-color:var(--border);color:var(--hdr)}
 
-body.light-mode .roster-num-badge,body.light-mode .met-num-badge{background:none;transition:all .18s;}
 body.light-mode .roster-row:hover{border: 1px solid rgba(81, 162, 255, 0.5);box-shadow: 0 1px 3px rgba(81, 162, 255, 0.75);}
-body.light-mode .roster-row:hover .roster-num-badge, body.light-mode .roster-row:hover .roster-name{color:rgba(81, 162, 255, 0.5);}
+body.light-mode .roster-row:hover .roster-name{color:rgba(81, 162, 255, 0.5);}
 body.light-mode .re-modal-card,.light-mode .roster-edit-card{background:#ffffff}
 body.light-mode .pit-lb-track,.light-mode .bat-lb-track,.light-mode .met-lb-track{background:rgba(0,0,0,.08)}
 body.light-mode .pp-ranked-row{background:#ffffff;border-color:var(--border)}
@@ -406,6 +405,10 @@ body.light-mode .sb-logo-light{display:block}
 .srch::placeholder{color:var(--sub)}
 .sort-sel{font-family:var(--ff);font-size:12px;font-weight:500;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--hdr);cursor:pointer;outline:none}
 .empty{text-align:center;color:var(--sub);font-size:13px;padding:48px 20px}
+.empty.roster-empty{padding:40px 0}
+.roster-arm-status{font-size:11px;font-weight:600}
+.roster-arm-status.limited{color:var(--amber)}
+.roster-arm-status.resting{color:#fb7185}
 .empty.gl-empty{padding:48px 0}
 
 /* ── SECTION HEADER ── */
@@ -863,7 +866,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .met-lb-target-line{position:absolute;top:-3px;bottom:-3px;width:2px;background:#3b82f6;border-radius:1px}
 .met-section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:12px;margin-top:4px}
 #page-roster.page.active,#page-games.page.active,#page-rotation.page.active,#page-lineup.page.active{max-width:75%;}
-.roster-page-hdr{margin-bottom:22px}
+.roster-page-hdr{margin-bottom:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 button#gen-all-btn{font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 18px;background:rgba(124, 58, 237, 0.3);color:#fff;border:1px solid rgba(124, 58, 237, 0.8);border-radius:8px;cursor:pointer;margin-top:8px;transition:all .18s}
 button#gen-all-btn:hover{background:rgba(124, 58, 237, 0.8);}
 body.light-mode button#gen-all-btn{border-color: var(--purple);background: var(--purple);color: #fff;}
@@ -878,9 +881,8 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 
 .roster-row{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:background .15s}
 .roster-row:hover{background:rgba(255,255,255,.02)}
-.roster-num-badge{width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;color:rgba(0,0,0,0.4);flex-shrink:0;}
-.roster-row:hover .roster-num-badge {color: rgba(255, 255, 255, 0.15);}
-.roster-info{flex:1;min-width:0}
+.roster-num-badge{font-size:18px;font-weight:800;color:var(--sub);width:22px;flex-shrink:0;text-align:center;margin-top:2px}
+.roster-info{flex:1;min-width:0;cursor:pointer}
 .roster-name{font-size:15px;font-weight:700;color:var(--hdr);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .roster-name:hover {color: #51a2ff;}
 .roster-meta{font-size:11px;color:var(--sub);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -917,12 +919,17 @@ body.light-mode button#gen-all-btn:hover {box-shadow: 0 3px 5px rgba(0, 0, 0, .1
 .roster-edit-modal.open{display:flex}
 .roster-edit-card{background:rgba(0,0,0,0.75);border-radius:0;width:580px;max-width:95vw;max-height:92vh;overflow-y:auto;margin:auto;display:flex;flex-direction:column;gap:10px;padding:12px}
 .re-modal-header{position:relative;margin-bottom:0;background:#101828;border:1px solid var(--border);border-radius:14px;padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.re-modal-header-info{width:100%}
+#re-hdr-name{padding-right:32px}
+#re-hdr-meta{margin-top:4px}
+#re-hdr-pos-badges{margin-top:8px}
+#re-hdr-stats{margin-top:12px;justify-content:flex-start}
 body.light-mode .re-modal-header, body.light-mode .re-modal-body {background: #eee;box-shadow: 0 1px 3px rgba(0, 0, 0, .12);}
 .re-modal-header .pd-hero-left{flex:1;min-width:0}
 .re-modal-num{font-size:12px;font-weight:700;color:var(--sub);background:rgba(255,255,255,.08);border-radius:6px;padding:3px 8px;flex-shrink:0;font-family:var(--ff)}
 .re-modal-name{font-size:22px;font-weight:800;color:var(--hdr);line-height:1.1}
 .re-modal-meta{font-size:12px;color:var(--sub);margin-top:2px}
-.re-modal-close{background:none;border:none;color:var(--sub);cursor:pointer;font-size:18px;padding:4px;line-height:1;transition:color .15s}
+.re-modal-close{background:none;border:none;color:var(--sub);cursor:pointer;font-size:18px;padding:4px;line-height:1;transition:color .15s;position:absolute;top:12px;right:14px;z-index:1}
 .re-modal-close:hover{color:var(--hdr)}
 .re-modal-body{padding:18px;background:#101828;border:1px solid var(--border);border-radius:14px}
 .re-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
@@ -932,6 +939,8 @@ body.light-mode .re-modal-header, body.light-mode .re-modal-body {background: #e
 .re-field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 .re-field input:focus,.re-field select:focus{border-color:var(--blue)}
 .re-section{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin:16px 0 10px}
+.re-section.sub{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:rgba(148,163,184,.5);margin-top:10px;margin-bottom:8px}
+.re-section.sub.first{margin-top:-8px}
 /* Tags */
 .re-tags-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
 .re-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;border:1.5px solid var(--border);color:var(--sub);background:#030712;}
@@ -957,6 +966,9 @@ body.light-mode .re-pos{background:var(--bg1)}
 .re-pos.never{border-color:#fb7185;background:rgba(251,113,133,.06)}
 .re-pos-legend{display:flex;gap:12px;font-size:10px;color:var(--sub);flex-wrap:wrap;margin-bottom:14px}
 .re-pos-legend span{display:flex;align-items:center;gap:4px}
+.re-pos-legend .canplay{color:var(--green)}
+.re-pos-legend .learning{color:var(--blue)}
+.re-pos-legend .never{color:#fb7185}
 /* Arm health */
 .re-arm-btns{display:flex;gap:8px;margin-bottom:12px}
 .re-arm-btn{flex:1;font-family:var(--ff);font-size:12px;font-weight:600;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
@@ -1171,9 +1183,6 @@ body.light-mode .pd-btn-outline{background:#fff}
 .sc-tab.active{background:rgba(255,255,255,.1);color:var(--hdr)}
 .sc-tab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
 #sc-pane-preview{flex: 1;display: flex;flex-direction: column;min-height: 0;overflow: hidden;background:#030712;}
-.sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
-.sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
-.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a}
 
 /* Preview card */
 .sc-preview-card{margin-bottom:0}
@@ -1201,6 +1210,8 @@ body.light-mode .pd-btn-outline{background:#fff}
 
 /* Edit tab */
 .sc-field-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
+.sc-field-label.sub{font-size:9px;color:var(--sub);margin-bottom:6px}
+.sc-field-label-optional{font-weight:400;text-transform:none;letter-spacing:0}
 .sc-note-wrap{position:relative;margin-bottom:16px}
 .sc-note-input{width:100%;font-family:var(--ff);font-size:13px;padding:12px 14px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;color:var(--hdr);resize:none;outline:none;box-sizing:border-box;line-height:1.5;transition:border-color .15s}
 .sc-note-input:focus{border-color:var(--blue)}
@@ -1257,12 +1268,10 @@ body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
 
 .sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
 .sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
-.sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#0f172a;position:relative}
-.sc-inner-card{background: #101828;border: 1px solid #1e2939;border-radius: 12px;overflow: hidden;margin-bottom: 12px;}
-.sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
-.sc-preview-scroll{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 8px}
 .sc-preview-footer{flex-shrink:0;padding:12px 20px 16px;border-top:1px solid var(--border);background:#101828}
 .sc-inner-card{background:#101828;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
+#sc-pane-edit{display:none}
+#sc-pit-checks{display:none}
 
 body.light-mode #page-rotation .pp-card{background:none;border:none;box-shadow:none}
 body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -1275,6 +1284,10 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
 .xf-score-tier{font-size:12px;font-weight:700}
 .xf-category{margin-bottom:14px}
 .xf-cat-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.xf-cat-score-wrap{display:flex;align-items:center;gap:8px}
+.xf-clear-btn{font-size:10px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0}
+.xf-scale-legend{font-size:11px;color:var(--sub);margin-top:8px}
+.sc-card-attribution{text-align:center;font-size:11px;color:var(--sub);margin:10px 0 4px}
 .xf-cat-label{font-size:12px;font-weight:700;color:var(--hdr)}
 .xf-cat-score{font-size:12px;font-weight:700;color:#a855f7}
 .xf-stars{display:flex;gap:4px;margin-bottom:6px}
@@ -1297,7 +1310,7 @@ body.light-mode #page-rotation .pp-ranked-row{box-shadow:0 1px 3px rgba(0,0,0,.1
 .xf-pd-star.filled{background:#a855f7}
 /* Edit modal */
 .re-xf-section{margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
-.re-xf-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:14px}
+.re-xf-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:16px}
 
 .ics-status-card{border-radius:12px;padding:14px 16px;margin-top:14px;display:none}
 .ics-status-card.success{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25)}
@@ -1316,7 +1329,7 @@ body.light-mode .gen-progress-batch{color:var(--purple)}
 .gen-progress-batch{font-size:12px;color:var(--sub)}
 .gen-progress-track{height:6px;background:rgba(168,85,247,.2);border-radius:4px;overflow:hidden}
 .gen-progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:4px;transition:width .3s ease;width:0%}
-.gen-progress-result{font-size:12px;margin-top:10px;line-height:1.5}
+.gen-progress-result{font-size:12px;margin-top:10px;line-height:1.5;display:none}
 .gen-progress-result.ok{color:#22c55e}
 .gen-progress-result.partial{color:#f59e0b}
 
@@ -1715,7 +1728,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 
 <!-- ROSTER -->
 <div class="page" id="page-roster">
-  <div class="roster-page-hdr" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+  <div class="roster-page-hdr">
     <div>
       <div class="roster-page-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1730,7 +1743,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       <div class="gen-progress-title">✨ <span id="gen-progress-title">Generating insights... 0/0</span></div>
     </div>
     <div class="gen-progress-track"><div class="gen-progress-fill" id="gen-progress-fill"></div></div>
-    <div class="gen-progress-result" id="gen-progress-result" style="display:none"></div>
+    <div class="gen-progress-result" id="gen-progress-result"></div>
   </div>
   <div id="roster-list"></div>
   <div id="roster-hidden-section"></div>
@@ -1780,7 +1793,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div id="sc-card-pitching-section"></div>
           <!-- Coach note card -->
           <div id="sc-card-note-section"></div>
-          <div style="text-align:center;font-size:11px;color:var(--sub);margin:10px 0 4px">Powered by Baseline Analytics ⚾</div>
+          <div class="sc-card-attribution">Powered by Baseline Analytics ⚾</div>
         </div>
         <!-- Fixed footer: link + share buttons -->
         <div class="sc-preview-footer">
@@ -1802,8 +1815,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       </div>
 
       <!-- EDIT TAB -->
-      <div class="sc-body" id="sc-pane-edit" style="display:none">
-        <div class="sc-field-label">Coach's Note <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+      <div class="sc-body" id="sc-pane-edit">
+        <div class="sc-field-label">Coach's Note <span class="sc-field-label-optional">(optional)</span></div>
         <div class="sc-note-wrap">
           <textarea class="sc-note-input" id="sc-note-input" rows="3" maxlength="200"
             placeholder='e.g. "Working hard on first-pitch strikes. Great attitude at practice!"'
@@ -1814,7 +1827,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         <div class="sc-field-label">Visible Stats</div>
 
         <div class="sc-check-group">
-          <div class="sc-field-label" style="font-size:9px;color:var(--sub);margin-bottom:6px">BATTING</div>
+          <div class="sc-field-label sub">BATTING</div>
           <div class="sc-check-grid">
             <div class="sc-check-item"><input type="checkbox" id="sc-chk-avg" checked onchange="renderSCPreview()"><label for="sc-chk-avg">Batting Average</label></div>
             <div class="sc-check-item"><input type="checkbox" id="sc-chk-obp" checked onchange="renderSCPreview()"><label for="sc-chk-obp">On-Base %</label></div>
@@ -1825,8 +1838,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           </div>
         </div>
 
-        <div class="sc-check-group" id="sc-pit-checks" style="display:none">
-          <div class="sc-field-label" style="font-size:9px;color:var(--sub);margin-bottom:6px">PITCHING</div>
+        <div class="sc-check-group" id="sc-pit-checks">
+          <div class="sc-field-label sub">PITCHING</div>
           <div class="sc-check-grid">
             <div class="sc-check-item"><input type="checkbox" id="sc-chk-sp" checked onchange="renderSCPreview()"><label for="sc-chk-sp">Strike Rate</label></div>
             <div class="sc-check-item"><input type="checkbox" id="sc-chk-fps" checked onchange="renderSCPreview()"><label for="sc-chk-fps">First-Pitch Strike %</label></div>
@@ -1848,12 +1861,12 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <div class="roster-edit-card">
     <!-- Header -->
     <div class="re-modal-header">
-      <button class="re-modal-close" onclick="closeRosterEdit()" style="position:absolute;top:12px;right:14px;z-index:1">✕</button>
-      <div style="width:100%">
-        <div class="pd-player-name" id="re-hdr-name" style="padding-right:32px">—</div>
-        <div class="pd-player-meta" id="re-hdr-meta" style="margin-top:4px">—</div>
-        <div class="pd-pos-badges" id="re-hdr-pos-badges" style="margin-top:8px"></div>
-        <div class="pd-hero-stats" id="re-hdr-stats" style="margin-top:12px;justify-content:flex-start"></div>
+      <button class="re-modal-close" onclick="closeRosterEdit()">✕</button>
+      <div class="re-modal-header-info">
+        <div class="pd-player-name" id="re-hdr-name">—</div>
+        <div class="pd-player-meta" id="re-hdr-meta">—</div>
+        <div class="pd-pos-badges" id="re-hdr-pos-badges"></div>
+        <div class="pd-hero-stats" id="re-hdr-stats"></div>
       </div>
     </div>
 
@@ -1905,11 +1918,11 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 
       <!-- Player Tags -->
       <div class="re-section">Player Tags</div>
-      <div class="re-section" style="font-size:9px;margin-top:-8px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;color:rgba(148,163,184,.5)">BATTING</div>
+      <div class="re-section sub first">BATTING</div>
       <div class="re-tags-wrap" id="re-tags-batting"></div>
-      <div class="re-section" style="font-size:9px;margin-top:10px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;color:rgba(148,163,184,.5)">PITCHING</div>
+      <div class="re-section sub">PITCHING</div>
       <div class="re-tags-wrap" id="re-tags-pitching"></div>
-      <div class="re-section" style="font-size:9px;margin-top:10px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;color:rgba(148,163,184,.5)">GENERAL</div>
+      <div class="re-section sub">GENERAL</div>
       <div class="re-tags-wrap" id="re-tags-general"></div>
       <div class="re-tag-legend">Solid = auto from stats · Dashed border = coach-added · <s>strikethrough</s> = suppressed</div>
 
@@ -1918,10 +1931,10 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       <div class="re-pos-grid" id="re-pos-grid"></div>
       <div class="re-pos-legend">
         <span>⭐ Primary</span>
-        <span style="color:var(--green)">✓ Can play</span>
-        <span style="color:var(--blue)">📘 Learning</span>
-        <span style="color:#fb7185">🔴 Never</span>
-        <span style="color:var(--sub)">— Tap to cycle</span>
+        <span class="canplay">✓ Can play</span>
+        <span class="learning">📘 Learning</span>
+        <span class="never">🔴 Never</span>
+        <span>— Tap to cycle</span>
       </div>
 
       <!-- Arm Health -->
@@ -1936,23 +1949,23 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 
     <!-- X-Factor Assessment Card -->
     <div class="re-modal-body">
-      <div class="re-xf-title" style="margin-bottom:16px">⚡ X-Factor Assessment</div>
+      <div class="re-xf-title">⚡ X-Factor Assessment</div>
       <div class="xf-category">
-        <div class="xf-cat-hdr"><span class="xf-cat-label">Mindset</span><div style="display:flex;align-items:center;gap:8px"><span class="xf-cat-score" id="re-xf-mindset-score">—</span><button onclick="clearXFScore('mindset')" style="font-size:10px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0">✕ Clear</button></div></div>
+        <div class="xf-cat-hdr"><span class="xf-cat-label">Mindset</span><div class="xf-cat-score-wrap"><span class="xf-cat-score" id="re-xf-mindset-score">—</span><button class="xf-clear-btn" onclick="clearXFScore('mindset')">✕ Clear</button></div></div>
         <div class="xf-stars" id="re-xf-mindset-stars"></div>
         <textarea class="xf-note" id="re-xf-mindset-note" rows="2" placeholder="Focus, composure, maturity notes..."></textarea>
       </div>
       <div class="xf-category">
-        <div class="xf-cat-hdr"><span class="xf-cat-label">Baseball IQ</span><div style="display:flex;align-items:center;gap:8px"><span class="xf-cat-score" id="re-xf-iq-score">—</span><button onclick="clearXFScore('iq')" style="font-size:10px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0">✕ Clear</button></div></div>
+        <div class="xf-cat-hdr"><span class="xf-cat-label">Baseball IQ</span><div class="xf-cat-score-wrap"><span class="xf-cat-score" id="re-xf-iq-score">—</span><button class="xf-clear-btn" onclick="clearXFScore('iq')">✕ Clear</button></div></div>
         <div class="xf-stars" id="re-xf-iq-stars"></div>
         <textarea class="xf-note" id="re-xf-iq-note" rows="2" placeholder="Instincts, positioning, anticipation notes..."></textarea>
       </div>
       <div class="xf-category">
-        <div class="xf-cat-hdr"><span class="xf-cat-label">Passion</span><div style="display:flex;align-items:center;gap:8px"><span class="xf-cat-score" id="re-xf-passion-score">—</span><button onclick="clearXFScore('passion')" style="font-size:10px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0">✕ Clear</button></div></div>
+        <div class="xf-cat-hdr"><span class="xf-cat-label">Passion</span><div class="xf-cat-score-wrap"><span class="xf-cat-score" id="re-xf-passion-score">—</span><button class="xf-clear-btn" onclick="clearXFScore('passion')">✕ Clear</button></div></div>
         <div class="xf-stars" id="re-xf-passion-stars"></div>
         <textarea class="xf-note" id="re-xf-passion-note" rows="2" placeholder="Effort, enthusiasm, extra work notes..."></textarea>
       </div>
-      <div style="font-size:11px;color:var(--sub);margin-top:8px">1 = Low · 3 = Average · 5 = Elite</div>
+      <div class="xf-scale-legend">1 = Low · 3 = Average · 5 = Elite</div>
     </div>
 
     <!-- Footer -->
@@ -3730,7 +3743,7 @@ function renderRoster(){
   var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
   var el=document.getElementById('roster-list');
   if(!players||!el) return;
-  if(!players.length){el.innerHTML='<div class="empty" style="padding:40px 0;text-align:center">Upload season CSV to populate roster</div>';return;}
+  if(!players.length){el.innerHTML='<div class="empty roster-empty">Upload season CSV to populate roster</div>';return;}
 
   // Sort by jersey number
   var sorted=[].concat(players)
@@ -3769,16 +3782,16 @@ function renderRoster(){
     var armHealth=ov.armHealth||'healthy';
     var armHealthNote='';
     if(armHealth==='limited'){
-      armHealthNote='<span class="roster-meta-sep">·</span><span style="color:var(--amber);font-size:11px;font-weight:600">🟡 Arm limited</span>';
+      armHealthNote='<span class="roster-meta-sep">·</span><span class="roster-arm-status limited">🟡 Arm limited</span>';
       pitchAvail=''; // suppress Arm Ready — arm health takes priority
     } else if(armHealth==='resting'){
-      armHealthNote='<span class="roster-meta-sep">·</span><span style="color:#fb7185;font-size:11px;font-weight:600">🔴 Arm resting</span>';
+      armHealthNote='<span class="roster-meta-sep">·</span><span class="roster-arm-status resting">🔴 Arm resting</span>';
       pitchAvail=''; // suppress Arm Ready — arm health takes priority
     }
     var posBadgesRow=buildPosBadges(ov,true);
     return '<div class="roster-row">'
       +'<div class="roster-num-badge">'+num+'</div>'
-      +'<div class="roster-info" onclick="openPlayer(\''+esc(p.name)+'\')" style="cursor:pointer">'
+      +'<div class="roster-info" onclick="openPlayer(\''+esc(p.name)+'\')">'
         +'<div class="roster-name">'+dispName+'</div>'
         +'<div class="roster-meta">'
           +'<span>Age '+age+'</span>'
