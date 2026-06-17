@@ -1377,8 +1377,8 @@ body.light-mode .pd-avail-btn.unknown{background:#f3f4f6;color:#6b7280}
 .pc-page-title{font-size:24px;font-weight:700;color:var(--hdr);margin-bottom:4px}
 .pc-page-title span{font-size:22px;color:#51a2ff;}
 .pc-page-sub{font-size:12px;color:var(--sub);margin-bottom:16px}
-.pc-next-game{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:#51a2ff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.pc-warning{background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.pc-next-game{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:#51a2ff;margin-bottom:14px;display:none;align-items:center;gap:8px}
+.pc-warning{background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:none;align-items:center;gap:10px}
 .pc-warning-icon{font-size:18px}
 .pc-warning-text{font-size:13px;font-weight:600;color:var(--amber)}
 .pc-warning-sub{font-size:11px;color:var(--amber);margin-top:2px}
@@ -1393,13 +1393,31 @@ body.light-mode .pc-card:hover {background:rgba(229,232,234,0.3);}
 .pc-card-np{font-size:28px;font-weight:700;color:var(--hdr);line-height:1}
 .pc-card-np-lbl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em}
 .pc-card-np-detail{font-size:10px;color:var(--sub);margin-top:2px}
+.pc-card-np-detail.warn{color:#f59e0b}
 .pc-status-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;margin-bottom:6px}
 .pc-status-rest{background:rgba(245,158,11,.12);border:1px solid #f59e0b;color:#f59e0b}
 .pc-status-ok{background:rgba(34,197,94,.12);border:1px solid #22c55e;color:#4ade80}
 .pc-status-hit{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
 .pc-status-unavail{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
 .pc-status-text{font-size:11px;color:var(--sub);margin-bottom:6px}
-.pc-last-outing{font-size:11px;color:var(--sub);margin-bottom:6px}
+.pc-last-outing{font-size:11px;color:var(--sub);margin-bottom:6px;padding:0 18px 4px}
+.pc-last-outing-sp{float:right}
+.pc-last-outing-sp.good{color:var(--green)}
+.pc-last-outing-sp.warn{color:var(--amber)}
+.pc-card-meta-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+.pc-card-status-text{font-size:11px;color:var(--sub)}
+.pc-bar-wrap{flex:1;position:relative}
+.pc-bar-fill{height:100%;border-radius:4px;transition:width .4s ease;background:#22c55e}
+.pc-bar-fill.danger{background:#ef4444}
+.pc-bar-target-line{position:absolute;left:85%;top:20%;transform:translate(-50%,-50%);width:2px;height:14px;background:#3b82f6;border-radius:1px}
+.pc-bar-labels{position:relative;margin-top:3px;height:14px}
+.pc-bar-label{position:absolute;font-size:9px;color:var(--sub)}
+.pc-bar-label.left{left:0}
+.pc-bar-label.target{left:85%;transform:translateX(-50%);color:#3b82f6;font-weight:600}
+.pc-bar-label.right{right:0}
+.pc-hist-mlb-placeholder{font-size:10px}
+.pc-hist-sp.good{color:var(--green)}
+.pc-hist-sp.warn{color:var(--amber)}
 .pc-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:0 18px 10px}
 .pc-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;position:relative}
 .pc-bar-track-inner{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
@@ -2566,10 +2584,10 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 <div class="page" id="page-pitchcount">
   <div class="pc-page-title"><span>⏱</span> Pitch Count Tracker</div>
   <div class="pc-page-sub" id="pc-date"></div>
-  <div class="pc-next-game" id="pc-next-game" style="display:none">
+  <div class="pc-next-game" id="pc-next-game">
     ⚾ <span id="pc-next-game-text"></span>
   </div>
-  <div class="pc-warning" id="pc-rest-warning" style="display:none">
+  <div class="pc-warning" id="pc-rest-warning">
     <div class="pc-warning-icon">⏳</div>
     <div>
       <div class="pc-warning-text" id="pc-rest-warning-text"></div>
@@ -6665,14 +6683,14 @@ function renderPitchCountPage(){
       var lastOpp=(last.opp||last.label||'').replace(/^@?\s*/,'');
       var lastSP=last.np>0&&last.ns>0?+(last.ns/last.np*100).toFixed(1):last.sp||0;
       var spStr=lastSP>0?lastSP.toFixed(1)+'% S%':'';
-      lastOutingHtml='<div class="pc-last-outing" style="padding:0 18px 4px">Last outing: '+lastDateStr+' vs '+lastOpp
-        +'<span style="float:right;color:'+(lastSP>=60?'var(--green)':'var(--amber)')+'">'+lastNP+'P'+(spStr?' · '+spStr:'')+'</span></div>';
+      lastOutingHtml='<div class="pc-last-outing">Last outing: '+lastDateStr+' vs '+lastOpp
+        +'<span class="pc-last-outing-sp '+(lastSP>=60?'good':'warn')+'">'+lastNP+'P'+(spStr?' · '+spStr:'')+'</span></div>';
     }
 
     // Pitch bar - shows LAST OUTING pitches vs 85 limit (range 0-100)
     var barNP=lastNP||0;
     var barPct=Math.min(barNP,100);
-    var barColor=barNP>=85?'#ef4444':'#22c55e';
+    var barDanger=barNP>=85;
 
     // Rest note
     var restNote='';
@@ -6695,10 +6713,10 @@ function renderPitchCountPage(){
         +'<span>'+gOpp+'</span>'
         +'<span>'+(+(g.ip||0)).toFixed(1)+'</span>'
         +'<span>'+gNP+(gNC?' ('+gNC+')':'')+'</span>'
-        +'<span style="font-size:10px">set</span>'
+        +'<span class="pc-hist-mlb-placeholder">set</span>'
         +'<span>'+(g.k||0)+'</span>'
         +'<span>'+(g.bb||0)+'</span>'
-        +'<span style="color:'+(g.sp>=60?'var(--green)':'var(--amber)')+'">'+spDisp+'</span>'
+        +'<span class="pc-hist-sp '+(g.sp>=60?'good':'warn')+'">'+spDisp+'</span>'
         +'<span>'+(gRest>0?gRest+'d':'—')+'</span>'
         +'</div>';
     }).join('');
@@ -6709,27 +6727,27 @@ function renderPitchCountPage(){
           +'<div>'
             +'<div class="pc-card-name">'+p.name+'</div>'
             +'<div class="pc-card-meta">#'+(ov.num||p.num||'—')+' · Age '+age+' · '+pm+'P limit</div>'
-            +'<div style="display:flex;align-items:center;gap:6px;margin-top:4px">'+statusHtml+'<span style="font-size:11px;color:var(--sub)">'+statusText+'</span></div>'
+            +'<div class="pc-card-meta-row">'+statusHtml+'<span class="pc-card-status-text">'+statusText+'</span></div>'
           +'</div>'
           +'<div class="pc-card-season">'
             +'<div class="pc-card-np">'+totalNP+'</div>'
             +'<div class="pc-card-np-lbl">season pitches</div>'
-            +(remaining>=0?'<div class="pc-card-np-detail" style="color:'+(remaining<20?'#f59e0b':'var(--sub)')+'">'+remaining+' left</div>':'')
+            +(remaining>=0?'<div class="pc-card-np-detail'+(remaining<20?' warn':'')+'">'+remaining+' left</div>':'')
             +(pinn>0?'<div class="pc-card-np-detail">'+pinn+' P/INN</div>':'')
           +'</div>'
         +'</div>'
       +'</div>'
       +lastOutingHtml
       +'<div class="pc-bar-row">'
-        +'<div style="flex:1;position:relative">'
+        +'<div class="pc-bar-wrap">'
           +'<div class="pc-bar-track-inner">'
-            +'<div style="height:100%;width:'+barPct+'%;background:'+barColor+';border-radius:4px;transition:width .4s ease"></div>'
+            +'<div class="pc-bar-fill'+(barDanger?' danger':'')+'" style="width:'+barPct+'%"></div>'
           +'</div>'
-          +'<div style="position:absolute;left:85%;top:20%;transform:translate(-50%,-50%);width:2px;height:14px;background:#3b82f6;border-radius:1px"></div>'
-          +'<div style="position:relative;margin-top:3px;height:14px">'
-            +'<span style="position:absolute;left:0;font-size:9px;color:var(--sub)">0</span>'
-            +'<span style="position:absolute;left:85%;transform:translateX(-50%);font-size:9px;color:#3b82f6;font-weight:600">85</span>'
-            +'<span style="position:absolute;right:0;font-size:9px;color:var(--sub)">100</span>'
+          +'<div class="pc-bar-target-line"></div>'
+          +'<div class="pc-bar-labels">'
+            +'<span class="pc-bar-label left">0</span>'
+            +'<span class="pc-bar-label target">85</span>'
+            +'<span class="pc-bar-label right">100</span>'
           +'</div>'
         +'</div>'
       +'</div>'
