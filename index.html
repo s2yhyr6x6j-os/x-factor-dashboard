@@ -48,7 +48,6 @@ body.light-mode{
 body.light-mode .sb-header,
 body.light-mode .sidebar,
 body.light-mode aside#sidebar{background:#ffffff;border-color:#e5e7eb}
-body.light-mode .sb-header .sb-team-name{color:#111827}
 body.light-mode .sb-header .sb-season,body.light-mode .sb-header .sb-record-sub{color:#6b7280}
 body.light-mode .sb-header .sb-record{color:#585d67}
 body.light-mode .sb-item{color:#374151}
@@ -984,7 +983,7 @@ body.light-mode .re-pos{background:var(--bg1)}
 .bat-lb-row.open .bat-lb-detail{max-height:600px}
 .bat-lb-detail-inner{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:10px;background:rgba(0,0,0,.2);border-radius:8px;border:1px solid var(--border);overflow:hidden}
 .api-key-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-body.light-mode .api-key-card, body.light-mode .up-type-card, body.light-mode .ics-card {box-shadow: 0 1px 3px rgba(0, 0, 0, .12);}
+body.light-mode .api-key-card, body.light-mode .up-type-card, body.light-mode .ics-card {box-shadow: 0 1px 1px rgba(0, 0, 0, .16);}
 .api-key-input{flex:1;min-width:200px;font-family:var(--ff);font-size:12px;padding:9px 12px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;color:var(--hdr);outline:none;transition:border-color .2s;letter-spacing:.06em}
 .api-key-input:focus{border-color:var(--blue)}
 .api-key-input::placeholder{letter-spacing:0;color:var(--sub)}
@@ -1012,6 +1011,10 @@ body.light-mode .api-key-card, body.light-mode .up-type-card, body.light-mode .i
 .up-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
 .up-info-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px}
 body.light-mode .up-info-card{box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.up-section-hdr{font-size:14px;font-weight:700;color:var(--hdr);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.up-info-sublabel{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px}
+.up-actions-row{margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.up-clear-btn{font-family:var(--ff);font-size:12px;font-weight:600;padding:8px 16px;background:rgba(200,16,46,.12);color:var(--red);border:1px solid rgba(200,16,46,.3);border-radius:8px;cursor:pointer}
 .up-info-title{font-size:13px;font-weight:700;color:var(--hdr);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .up-info-title .up-info-icon{font-size:16px}
 .up-info-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
@@ -1056,7 +1059,9 @@ body.light-mode .up-hist-row{box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ics-card-title svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .ics-card-sub{font-size:12px;color:var(--sub);margin-bottom:16px;line-height:1.5}
 .ics-instructions{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 16px;margin-bottom:16px}
-.ics-instructions-title{font-size:12px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.ics-instructions-title{font-size:12px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer;user-select:none;justify-content:space-between}
+.ics-chevron-icon{width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;flex-shrink:0;transition:transform .2s}
+.ics-menu-icon{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;vertical-align:middle;display:inline-block}
 .ics-instructions ol{margin:0;padding-left:18px;font-size:12px;color:var(--sub);line-height:1.8}
 .ics-instructions ol strong{color:var(--hdr)}
 .ics-instructions ol code{font-family:monospace;font-size:11px;background:rgba(0,0,0,.2);padding:1px 4px;border-radius:3px}
@@ -2445,15 +2450,15 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     </div>
     <div class="ics-card-sub">Paste your GameChanger ICS link to import your schedule and show the next game on the Home page.</div>
     <div class="ics-instructions">
-      <div class="ics-instructions-title" onclick="toggleIcsInstructions()" style="cursor:pointer;user-select:none;justify-content:space-between">
+      <div class="ics-instructions-title" onclick="toggleIcsInstructions()">
         <span>📅 How to find your GameChanger ICS link</span>
-        <svg id="ics-chevron" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;flex-shrink:0;transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg id="ics-chevron" class="ics-chevron-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div id="ics-instructions-body" class="svg-hidden">
         <ol>
           <li>Open the GameChanger app → tap your team</li>
           <li>Go to the <strong>Schedule</strong> tab</li>
-          <li>Tap the <strong><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;vertical-align:middle;display:inline-block"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></strong> menu (top right)</li>
+          <li>Tap the <strong><svg viewBox="0 0 24 24" class="ics-menu-icon"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></strong> menu (top right)</li>
           <li>Select <strong>"Schedule Sync"</strong>, then <strong>"Sync Schedule to Your Calendar"</strong></li>
           <li>Tap <strong>"Copy Calendar Link"</strong> from the pop-up menu</li>
         </ol>
@@ -2499,7 +2504,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 
   <!-- Drop zone -->
   <div class="up-drop" id="up-drop-zone"
-    onclick="document.getElementById('file-input').click()" style="cursor:pointer"
+    onclick="document.getElementById('file-input').click()"
     ondragover="event.preventDefault();this.classList.add('drag-over')"
     ondragleave="this.classList.remove('drag-over')"
     ondrop="handleUploadDrop(event)">
@@ -2518,13 +2523,13 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
 
   <!-- What comes from where? -->
-  <div style="font-size:14px;font-weight:700;color:var(--hdr);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+  <div class="up-section-hdr">
     <span>📋</span> What data comes from where?
   </div>
   <div class="up-info-grid">
     <div class="up-info-card">
       <div class="up-info-title"><span class="up-info-icon">📄</span> PDF Boxscore</div>
-      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px">Per-game · upload after each game</div>
+      <div class="up-info-sublabel">Per-game · upload after each game</div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Game result</div><div class="up-info-detail">Score, date, opponent, home/away</div></div></div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Batting (per game)</div><div class="up-info-detail">AB · R · H · RBI · BB · SO · 2B · 3B · HR · SB</div></div></div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Pitching (per game)</div><div class="up-info-detail">IP · H · R · ER · BB · SO · Pitches · Strikes · S%</div></div></div>
@@ -2533,7 +2538,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     </div>
     <div class="up-info-card">
       <div class="up-info-title"><span class="up-info-icon">📊</span> CSV Season Export</div>
-      <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px">Season totals · re-upload after each game</div>
+      <div class="up-info-sublabel">Season totals · re-upload after each game</div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Batting leaderboards</div><div class="up-info-detail">AVG · OBP · SLG · OPS · QAB% · BB/K · C%</div></div></div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Advanced batting</div><div class="up-info-detail">HHB% · LD% · FB% · BABIP · BA/RISP · wOBA</div></div></div>
       <div class="up-info-row"><span class="up-check">✓</span><div><div class="up-info-label">Pitching leaderboards</div><div class="up-info-detail">ERA · WHIP · FIP · BAA · FPS% · BB/INN</div></div></div>
@@ -2550,12 +2555,10 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
   <div id="imported-list"><div class="empty">No files uploaded yet</div></div>
 
-  <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <button onclick="clearAllData()" style="font-family:var(--ff);font-size:12px;font-weight:600;padding:8px 16px;background:rgba(200,16,46,.12);color:var(--red);border:1px solid rgba(200,16,46,.3);border-radius:8px;cursor:pointer">🗑 Clear All Data</button>
-    <button onclick="toggleDebug()" style="display:none;font-family:var(--ff);font-size:12px;font-weight:600;padding:8px 16px;background:rgba(255,255,255,.04);color:var(--sub);border:1px solid var(--border);border-radius:8px;cursor:pointer">🔍 Debug</button>
+  <div class="up-actions-row">
+    <button class="up-clear-btn" onclick="clearAllData()">🗑 Clear All Data</button>
     <span id="clear-status" class="font-sub"></span>
   </div>
-  <div id="debug-panel" style="display:none;margin-top:12px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;font-family:monospace;color:var(--sub);white-space:pre-wrap;overflow-x:auto;max-height:400px;overflow-y:auto"></div>
 </div>
 
 
@@ -7227,34 +7230,6 @@ function clearAllData(){
   save();renderAll();
   document.getElementById('clear-status').textContent='✓ All data cleared';
   setTimeout(function(){document.getElementById('clear-status').textContent='';},3000);
-}
-
-function toggleDebug(){
-  var panel=document.getElementById('debug-panel');
-  if(panel.style.display==='none'){
-    var seasonImports=importedGames.filter(function(g){return g.isSeason;});
-    var gameImports=importedGames.filter(function(g){return !g.isSeason;});
-    var players=getPlayers();
-    var lines=[
-      '=== IMPORTS ===',
-      'Total: '+importedGames.length+' ('+gameImports.length+' per-game, '+seasonImports.length+' season)',
-    ];
-    importedGames.forEach(function(g,i){
-      lines.push('\n['+i+'] '+g.label+' | isSeason='+!!g.isSeason+' | players='+g.players.length+' | date='+g.date);
-      if(g.players[0]){
-        var b=g.players[0].batting;
-        lines.push('    First player: '+b.name+' AB='+b.ab+' H='+b.h+' GP='+b.gp);
-      }
-    });
-    lines.push('\n=== getPlayers() OUTPUT ===');
-    players.slice(0,5).forEach(function(p){
-      lines.push(p.name+': GP='+p.gp+' AB='+p.ab+' H='+p.h+' AVG='+p.avg.toFixed(3)+' OBP='+p.obp.toFixed(3)+' OPS='+p.ops.toFixed(3)+(p.pit?' ERA='+p.pit.era.toFixed(2)+' IP='+p.pit.ip+' S%='+p.pit.sp.toFixed(1):''));
-    });
-    panel.textContent=lines.join('\n');
-    panel.style.display='block';
-  } else {
-    panel.style.display='none';
-  }
 }
 
 function deleteImport(idx){importedGames.splice(idx,1);save();renderAll();}
