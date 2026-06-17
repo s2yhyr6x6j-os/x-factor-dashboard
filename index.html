@@ -1223,6 +1223,17 @@ body.light-mode .pd-btn-outline{background:#fff}
 .sc-stat-val.urgent{color:#f87171}
 .sc-coach-note{padding:10px 16px;font-size:12px;color:var(--sub);font-style:italic;border-top:1px solid #1e2939;line-height:1.5}
 
+/* Standalone shared-card view (public ?share= link) */
+.scv-overlay{display:none;position:fixed;inset:0;background:#030712;z-index:9999;overflow-y:auto;padding:32px 16px}
+.scv-overlay.active{display:block}
+.scv-wrap{max-width:420px;margin:0 auto}
+.scv-wrap .sc-inner-card{border-radius:14px;overflow:hidden;margin-bottom:12px;border:1px solid var(--border)}
+.scv-loading,.scv-error{text-align:center;color:var(--sub);font-size:13px;padding:60px 24px;line-height:1.6}
+.scv-error{color:#fb7185}
+.scv-back-link{text-align:center;margin-top:20px}
+.scv-back-link a{color:#51a2ff;font-size:12px;text-decoration:none}
+.scv-back-link a:hover{text-decoration:underline}
+
 /* Edit tab */
 .sc-field-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
 .sc-field-label.sub{font-size:9px;color:var(--sub);margin-bottom:6px}
@@ -1766,6 +1777,15 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 
 
   <!-- ── SHARE CARD MODAL ── -->
+  <!-- Standalone shared-card view: shown full-page when a ?share= link is opened,
+       replacing the normal app instead of requiring the visitor to have any data loaded -->
+  <div class="scv-overlay" id="scv-overlay">
+    <div class="scv-wrap">
+      <div id="scv-content"><div class="scv-loading">Loading shared card…</div></div>
+      <div class="scv-back-link"><a href="javascript:void(0)" onclick="window.location.href=window.location.pathname">← Open the full dashboard</a></div>
+    </div>
+  </div>
+
   <div class="sc-overlay" id="sc-overlay" onclick="if(event.target===this)closeShareCard()">
     <div class="sc-modal">
       <div class="sc-hdr">
@@ -3373,6 +3393,7 @@ function sum(arr,k){return arr.reduce(function(s,x){return s+(x[k]||0)},0);}
 function avg(arr,k){return arr.length?sum(arr,k)/arr.length:0;}
 function getPitchers(){return getPlayers().filter(function(p){return p.pit;});}
 function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function escHtml(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
 
 // A player is hidden unless they are the TARGET of a remapTo — remap targets are always shown
 function isHidden(name){
@@ -5926,6 +5947,98 @@ function scStatClass(key,val){
   return statClass(key,val);
 }
 
+// UTF-8 safe base64 — plain btoa()/atob() throw on names/notes with accents, emoji, etc.
+function utf8B64Encode(str){return btoa(unescape(encodeURIComponent(str)));}
+function utf8B64Decode(str){return decodeURIComponent(escape(atob(str)));}
+
+// Builds the visible-stat list for a player given the bat/pit checkbox settings.
+// Shared by the live preview and the share-link payload so they always match.
+function buildShareStats(p, bat, pit){
+  var batStats=[];
+  if(bat.avg!==false) batStats.push({lbl:'Batting Average',val:p.avg.toFixed(3),key:'avg'});
+  if(bat.obp!==false) batStats.push({lbl:'On-Base %',val:p.obp.toFixed(3),key:'obp'});
+  if(bat.ops!==false) batStats.push({lbl:'OPS',val:p.ops.toFixed(3),key:'ops'});
+  if(bat.qab!==false) batStats.push({lbl:'Quality At-Bats',val:p.qab_pct.toFixed(1)+'%',key:'qab'});
+  if(bat.bbk!==false) batStats.push({lbl:'Walk-to-Strikeout',val:p.so>0?(p.bb/p.so).toFixed(2):'—',key:'bbk'});
+  if(bat.hr!==false&&bat.hr) batStats.push({lbl:'Home Runs',val:String(p.hr||0),key:null});
+
+  var pitStats=[];
+  if(p.pit&&p.pit.ip>0){
+    var fip=p.pit.ip>0?((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/pitIP(p.pit)+3.2).toFixed(2):'—';
+    var kbb=p.pit.bb>0?(p.pit.k/p.pit.bb).toFixed(2):'—';
+    if(pit.sp!==false) pitStats.push({lbl:'Strike Rate',val:p.pit.sp.toFixed(1)+'%',key:'sp'});
+    if(pit.fps!==false) pitStats.push({lbl:'First-Pitch Strike %',val:p.pit.fps.toFixed(1)+'%',key:'fps'});
+    if(pit.whip!==false) pitStats.push({lbl:'WHIP',val:p.pit.whip.toFixed(2),key:'whip'});
+    if(pit.fip!==false) pitStats.push({lbl:'FIP',val:fip,key:'fip'});
+    if(pit.ip!==false) pitStats.push({lbl:'Innings Pitched',val:p.pit.ip.toFixed(1),key:null});
+    if(pit.k!==false) pitStats.push({lbl:'Strikeouts',val:String(p.pit.k),key:null});
+    if(pit.kbb!==false) pitStats.push({lbl:'K/BB Ratio',val:kbb,key:'kbb'});
+  }
+  return {batStats:batStats,pitStats:pitStats};
+}
+
+// Builds a real, working share link: the full card payload encoded into the URL
+// itself (no server needed). Snapshot at time of sharing, not a live-updating link.
+function buildShareLink(p, stats, note){
+  var payload={name:p.name,num:p.num||'',team:'SBA Red',season:'Summer 2026',batStats:stats.batStats,pitStats:stats.pitStats,note:note||''};
+  var encoded=utf8B64Encode(JSON.stringify(payload));
+  return window.location.origin+window.location.pathname+'?share='+encodeURIComponent(encoded);
+}
+
+// Checks for a ?share= link on page load. Returns true if this is a shared-card
+// view (and renders it), so the caller can skip the normal app bootstrap entirely.
+function checkSharedView(){
+  var encoded=new URLSearchParams(window.location.search).get('share');
+  if(!encoded) return false;
+  document.getElementById('scv-overlay').classList.add('active');
+  try{
+    var payload=JSON.parse(utf8B64Decode(encoded));
+    renderSCVCard(payload);
+  }catch(e){
+    renderSCVError();
+  }
+  return true;
+}
+
+function renderSCVError(){
+  document.getElementById('scv-content').innerHTML=
+    '<div class="scv-error">⚠ This shared card link looks broken or incomplete.<br>Ask whoever sent it to share it again.</div>';
+}
+
+function renderSCVCard(data){
+  var html='<div class="sc-inner-card">'
+    +'<div class="sc-card-topbar"><div class="sc-card-brand">⚾<span>Baseline Analytics</span></div><div class="sc-card-season">Season Stats</div></div>'
+    +'<div class="sc-card-hero"><div class="sc-card-name">#'+escHtml(data.num||'0')+' '+escHtml(data.name||'')+'</div>'
+    +'<div class="sc-card-team">'+escHtml(data.team||'')+' · '+escHtml(data.season||'')+'</div></div>'
+    +'</div>';
+
+  function statCellsHtml(list){
+    var h='';
+    list.forEach(function(s){
+      var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
+      h+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
+        +'<div class="sc-stat-label">'+escHtml(s.lbl)+'</div>'
+        +'<div class="sc-stat-val '+(cls?cls:'')+'">'+escHtml(s.val)+(cls==='elite'?'🔥':'')+'</div>'
+        +'</div>';
+    });
+    return h;
+  }
+
+  if(data.batStats&&data.batStats.length){
+    html+='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚡ BATTING</div><div class="sc-stat-grid">'
+      +statCellsHtml(data.batStats)+'</div></div></div>';
+  }
+  if(data.pitStats&&data.pitStats.length){
+    html+='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚾ PITCHING</div><div class="sc-stat-grid">'
+      +statCellsHtml(data.pitStats)+'</div></div></div>';
+  }
+  if(data.note){
+    html+='<div class="sc-inner-card"><div class="sc-coach-note">"'+escHtml(data.note)+'"</div></div>';
+  }
+  html+='<div class="sc-card-attribution">Powered by Baseline Analytics ⚾</div>';
+  document.getElementById('scv-content').innerHTML=html;
+}
+
 function renderSCPreview(){
   if(!_scPlayer) return;
   var p=_scPlayer;
@@ -5935,19 +6048,12 @@ function renderSCPreview(){
 
   document.getElementById('sc-card-name').textContent='#'+(p.num||'0')+' '+p.name;
 
-  // Batting section
-  var batStats=[];
-  if(bat.avg!==false) batStats.push({lbl:'Batting Average',val:p.avg.toFixed(3),key:'avg'});
-  if(bat.obp!==false) batStats.push({lbl:'On-Base %',val:p.obp.toFixed(3),key:'obp'});
-  if(bat.ops!==false) batStats.push({lbl:'OPS',val:p.ops.toFixed(3),key:'ops'});
-  if(bat.qab!==false) batStats.push({lbl:'Quality At-Bats',val:p.qab_pct.toFixed(1)+'%',key:'qab'});
-  if(bat.bbk!==false) batStats.push({lbl:'Walk-to-Strikeout',val:p.so>0?(p.bb/p.so).toFixed(2):'—',key:'bbk'});
-  if(bat.hr!==false&&bat.hr) batStats.push({lbl:'Home Runs',val:String(p.hr||0),key:null});
+  var stats=buildShareStats(p,bat,pit);
 
   var batHtml='';
-  if(batStats.length){
+  if(stats.batStats.length){
     batHtml='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚡ BATTING</div><div class="sc-stat-grid">';
-    batStats.forEach(function(s){
+    stats.batStats.forEach(function(s){
       var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
       batHtml+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
         +'<div class="sc-stat-label">'+s.lbl+'</div>'
@@ -5958,30 +6064,17 @@ function renderSCPreview(){
   }
   document.getElementById('sc-card-batting-section').innerHTML=batHtml;
 
-  // Pitching section
   var pitHtml='';
-  if(p.pit&&p.pit.ip>0){
-    var fip=p.pit.ip>0?((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/pitIP(p.pit)+3.2).toFixed(2):'—';
-    var kbb=p.pit.bb>0?(p.pit.k/p.pit.bb).toFixed(2):'—';
-    var pitStats=[];
-    if(pit.sp!==false) pitStats.push({lbl:'Strike Rate',val:p.pit.sp.toFixed(1)+'%',key:'sp'});
-    if(pit.fps!==false) pitStats.push({lbl:'First-Pitch Strike %',val:p.pit.fps.toFixed(1)+'%',key:'fps'});
-    if(pit.whip!==false) pitStats.push({lbl:'WHIP',val:p.pit.whip.toFixed(2),key:'whip'});
-    if(pit.fip!==false) pitStats.push({lbl:'FIP',val:fip,key:'fip'});
-    if(pit.ip!==false) pitStats.push({lbl:'Innings Pitched',val:p.pit.ip.toFixed(1),key:null});
-    if(pit.k!==false) pitStats.push({lbl:'Strikeouts',val:String(p.pit.k),key:null});
-    if(pit.kbb!==false) pitStats.push({lbl:'K/BB Ratio',val:kbb,key:'kbb'});
-    if(pitStats.length){
-      pitHtml='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚾ PITCHING</div><div class="sc-stat-grid">';
-      pitStats.forEach(function(s){
-        var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
-        pitHtml+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
-          +'<div class="sc-stat-label">'+s.lbl+'</div>'
-          +'<div class="sc-stat-val '+(cls?cls:'')+'">'+s.val+(cls==='elite'?'🔥':'')+'</div>'
-          +'</div>';
-      });
-      pitHtml+='</div></div></div>';
-    }
+  if(stats.pitStats.length){
+    pitHtml='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚾ PITCHING</div><div class="sc-stat-grid">';
+    stats.pitStats.forEach(function(s){
+      var cls=s.key?scStatClass(s.key,parseFloat(s.val)):'';
+      pitHtml+='<div class="sc-stat-cell '+(cls?cls:'')+'">'
+        +'<div class="sc-stat-label">'+s.lbl+'</div>'
+        +'<div class="sc-stat-val '+(cls?cls:'')+'">'+s.val+(cls==='elite'?'🔥':'')+'</div>'
+        +'</div>';
+    });
+    pitHtml+='</div></div></div>';
   }
   document.getElementById('sc-card-pitching-section').innerHTML=pitHtml;
 
@@ -5989,41 +6082,32 @@ function renderSCPreview(){
   document.getElementById('sc-card-note-section').innerHTML=note
     ?'<div class="sc-inner-card"><div class="sc-coach-note">"'+note+'"</div></div>':'';
 
-  // Generate share link (data URI approach — encode stats as URL params)
+  // Real, working share link — full payload encoded into the URL, no server needed
   var linkEl=document.getElementById('sc-link-input');
-  if(linkEl){
-    var params=new URLSearchParams({n:p.name,num:p.num||'',avg:p.avg.toFixed(3),obp:p.obp.toFixed(3),ops:p.ops.toFixed(3),qab:p.qab_pct.toFixed(1),note:note});
-    linkEl.value=window.location.origin+window.location.pathname+'?share='+btoa(params.toString()).slice(0,30)+'…';
-  }
+  if(linkEl) linkEl.value=buildShareLink(p,stats,note);
 }
 
 function copyShareLink(){
   var el=document.getElementById('sc-link-input');
-  if(!el) return;
-  // For now copy the card as text since we don't have a server
   var p=_scPlayer;
-  if(!p) return;
-  var text='#'+(p.num||'0')+' '+p.name+' — SBA Red · Summer 2026\n'
-    +'AVG: '+p.avg.toFixed(3)+' | OBP: '+p.obp.toFixed(3)+' | OPS: '+p.ops.toFixed(3)+'\n'
-    +'QAB%: '+p.qab_pct.toFixed(1)+'%'
-    +(p.pit&&p.pit.ip>0?' | S%: '+p.pit.sp.toFixed(1)+'% | WHIP: '+p.pit.whip.toFixed(2):'');
-  if(_scSettings.note) text+='\n"'+_scSettings.note+'"';
+  if(!el||!el.value||!p) return;
+  var text='Check out '+p.name+'\'s stats: '+el.value;
   navigator.clipboard.writeText(text).then(function(){
     var btn=document.querySelector('.sc-link-btn-copy');
     if(btn){btn.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round"><polyline points="20 6 9 17 4 12"/></svg> Copied!';setTimeout(function(){btn.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link';},2000);}
-  }).catch(function(){alert('Copied to clipboard:\n\n'+text);});
+  }).catch(function(){
+    el.select();
+    try{document.execCommand('copy');}catch(e){}
+    alert('Copy this link:\n\n'+el.value);
+  });
 }
 
 function nativeShare(){
+  var el=document.getElementById('sc-link-input');
   var p=_scPlayer;
-  if(!p) return;
-  var text='#'+(p.num||'0')+' '+p.name+' — SBA Red Summer 2026\n'
-    +'AVG: '+p.avg.toFixed(3)+' | OBP: '+p.obp.toFixed(3)+' | OPS: '+p.ops.toFixed(3)+'\n'
-    +'QAB%: '+p.qab_pct.toFixed(1)+'%'
-    +(p.pit&&p.pit.ip>0?' | S%: '+p.pit.sp.toFixed(1)+'% | WHIP: '+p.pit.whip.toFixed(2):'');
-  if(_scSettings.note) text+='\n"'+_scSettings.note+'"';
+  if(!el||!el.value||!p) return;
   if(navigator.share){
-    navigator.share({title:p.name+' — SBA Red Stats',text:text}).catch(function(){});
+    navigator.share({title:p.name+' — SBA Red Stats',text:'Check out '+p.name+'\'s stats card:',url:el.value}).catch(function(){});
   } else {
     copyShareLink();
   }
@@ -7983,6 +8067,7 @@ function linkImportsToGameLog(){
 
 // ── INIT ──
 (function(){
+  if(checkSharedView()) return;
   var d=new Date(),mo=String(d.getMonth()+1).padStart(2,'0'),dy=String(d.getDate()).padStart(2,'0');
   document.getElementById('f-date').value=d.getFullYear()+'-'+mo+'-'+dy;
   var gc='rgba(51,65,85,.4)',tc='#94a3b8';
