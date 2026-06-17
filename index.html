@@ -67,7 +67,7 @@ body.light-mode .pit-lb-card,body.light-mode .ps-card,
 body.light-mode .pp-card,body.light-mode .lu-player-row,body.light-mode .lu-suggested-card,
 body.light-mode .lineup-suggested-card,body.light-mode .roster-row,body.light-mode .met-lb-card,
 body.light-mode .pd-section,body.light-mode .pd-hero,
-body.light-mode .gl-card,body.light-mode #page-upload .card{background:#ffffff;border-color:#e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+body.light-mode .gl-card,body.light-mode #page-upload .card{background:#ffffff;border-color:#e5e7eb;box-shadow:0 1px 1px rgba(0,0,0,.16)}
 body.light-mode .gl-card:hover {box-shadow: 0 1px 3px rgba(0, 0, 0, 0);}
 body.light-mode .pd-overlay,body.light-mode .pd-topbar{background:var(--bg1)}
 body.light-mode .pd-topbar{border-bottom: 1px solid var(--border);box-shadow: 0 2px 3px -2px rgba(0, 0, 0, 0.1);}
@@ -770,6 +770,7 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-page-sub{font-size:12px;color:var(--sub);margin-top:5px;margin-bottom:30px}
 .pit-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:30px}
 .pit-kpi-card{border-radius:10px;padding:0;position:relative;perspective:600px}
+.pit-kpi-card.h140{height:140px}
 .pit-kpi-card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .pit-kpi-card.flipped .pit-kpi-card-inner{transform:rotateY(180deg)}
 .pit-kpi-front,.pit-kpi-back{border:1px solid var(--border);backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12)}
@@ -797,7 +798,6 @@ body.light-mode .pd-drill-card{background:#f3f4f6;border-color:#e5e7eb}
 .pit-kpi-desc{font-size:10px;color:var(--sub);margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
 .pit-kpi-target{font-size:10px;color:#3b82f6;margin-top:3px;letter-spacing:.04em}
 #page-metrics .pit-kpi-front{padding:14px 10px}
-#page-metrics .pit-kpi-val{font-size:22px}
 #page-metrics .pit-kpi-back-title{font-size:12px}
 .pit-tog-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
 .pit-tog, .lb-filter-btn{font-size:12px;font-weight:600;padding:7px 18px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--sub);cursor:pointer;transition:all .15s}
@@ -2350,7 +2350,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <!-- 4 KPI Cards with flip -->
   <div class="met-kpi-grid">
     <!-- 30 YD DASH -->
-    <div class="pit-kpi-card" id="mkpi-dash" style="height:140px">
+    <div class="pit-kpi-card h140" id="mkpi-dash">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">30 YD Dash <span class="info" onclick="flipPitCard('mkpi-dash',event)">i</span></div>
@@ -2366,7 +2366,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       </div>
     </div>
     <!-- EXIT VELO -->
-    <div class="pit-kpi-card" id="mkpi-ev" style="height:140px">
+    <div class="pit-kpi-card h140" id="mkpi-ev">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">EXIT VELOCITY <span class="info" onclick="flipPitCard('mkpi-ev',event)">i</span></div>
@@ -2382,7 +2382,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       </div>
     </div>
     <!-- PULLDOWNS -->
-    <div class="pit-kpi-card" id="mkpi-pull" style="height:140px">
+    <div class="pit-kpi-card h140" id="mkpi-pull">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Pulldowns <span class="info" onclick="flipPitCard('mkpi-pull',event)">i</span></div>
@@ -2398,7 +2398,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       </div>
     </div>
     <!-- POP TIME -->
-    <div class="pit-kpi-card" id="mkpi-pop" style="height:140px">
+    <div class="pit-kpi-card h140" id="mkpi-pop">
       <div class="pit-kpi-card-inner">
         <div class="pit-kpi-front">
           <div class="pit-kpi-label">Pop Time <span class="info" onclick="flipPitCard('mkpi-pop',event)">i</span></div>
