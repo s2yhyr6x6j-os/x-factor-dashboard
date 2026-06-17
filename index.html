@@ -110,14 +110,14 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
   border-right:1px solid var(--border);
   background:#101828;
 }
-.sb-logo{width:40px;height:40px;display:flex}
+.sb-logo{width:40px;height:48px;display:flex}
 .sb-logo img{height:100%}
 .sb-logo-light{display:none}
 body.light-mode .sb-logo-dark{display:none}
 body.light-mode .sb-logo-light{display:block}
 .sb-header-text{flex:1;min-width:0}
-.sb-team-name{font-size:15px;font-weight:700;color:var(--hdr);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-season{font-size:11px;color:var(--sub);margin-top:1px}
+.sb-team-name{font-size:15px;font-weight:700;color:var(--hdr);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;text-transform:uppercase}
+.sb-season{font-size:11px;color:var(--sub);margin-top:1px;font-style:italic}
 .sb-record-wrap{display:none;text-align:right;flex-shrink:0}
 .sb-record{font-family:var(--fh);font-size:22px;color:var(--hdr);letter-spacing:.04em;line-height:1}
 .sb-record-sub{font-size:9px;color:var(--sub);margin-top:1px;white-space:nowrap}
@@ -1428,8 +1428,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <!-- Previous home plate SVG logo — kept here in case we revert
     <svg viewBox="0 0 100 105" xmlns="http://www.w3.org/2000/svg" width="40" height="42"><path d="M5 5 L95 5 L95 65 L50 100 L5 65 Z" fill="#1a1a1a" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><line x1="28" y1="22" x2="72" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/><line x1="72" y1="22" x2="28" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/></svg>
     -->
-    <img class="sb-logo-dark" src="/public/baseline-logo-dm.png" alt="Baseline">
-    <img class="sb-logo-light" src="/public/baseline-logo-lm1.png" alt="Baseline">
+    <img class="sb-logo-dark" src="/public/baseline-logo-dm.png" alt="Baseline Analytics">
+    <img class="sb-logo-light" src="/public/baseline-logo-lm.png" alt="Baseline Analytics">
   </div>
   <div class="sb-header-text">
     <div class="sb-team-name">Baseline</div>
@@ -1510,7 +1510,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     </div>
   </nav>
   <div class="sb-footer">
-    <div class="power">⚾ Powered by X-Factor Baseball</div>
+    <div class="power">⚾ Powered by Baseline Analytics</div>
   </div>
 </aside>
 
@@ -1746,7 +1746,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <!-- Hero card: brand + player name -->
           <div class="sc-inner-card">
             <div class="sc-card-topbar">
-              <div class="sc-card-brand">⚾<span>X-Factor Baseball</span></div>
+              <div class="sc-card-brand">⚾<span>Baseline Analytics</span></div>
               <div class="sc-card-season">Season Stats</div>
             </div>
             <div class="sc-card-hero">
@@ -1760,7 +1760,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div id="sc-card-pitching-section"></div>
           <!-- Coach note card -->
           <div id="sc-card-note-section"></div>
-          <div style="text-align:center;font-size:11px;color:var(--sub);margin:10px 0 4px">Powered by X-Factor Baseball ⚾</div>
+          <div style="text-align:center;font-size:11px;color:var(--sub);margin:10px 0 4px">Powered by Baseline Analytics ⚾</div>
         </div>
         <!-- Fixed footer: link + share buttons -->
         <div class="sc-preview-footer">
