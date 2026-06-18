@@ -6053,6 +6053,7 @@ function buildShareLink(p, stats, note){
   var payload={n:p.name,no:p.num||'',ab:p.ab||0,b:compactStat(stats.batStats),p:compactStat(stats.pitStats)};
   if(p.pit&&p.pit.ip>0) payload.pip=p.pit.ip.toFixed(1);
   if(note) payload.nt=note;
+  if(document.body.classList.contains('light-mode')) payload.lm=1;
   return window.location.origin+window.location.pathname+'?share='+utf8B64Encode(JSON.stringify(payload));
 }
 
@@ -6064,6 +6065,7 @@ function checkSharedView(){
   document.getElementById('scv-overlay').classList.add('active');
   try{
     var payload=JSON.parse(utf8B64Decode(encoded));
+    if(payload.lm) document.body.classList.add('light-mode');
     renderSCVCard(payload);
   }catch(e){
     renderSCVError();
