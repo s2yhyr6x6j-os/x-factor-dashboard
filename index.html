@@ -1244,7 +1244,7 @@ body.light-mode .login-logo-dark{display:none}
 body.light-mode .login-logo-light{display:block}
 .login-sub{font-size:15px;font-weight:700;color:var(--sub);margin-bottom:20px}
 .login-field-wrap{position:relative;margin-bottom:10px}
-.login-input{width:100%;font-family:var(--ff);font-size:14px;padding:12px 44px 12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--hdr);outline:none;box-sizing:border-box;transition:border-color .2s}
+.login-input{width:100%;font-family:var(--ff);font-size:16px;padding:12px 44px 12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--hdr);outline:none;box-sizing:border-box;transition:border-color .2s}
 .login-input:focus,.login-input:hover{border-color:#51a2ff}
 .login-eye{position:absolute;top:0;right:0;height:100%;width:40px;background:none;border:none;cursor:pointer;color:var(--sub);display:flex;align-items:center;justify-content:center}
 .login-eye svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -5986,8 +5986,15 @@ function scStatClass(key,val){
 }
 
 // UTF-8 safe base64 — plain btoa()/atob() throw on names/notes with accents, emoji, etc.
-function utf8B64Encode(str){return btoa(unescape(encodeURIComponent(str)));}
-function utf8B64Decode(str){return decodeURIComponent(escape(atob(str)));}
+function utf8B64Encode(str){
+  return btoa(unescape(encodeURIComponent(str)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function utf8B64Decode(str){
+  var s=str.replace(/-/g,'+').replace(/_/g,'/');
+  while(s.length%4) s+='=';
+  return decodeURIComponent(escape(atob(s)));
+}
 
 // Builds the visible-stat list for a player given the bat/pit checkbox settings.
 // Shared by the live preview and the share-link payload so they always match.
@@ -6020,7 +6027,7 @@ function buildShareStats(p, bat, pit){
 function buildShareLink(p, stats, note){
   var payload={name:p.name,num:p.num||'',team:'SBA Red',season:'Summer 2026',batStats:stats.batStats,pitStats:stats.pitStats,note:note||''};
   var encoded=utf8B64Encode(JSON.stringify(payload));
-  return window.location.origin+window.location.pathname+'?share='+encodeURIComponent(encoded);
+  return window.location.origin+window.location.pathname+'?share='+encoded;
 }
 
 // Checks for a ?share= link on page load. Returns true if this is a shared-card
