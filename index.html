@@ -551,7 +551,7 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .lu-player-stats span{color:var(--hdr);font-weight:600}
 .lu-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .lu-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;border:1px solid;white-space:nowrap}
-.lu-role{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+
 .lu-xfactor{font-size:10px;font-weight:700;color:var(--amber);margin-left:5px;vertical-align:middle}
 .lu-tag.elite-obp{color:#a855f7;border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.08)}
 .lu-tag.high-obp{color:#22c55e;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08)}
@@ -560,7 +560,6 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .lu-tag.free-swinger{color:#fb7185;border-color:rgba(251,113,133,.3);background:rgba(251,113,133,.08)}
 .lu-tag.plate-disc{color:#3b82f6;border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.08)}
 .lu-tag.hot-bat{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
-.lu-tag.slumping{color:var(--sub);border-color:var(--border);background:rgba(255,255,255,.04)}
 .lu-tag.strong-arm{color:#22c55e;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08)}
 .lu-tag.power-pitcher{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
 .lu-tag.leader{color:#3b82f6;border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.08)}
@@ -1311,7 +1310,7 @@ body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
 .pd-drill-goal{font-size:12px;color:var(--sub);font-style:italic;margin-bottom:6px}
 .pd-drill-desc{font-size:13px;color:var(--hdr);line-height:1.6}
 /* Lineup role + xfactor badges */
-.lu-role{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+
 .lu-xfactor{font-size:10px;font-weight:700;color:var(--amber);margin-left:5px;vertical-align:middle}
 .re-pos-status{font-size:12px;line-height:1}
 
@@ -3893,7 +3892,7 @@ function renderRoster(){
 
 // ── ROSTER EDIT MODAL ──
 var PITCH_SMART={7:50,8:50,9:75,10:75,11:85,12:85,13:95,14:95,15:95,16:95,17:105,18:105};
-var BATTING_TAGS=['Elite OBP','High OBP','Low OBP','Power bat','Plate discipline','Free swinger','Speed threat','Hot bat','Slumping','Clutch'];
+var BATTING_TAGS=['Elite OBP','High OBP','Low OBP','Power bat','Plate discipline','Free swinger','Hot bat','Clutch'];
 var PITCHING_TAGS=['Arm soreness','Power pitcher'];
 var GENERAL_TAGS=['Developing','Leader','Captain'];
 var POSITIONS=['P','C','1B','2B','3B','SS','LF','CF','RF'];
@@ -5059,14 +5058,35 @@ function isPlayerAvailable(name){
 }
 
 function autoLineup(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allP=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
-  // Split available and unavailable
-  var players=allP.filter(function(p){return isPlayerAvailable(p.name);});
-  var unavailable=allP.filter(function(p){return !isPlayerAvailable(p.name);});
-  if(!players.length) return;
-  lineupOrder=buildSmartLineup(players).concat(unavailable.map(function(p){return p.name;}));
-  save();renderLineup();
+  var btn=document.getElementById('lineup-strategy-btn');
+  var icon=document.getElementById('lineup-strategy-icon');
+  var label=document.getElementById('lineup-strategy-label');
+
+  // Running state
+  if(btn) btn.disabled=true;
+  if(icon) icon.textContent='⏳';
+  if(label) label.textContent='Optimizing…';
+
+  // Use setTimeout so the browser paints the running state before the sync work blocks
+  setTimeout(function(){
+    var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+    var allP=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+    var players=allP.filter(function(p){return isPlayerAvailable(p.name);});
+    var unavailable=allP.filter(function(p){return !isPlayerAvailable(p.name);});
+    if(players.length){
+      lineupOrder=buildSmartLineup(players).concat(unavailable.map(function(p){return p.name;}));
+      save();renderLineup();
+    }
+
+    // Done state
+    if(icon) icon.textContent='✓';
+    if(label) label.textContent='Lineup Optimized';
+    setTimeout(function(){
+      if(btn) btn.disabled=false;
+      if(icon) icon.textContent='⚡';
+      if(label) label.textContent='Lineup Optimizer';
+    },2000);
+  },30);
 }
 
 
@@ -5095,10 +5115,6 @@ function getPlayerTags(p){
   // Hot bat — recent AVG trend up meaningfully (not walks-based)
   var t=p.trend||0;
   if(t>0.050&&p.ab>=10) tags.push({label:'Hot bat',cls:'hot-bat',auto:true});
-  else if(t<-0.08&&p.ab>=15) tags.push({label:'Slumping',cls:'slumping',auto:true});
-
-  // Speed threat — SB attempts
-  if((p.sb||0)+(p.cs||0)>=3) tags.push({label:'Speed threat',cls:'speed-threat',auto:true});
 
   // Pitcher auto tags — only Power pitcher if IP qualifies AND S% above target
   var ov=rosterOverrides[p.name]||{};
@@ -5177,7 +5193,6 @@ function renderLineup(){
     }
 
     var xfHtml=xf>0?'<span class="lu-xfactor">⚡'+xf+'</span>':'';
-    var roleHtml=role?'<span class="lu-role">'+role+'</span>':'';
     var isAbsent=!isPlayerAvailable(nm);
     var absentBadge=isAbsent?'<span class="pp-ranked-avail absent" style="font-size:10px;padding:2px 7px;border-radius:5px;margin-left:4px">Out</span>':'';
     var absentStyle=isAbsent?' style="border-color:#ef4444;background:rgba(239,68,68,0.2)"':'';
@@ -5188,7 +5203,7 @@ function renderLineup(){
     return '<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)"'+absentStyle+'>'
       +'<div class="lu-slot-num">'+(i+1)+'</div>'
       +'<div class="lu-player-body">'
-        +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+roleHtml+xfHtml+absentBadge+'</div>'
+        +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+xfHtml+absentBadge+'</div>'
         +'<div class="lu-player-stats">'+statLine+'</div>'
         +tagsHtml
       +'</div>'
