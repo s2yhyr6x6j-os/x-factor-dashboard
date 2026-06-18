@@ -151,6 +151,9 @@ body.light-mode .sb-logo-light{display:block}
 .sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.04em}
 .sb-footer{padding:14px 10px;border-top:1px solid var(--border)}
 .sb-footer .power{font-size:11px;color:var(--sub);margin: 10px 0 10px;padding-left: 5px;}
+.sb-signout-btn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;color:var(--sub);font-family:var(--ff);font-size:12px;font-weight:600;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .15s,color .15s;text-align:left}
+.sb-signout-btn:hover{background:rgba(255,255,255,.05);color:var(--hdr)}
+.sb-signout-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .gc-label{font-size:11px;color:var(--sub);padding:6px 12px}
 
 /* Mobile overlay */
@@ -1591,6 +1594,10 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     </div>
   </nav>
   <div class="sb-footer">
+    <button class="sb-signout-btn" onclick="signOut()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
     <div class="power">⚾ Powered by Baseline Analytics</div>
   </div>
 </aside>
@@ -6024,10 +6031,31 @@ function buildShareStats(p, bat, pit){
 
 // Builds a real, working share link: the full card payload encoded into the URL
 // itself (no server needed). Snapshot at time of sharing, not a live-updating link.
+// Label map for expanding compact share payloads — keeps the URL short by
+// omitting display strings entirely (they're reconstructed from the key here).
+var SC_STAT_LABELS={
+  avg:'Batting Average',obp:'On-Base %',ops:'OPS',qab:'Quality At-Bats',
+  bbk:'Walk-to-Strikeout',hr:'Home Runs',sp:'Strike Rate',
+  fps:'First-Pitch Strike %',whip:'WHIP',fip:'FIP',
+  ip:'Innings Pitched',k:'Strikeouts',kbb:'K/BB Ratio'
+};
+
 function buildShareLink(p, stats, note){
-  var payload={name:p.name,num:p.num||'',team:'SBA Red',season:'Summer 2026',batStats:stats.batStats,pitStats:stats.pitStats,note:note||''};
-  var encoded=utf8B64Encode(JSON.stringify(payload));
-  return window.location.origin+window.location.pathname+'?share='+encoded;
+  // Compact format: short keys, no label strings, no team/season (always the same).
+  // Uses the stat's own key; for display-only stats (key:null) falls back to
+  // a fixed abbreviation so the label map can round-trip correctly.
+  var KEY_FALLBACK={lbl:'Home Runs',k:'hr'};
+  function compactStat(list){
+    var obj={};
+    list.forEach(function(s){
+      var k=s.key||(s.lbl==='Innings Pitched'?'ip':s.lbl==='Strikeouts'?'k':'hr');
+      obj[k]=s.val;
+    });
+    return obj;
+  }
+  var payload={n:p.name,no:p.num||'',b:compactStat(stats.batStats),p:compactStat(stats.pitStats)};
+  if(note) payload.nt=note;
+  return window.location.origin+window.location.pathname+'?share='+utf8B64Encode(JSON.stringify(payload));
 }
 
 // Checks for a ?share= link on page load. Returns true if this is a shared-card
@@ -6059,7 +6087,12 @@ function sha256Hex(str){
   });
 }
 
+var LOGIN_TOKEN_KEY='baseline_auth_v1';
+
 function showLoginGate(){
+  try{
+    if(localStorage.getItem(LOGIN_TOKEN_KEY)===SITE_PASSWORD_HASH){initApp();return;}
+  }catch(e){}
   document.getElementById('login-gate').classList.remove('hidden');
   var input=document.getElementById('login-password-input');
   if(input) setTimeout(function(){input.focus();},50);
@@ -6075,6 +6108,7 @@ function checkLoginPassword(){
   }
   sha256Hex(input.value).then(function(hash){
     if(hash===SITE_PASSWORD_HASH){
+      try{localStorage.setItem(LOGIN_TOKEN_KEY,hash);}catch(e){}
       document.getElementById('login-gate').classList.add('hidden');
       initApp();
     }else{
@@ -6083,6 +6117,11 @@ function checkLoginPassword(){
       input.focus();
     }
   });
+}
+
+function signOut(){
+  try{localStorage.removeItem(LOGIN_TOKEN_KEY);}catch(e){}
+  window.location.reload();
 }
 
 function toggleLoginPwVisible(){
@@ -6096,10 +6135,26 @@ function renderSCVError(){
 }
 
 function renderSCVCard(data){
+  // Support both the new compact format {n,no,b,p,nt} and any old verbose
+  // format {name,batStats,pitStats,note} that may have already been shared.
+  var name,num,batStats,pitStats,note;
+  if(data.n!==undefined){
+    name=data.n; num=data.no||''; note=data.nt||'';
+    function expandStats(obj){
+      return Object.keys(obj||{}).map(function(k){
+        return {lbl:SC_STAT_LABELS[k]||k,val:String(obj[k]),key:k};
+      });
+    }
+    batStats=expandStats(data.b); pitStats=expandStats(data.p);
+  } else {
+    name=data.name||''; num=data.num||''; note=data.note||'';
+    batStats=data.batStats||[]; pitStats=data.pitStats||[];
+  }
+
   var html='<div class="sc-inner-card">'
     +'<div class="sc-card-topbar"><div class="sc-card-brand">⚾<span>Baseline Analytics</span></div><div class="sc-card-season">Season Stats</div></div>'
-    +'<div class="sc-card-hero"><div class="sc-card-name">#'+escHtml(data.num||'0')+' '+escHtml(data.name||'')+'</div>'
-    +'<div class="sc-card-team">'+escHtml(data.team||'')+' · '+escHtml(data.season||'')+'</div></div>'
+    +'<div class="sc-card-hero"><div class="sc-card-name">#'+escHtml(num||'0')+' '+escHtml(name)+'</div>'
+    +'<div class="sc-card-team">SBA Red · Summer 2026</div></div>'
     +'</div>';
 
   function statCellsHtml(list){
@@ -6114,16 +6169,16 @@ function renderSCVCard(data){
     return h;
   }
 
-  if(data.batStats&&data.batStats.length){
+  if(batStats.length){
     html+='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚡ BATTING</div><div class="sc-stat-grid">'
-      +statCellsHtml(data.batStats)+'</div></div></div>';
+      +statCellsHtml(batStats)+'</div></div></div>';
   }
-  if(data.pitStats&&data.pitStats.length){
+  if(pitStats.length){
     html+='<div class="sc-inner-card"><div class="sc-stat-section"><div class="sc-stat-section-hdr">⚾ PITCHING</div><div class="sc-stat-grid">'
-      +statCellsHtml(data.pitStats)+'</div></div></div>';
+      +statCellsHtml(pitStats)+'</div></div></div>';
   }
-  if(data.note){
-    html+='<div class="sc-inner-card"><div class="sc-coach-note">"'+escHtml(data.note)+'"</div></div>';
+  if(note){
+    html+='<div class="sc-inner-card"><div class="sc-coach-note">"'+escHtml(note)+'"</div></div>';
   }
   html+='<div class="sc-card-attribution">Powered by Baseline Analytics ⚾</div>';
   document.getElementById('scv-content').innerHTML=html;
