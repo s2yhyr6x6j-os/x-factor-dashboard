@@ -1233,9 +1233,6 @@ body.light-mode .pd-btn-outline{background:#fff}
 .scv-wrap .sc-inner-card{border-radius:14px;overflow:hidden;margin-bottom:12px;border:1px solid var(--border)}
 .scv-loading,.scv-error{text-align:center;color:var(--sub);font-size:13px;padding:60px 24px;line-height:1.6}
 .scv-error{color:#fb7185}
-.scv-back-link{text-align:center;margin-top:20px}
-.scv-back-link a{color:#51a2ff;font-size:12px;text-decoration:none}
-.scv-back-link a:hover{text-decoration:underline}
 
 /* Login gate */
 .login-gate{display:flex;position:fixed;inset:0;background:var(--bg1);z-index:10000;align-items:center;justify-content:center;padding:20px}
@@ -1827,7 +1824,6 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <div class="scv-overlay" id="scv-overlay">
     <div class="scv-wrap">
       <div id="scv-content"><div class="scv-loading">Loading shared card…</div></div>
-      <div class="scv-back-link"><a href="javascript:void(0)" onclick="window.location.href=window.location.pathname">← Open the full dashboard</a></div>
     </div>
   </div>
 
@@ -6234,10 +6230,8 @@ function renderSCPreview(){
 
 function copyShareLink(){
   var el=document.getElementById('sc-link-input');
-  var p=_scPlayer;
-  if(!el||!el.value||!p) return;
-  var text='Check out '+p.name+'\'s stats: '+el.value;
-  navigator.clipboard.writeText(text).then(function(){
+  if(!el||!el.value) return;
+  navigator.clipboard.writeText(el.value).then(function(){
     var btn=document.querySelector('.sc-link-btn-copy');
     if(btn){btn.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round"><polyline points="20 6 9 17 4 12"/></svg> Copied!';setTimeout(function(){btn.innerHTML='<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link';},2000);}
   }).catch(function(){
