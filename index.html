@@ -1238,11 +1238,11 @@ body.light-mode .pd-btn-outline{background:#fff}
 .login-gate{display:flex;position:fixed;inset:0;background:var(--bg1);z-index:10000;align-items:center;justify-content:center;padding:20px}
 .login-gate.hidden{display:none}
 .login-card{max-width:340px;width:100%;text-align:center}
-.login-logo-dark,.login-logo-light{height:40px;margin:0 auto 24px;display:block}
+.login-logo-dark,.login-logo-light{height:40px;margin:0 auto 12px;display:block}
 .login-logo-light{display:none}
 body.light-mode .login-logo-dark{display:none}
 body.light-mode .login-logo-light{display:block}
-.login-sub{font-size:13px;color:var(--sub);margin-bottom:20px}
+.login-sub{font-size:15px;font-weight:700;color:var(--sub);margin-bottom:20px}
 .login-field-wrap{position:relative;margin-bottom:10px}
 .login-input{width:100%;font-family:var(--ff);font-size:14px;padding:12px 44px 12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--hdr);outline:none;box-sizing:border-box;transition:border-color .2s}
 .login-input:focus,.login-input:hover{border-color:#51a2ff}
@@ -1805,7 +1805,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <div class="login-card">
       <img class="login-logo-dark" src="/public/baseline-logo-dm.png" alt="Baseline Analytics">
       <img class="login-logo-light" src="/public/baseline-logo-lm.png" alt="Baseline Analytics">
-      <div class="login-sub">Enter the team password to continue</div>
+      <div class="login-sub">BASELINE ANALYTICS</div>
       <div class="login-field-wrap">
         <input type="password" class="login-input" id="login-password-input" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')checkLoginPassword()">
         <button class="login-eye" id="login-eye-btn" onclick="toggleLoginPwVisible()" aria-label="Show password" type="button">
