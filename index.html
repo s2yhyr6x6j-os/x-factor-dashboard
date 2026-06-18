@@ -1234,6 +1234,25 @@ body.light-mode .pd-btn-outline{background:#fff}
 .scv-back-link a{color:#51a2ff;font-size:12px;text-decoration:none}
 .scv-back-link a:hover{text-decoration:underline}
 
+/* Login gate */
+.login-gate{display:flex;position:fixed;inset:0;background:var(--bg1);z-index:10000;align-items:center;justify-content:center;padding:20px}
+.login-gate.hidden{display:none}
+.login-card{max-width:340px;width:100%;text-align:center}
+.login-logo-dark,.login-logo-light{height:40px;margin:0 auto 24px;display:block}
+.login-logo-light{display:none}
+body.light-mode .login-logo-dark{display:none}
+body.light-mode .login-logo-light{display:block}
+.login-sub{font-size:13px;color:var(--sub);margin-bottom:20px}
+.login-field-wrap{position:relative;margin-bottom:10px}
+.login-input{width:100%;font-family:var(--ff);font-size:14px;padding:12px 44px 12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--hdr);outline:none;box-sizing:border-box;transition:border-color .2s}
+.login-input:focus,.login-input:hover{border-color:#51a2ff}
+.login-eye{position:absolute;top:0;right:0;height:100%;width:40px;background:none;border:none;cursor:pointer;color:var(--sub);display:flex;align-items:center;justify-content:center}
+.login-eye svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.login-eye:hover{color:var(--hdr)}
+.login-error{font-size:12px;color:#fb7185;min-height:16px;margin-bottom:6px}
+.login-submit-btn{width:100%;font-family:var(--ff);font-weight:600;font-size:14px;padding:12px;background:#51a2ff;color:#fff;border:none;border-radius:10px;cursor:pointer;transition:background .15s;margin-top:8px}
+.login-submit-btn:hover{background:var(--blue)}
+
 /* Edit tab */
 .sc-field-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
 .sc-field-label.sub{font-size:9px;color:var(--sub);margin-bottom:6px}
@@ -1779,6 +1798,25 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <!-- ── SHARE CARD MODAL ── -->
   <!-- Standalone shared-card view: shown full-page when a ?share= link is opened,
        replacing the normal app instead of requiring the visitor to have any data loaded -->
+  <!-- Login gate: shown on every page load before the dashboard is accessible.
+       This is a client-side deterrent, not real security — the check happens
+       in the browser, so it keeps casual visitors out but not a determined one. -->
+  <div class="login-gate hidden" id="login-gate">
+    <div class="login-card">
+      <img class="login-logo-dark" src="/public/baseline-logo-dm.png" alt="Baseline Analytics">
+      <img class="login-logo-light" src="/public/baseline-logo-lm.png" alt="Baseline Analytics">
+      <div class="login-sub">Enter the team password to continue</div>
+      <div class="login-field-wrap">
+        <input type="password" class="login-input" id="login-password-input" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')checkLoginPassword()">
+        <button class="login-eye" id="login-eye-btn" onclick="toggleLoginPwVisible()" aria-label="Show password" type="button">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button class="login-submit-btn" onclick="checkLoginPassword()">Enter</button>
+    </div>
+  </div>
+
   <div class="scv-overlay" id="scv-overlay">
     <div class="scv-wrap">
       <div id="scv-content"><div class="scv-loading">Loading shared card…</div></div>
@@ -6000,6 +6038,51 @@ function checkSharedView(){
   return true;
 }
 
+// ── LOGIN GATE ──
+// Client-side deterrent only — the check runs in the browser, so it keeps
+// casual visitors out but isn't real protection against a determined one.
+// CHANGE THE PASSWORD: replace SITE_PASSWORD_HASH with the SHA-256 hex digest
+// of your new password. Ask Claude to generate it, or use any "sha256 hash
+// generator" site and paste the result in as a plain lowercase hex string.
+var SITE_PASSWORD_HASH='a383b8b7a6018c7fbe4a844725c24deff8cd6920bc79f8fb5ab337c10157a922'; // set via Claude — do not store the plaintext password here
+
+function sha256Hex(str){
+  return crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)).then(function(buf){
+    return Array.prototype.map.call(new Uint8Array(buf),function(b){return b.toString(16).padStart(2,'0');}).join('');
+  });
+}
+
+function showLoginGate(){
+  document.getElementById('login-gate').classList.remove('hidden');
+  var input=document.getElementById('login-password-input');
+  if(input) setTimeout(function(){input.focus();},50);
+}
+
+function checkLoginPassword(){
+  var input=document.getElementById('login-password-input');
+  var err=document.getElementById('login-error');
+  if(!input.value){err.textContent='Enter a password.';return;}
+  if(!window.crypto||!window.crypto.subtle){
+    err.textContent='This browser can\'t verify the password here (requires HTTPS).';
+    return;
+  }
+  sha256Hex(input.value).then(function(hash){
+    if(hash===SITE_PASSWORD_HASH){
+      document.getElementById('login-gate').classList.add('hidden');
+      initApp();
+    }else{
+      err.textContent='Incorrect password. Try again.';
+      input.value='';
+      input.focus();
+    }
+  });
+}
+
+function toggleLoginPwVisible(){
+  var input=document.getElementById('login-password-input');
+  input.type=input.type==='password'?'text':'password';
+}
+
 function renderSCVError(){
   document.getElementById('scv-content').innerHTML=
     '<div class="scv-error">⚠ This shared card link looks broken or incomplete.<br>Ask whoever sent it to share it again.</div>';
@@ -8066,8 +8149,7 @@ function linkImportsToGameLog(){
 }
 
 // ── INIT ──
-(function(){
-  if(checkSharedView()) return;
+function initApp(){
   var d=new Date(),mo=String(d.getMonth()+1).padStart(2,'0'),dy=String(d.getDate()).padStart(2,'0');
   document.getElementById('f-date').value=d.getFullYear()+'-'+mo+'-'+dy;
   var gc='rgba(51,65,85,.4)',tc='#94a3b8';
@@ -8129,6 +8211,13 @@ function linkImportsToGameLog(){
   linkImportsToGameLog();
   renderAll();updateApiKeyUI();
   });
+}
+
+// Entry point: shared-card links bypass the login gate entirely (they're meant
+// for people outside the team); everything else requires the password first.
+(function(){
+  if(checkSharedView()) return;
+  showLoginGate();
 })();
 
 // ── PLAYER PDF REPORT ──
