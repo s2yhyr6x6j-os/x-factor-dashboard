@@ -552,7 +552,7 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .lu-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .lu-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;border:1px solid;white-space:nowrap}
 
-.lu-xfactor{font-size:10px;font-weight:700;color:var(--amber);margin-left:5px;vertical-align:middle}
+
 .lu-tag.elite-obp{color:#a855f7;border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.08)}
 .lu-tag.high-obp{color:#22c55e;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08)}
 .lu-tag.low-obp{color:#fb7185;border-color:rgba(251,113,133,.3);background:rgba(251,113,133,.08)}
@@ -1311,7 +1311,7 @@ body.light-mode .pd-drill-card{background:#ffffff;border-color:#e5e7eb}
 .pd-drill-desc{font-size:13px;color:var(--hdr);line-height:1.6}
 /* Lineup role + xfactor badges */
 
-.lu-xfactor{font-size:10px;font-weight:700;color:var(--amber);margin-left:5px;vertical-align:middle}
+
 .re-pos-status{font-size:12px;line-height:1}
 
 .sc-body{flex:1;min-height:0;overflow-y:auto;padding:20px}
@@ -2359,7 +2359,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     </div>
   </div>
   <div class="lu-footer-note">
-    💡<strong>Lineup:</strong> Ranked by OBP (primary) and QAB% (tiebreaker). Power bats nudged to slots 3–5.</div>
+    ☝️ <strong>Trend:</strong> For lineup slots 6-9, calculates player's recent performance versus their earlier season performance across four batting categories: AVG, OBP, OPS, and QAB%. Shows who might be playing their best ball now.</div>
 </div>
 
 <!-- ROTATION -->
@@ -4911,18 +4911,6 @@ function renderRecs(){
 // ── LINEUP ALGORITHM v2 ──
 
 // Calculate X-Factor score for batting (0-5)
-function xFactorScore(p){
-  var score=0;
-  var pspa=p.ps&&p.pa>0?p.ps/p.pa:0;
-  if(pspa>=4.0) score++;                              // patient at plate
-  if(p.qab_pct>=70) score++;                          // quality contact
-  if(p.pa>0&&p.bb/p.pa>=0.12) score++;               // walks per PA
-  if(p.sb>0&&(p.sb/(p.sb+(p.cs||0)))>=0.80) score++; // baserunning IQ
-  // positive trend in last 8 games
-  if(trendCategories(p)>=2) score++;
-  return score;
-}
-
 // Calculate pitching X-Factor (0-5)
 function pitchXFactor(p){
   if(!p.pit||!p.pit.ip) return 0;
@@ -5011,26 +4999,26 @@ function buildSmartLineup(players){
   var power=pool.slice().sort(function(a,b){
     var aScore=a.ops*0.6+(a.hr||0)*0.4;
     var bScore=b.ops*0.6+(b.hr||0)*0.4;
-    if(Math.abs(aScore-bScore)<0.05) return xFactorScore(b)-xFactorScore(a);
+    if(Math.abs(aScore-bScore)<0.05) return trendCategories(b)-trendCategories(a);
     return bScore-aScore;
   });
   var slot4=power[0];
   var slot5=power[1];
   pool=pool.filter(function(p){return p.name!==slot4.name&&p.name!==slot5.name;});
 
-  // ── SLOTS 1-2: table setters (OBP → BB count → PSPA → X-Factor) ──
+  // ── SLOTS 1-2: table setters (OBP → BB count → PSPA → trend) ──
   var setters=pool.slice().sort(function(a,b){
     if(Math.abs(b.obp-a.obp)>0.015) return b.obp-a.obp;   // OBP primary
     if(b.bb!==a.bb) return b.bb-a.bb;                       // BB count secondary
     var pspaA=getPSPA(a),pspaB=getPSPA(b);
     if(Math.abs(pspaB-pspaA)>0.2) return pspaB-pspaA;       // PSPA tiebreaker
-    return xFactorScore(b)-xFactorScore(a);                  // X-Factor final
+    return trendCategories(b)-trendCategories(a);            // trend final
   });
   var slot1=setters[0];
   var slot2=setters[1];
   pool=pool.filter(function(p){return p.name!==slot1.name&&p.name!==slot2.name;});
 
-  // ── SLOTS 6-9: remaining (OBP+QAB weighted, then trend count, then X-Factor) ──
+  // ── SLOTS 6-9: remaining (OBP+QAB weighted, then trend count) ──
   var bottom=pool.slice().sort(function(a,b){
     // Base score: OBP 50% + QAB 50%
     var aBase=(a.obp/0.5)*0.5+(a.qab_pct/100)*0.5;
@@ -5039,9 +5027,7 @@ function buildSmartLineup(players){
     // Trend count tiebreaker
     var aTrend=trendCategories(a);
     var bTrend=trendCategories(b);
-    if(bTrend!==aTrend) return bTrend-aTrend;
-    // X-Factor final
-    return xFactorScore(b)-xFactorScore(a);
+    return bTrend-aTrend;
   });
 
   var result=[slot1,slot2,slot3,slot4,slot5].concat(bottom);
@@ -5176,7 +5162,6 @@ function renderLineup(){
     var num=ov.num||p.num||'—';
     var role=SLOT_ROLES[i]||'';
     var tags=getPlayerTags(p);
-    var xf=xFactorScore(p);
     var pspa=getPSPA(p);
     var trend=trendCategories(p);
 
@@ -5192,7 +5177,6 @@ function renderLineup(){
       statLine='OBP <span>'+p.obp.toFixed(3)+'</span> · QAB <span>'+p.qab_pct.toFixed(1)+'%</span>'+(trend>0?' · Trend ↑<span>'+trend+'</span>':'');
     }
 
-    var xfHtml=xf>0?'<span class="lu-xfactor">⚡'+xf+'</span>':'';
     var isAbsent=!isPlayerAvailable(nm);
     var absentBadge=isAbsent?'<span class="pp-ranked-avail absent" style="font-size:10px;padding:2px 7px;border-radius:5px;margin-left:4px">Out</span>':'';
     var absentStyle=isAbsent?' style="border-color:#ef4444;background:rgba(239,68,68,0.2)"':'';
@@ -5203,7 +5187,7 @@ function renderLineup(){
     return '<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)"'+absentStyle+'>'
       +'<div class="lu-slot-num">'+(i+1)+'</div>'
       +'<div class="lu-player-body">'
-        +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+xfHtml+absentBadge+'</div>'
+        +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+absentBadge+'</div>'
         +'<div class="lu-player-stats">'+statLine+'</div>'
         +tagsHtml
       +'</div>'
