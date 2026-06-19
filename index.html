@@ -563,18 +563,25 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .lu-tag.strong-arm{color:#22c55e;border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08)}
 .lu-tag.power-pitcher{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
 .lu-tag.leader{color:#3b82f6;border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.08)}
-.lu-gp{font-size:11px;color:var(--sub);flex-shrink:0;margin-top:2px}
+.lu-gp{font-size:11px;color:var(--sub);flex-shrink:0}
 .lu-slot-wrap{margin-bottom:8px}
-.lu-ask-btn{font-family:var(--ff);font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 9px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--sub);cursor:pointer;flex-shrink:0;transition:all .15s;white-space:nowrap}
+.lu-row-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0;gap:6px}
+.lu-ask-btn{font-family:var(--ff);font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 9px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--sub);cursor:pointer;transition:all .15s;white-space:nowrap}
 .lu-ask-btn:hover{border-color:#51a2ff;color:#51a2ff}
 .lu-ask-btn.active{border-color:#51a2ff;color:#51a2ff;background:rgba(81,162,255,.08)}
-.lu-coach-drop{display:none;padding:12px 16px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--sub);line-height:1.6;background:#0b1220;border-radius:0 0 12px 12px;border:1px solid var(--border);border-top:none;margin-top:-8px;padding-top:16px}
+@keyframes lu-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.lu-spinner{display:inline-block;animation:lu-spin 1s linear infinite}
+.lu-coach-drop{display:none;padding:14px 16px 12px;font-size:12px;color:var(--sub);line-height:1.6;background:#0b1220;border-radius:0 0 12px 12px;border:1px solid var(--border);border-top:none;margin-top:-8px;padding-top:16px}
 .lu-coach-drop.open{display:block}
 .lu-slot-wrap:has(.lu-coach-drop.open) .lu-player-row{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
 .lu-coach-drop .lc-loading{color:var(--sub);font-style:italic}
 .lu-coach-drop .lc-text p{margin:0 0 6px}
 .lu-coach-drop .lc-text p:last-child{margin:0}
 .lu-coach-drop .lc-text strong{color:var(--hdr)}
+.lu-coach-footer{display:flex;justify-content:flex-end;margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}
+.lu-hide-btn{background:none;border:none;color:var(--sub);cursor:pointer;font-family:var(--ff);font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;padding:0}
+.lu-hide-btn:hover{color:var(--hdr)}
+.lu-hide-btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .ask-skipper-btn{display:flex;align-items:center;gap:5px;font-family:var(--ff);font-size:11px;font-weight:600;padding:6px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;color:var(--sub);cursor:pointer;flex-shrink:0;transition:all .15s;align-self:center}
 .ask-skipper-btn:hover{border-color:var(--blue);color:var(--blue)}
 .lu-rbi-note{font-size:11px;color:var(--amber);margin-top:10px;padding:8px 0 0;}
@@ -5114,24 +5121,38 @@ function askCoach(name, slot){
     +'**Case for moving down:** (1-2 sentences — what stats or weaknesses suggest a lower slot could work)\n\n'
     +'Use only the data provided. No filler phrases. Cite actual numbers.';
 
-  drop.innerHTML='<div class="lc-loading">Asking coach…</div>';
+  // Spinning baseball on button while loading
+  btn.innerHTML='<span class="lu-spinner">⚾</span> Asking…';
+  btn.disabled=true;
+  drop.innerHTML='';
+
+  var hideBtn='<div class="lu-coach-footer"><button class="lu-hide-btn" onclick="collapseCoach('+slot+')">'
+    +'<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>Hide</button></div>';
 
   callClaude({model:'claude-sonnet-4-6',max_tokens:350,messages:[{role:'user',content:prompt}]})
     .then(function(d){
+      btn.innerHTML='💬 Why?';btn.disabled=false;
       var text=(d.content&&d.content[0]&&d.content[0].text)||'No response.';
-      // Convert **bold** markdown to <strong> and newlines to paragraph breaks
       var html=text
         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
         .split(/\n\n+/)
         .map(function(p){return '<p>'+p.replace(/\n/g,' ')+'</p>';})
         .join('');
-      var result='<div class="lc-text">'+html+'</div>';
+      var result='<div class="lc-text">'+html+'</div>'+hideBtn;
       _coachCache[cacheKey]=result;
       drop.innerHTML=result;
     })
-    .catch(function(e){
-      drop.innerHTML='<div class="lc-loading">Couldn\'t reach Claude — check your API key in Settings.</div>';
+    .catch(function(){
+      btn.innerHTML='💬 Why?';btn.disabled=false;
+      drop.innerHTML='<div class="lc-loading">Couldn\'t reach Claude — check your API key in Settings.</div>'+hideBtn;
     });
+}
+
+function collapseCoach(slot){
+  var drop=document.getElementById('lu-drop-'+slot);
+  var btn=document.getElementById('lu-askbtn-'+slot);
+  if(drop) drop.classList.remove('open');
+  if(btn){btn.classList.remove('active');btn.innerHTML='💬 Why?';}
 }
 
 function autoLineup(){
@@ -5284,8 +5305,10 @@ function renderLineup(){
           +'<div class="lu-player-stats">'+statLine+'</div>'
           +tagsHtml
         +'</div>'
-        +'<div class="lu-gp">'+p.gp+'g</div>'
-        +'<button class="lu-ask-btn" id="'+btnId+'" onclick="event.stopPropagation();askCoach(\''+esc(nm)+'\','+i+')">💬 Ask</button>'
+        +'<div class="lu-row-right">'
+          +'<div class="lu-gp">'+p.gp+'g</div>'
+          +'<button class="lu-ask-btn" id="'+btnId+'" onclick="event.stopPropagation();askCoach(\''+esc(nm)+'\','+i+')">💬 Why?</button>'
+        +'</div>'
       +'</div>'
       +'<div class="lu-coach-drop" id="'+dropId+'"></div>'
       +'</div>';
