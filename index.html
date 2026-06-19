@@ -564,6 +564,17 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .lu-tag.power-pitcher{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
 .lu-tag.leader{color:#3b82f6;border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.08)}
 .lu-gp{font-size:11px;color:var(--sub);flex-shrink:0;margin-top:2px}
+.lu-slot-wrap{margin-bottom:8px}
+.lu-ask-btn{font-family:var(--ff);font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 9px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--sub);cursor:pointer;flex-shrink:0;transition:all .15s;white-space:nowrap}
+.lu-ask-btn:hover{border-color:#51a2ff;color:#51a2ff}
+.lu-ask-btn.active{border-color:#51a2ff;color:#51a2ff;background:rgba(81,162,255,.08)}
+.lu-coach-drop{display:none;padding:12px 16px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--sub);line-height:1.6;background:#0b1220;border-radius:0 0 12px 12px;border:1px solid var(--border);border-top:none;margin-top:-8px;padding-top:16px}
+.lu-coach-drop.open{display:block}
+.lu-slot-wrap:has(.lu-coach-drop.open) .lu-player-row{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-color:transparent}
+.lu-coach-drop .lc-loading{color:var(--sub);font-style:italic}
+.lu-coach-drop .lc-text p{margin:0 0 6px}
+.lu-coach-drop .lc-text p:last-child{margin:0}
+.lu-coach-drop .lc-text strong{color:var(--hdr)}
 .ask-skipper-btn{display:flex;align-items:center;gap:5px;font-family:var(--ff);font-size:11px;font-weight:600;padding:6px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;color:var(--sub);cursor:pointer;flex-shrink:0;transition:all .15s;align-self:center}
 .ask-skipper-btn:hover{border-color:var(--blue);color:var(--blue)}
 .lu-rbi-note{font-size:11px;color:var(--amber);margin-top:10px;padding:8px 0 0;}
@@ -5043,6 +5054,86 @@ function isPlayerAvailable(name){
   return status!=='absent';
 }
 
+// Cache: keyed by "playerName|slot" so re-ordering invalidates old justifications
+var _coachCache={};
+
+function askCoach(name, slot){
+  var dropId='lu-drop-'+slot;
+  var btnId='lu-askbtn-'+slot;
+  var drop=document.getElementById(dropId);
+  var btn=document.getElementById(btnId);
+  if(!drop||!btn) return;
+
+  // Toggle closed if already open
+  if(drop.classList.contains('open')){
+    drop.classList.remove('open');
+    btn.classList.remove('active');
+    return;
+  }
+
+  // Open and close any other open drops
+  document.querySelectorAll('.lu-coach-drop.open').forEach(function(d){d.classList.remove('open');});
+  document.querySelectorAll('.lu-ask-btn.active').forEach(function(b){b.classList.remove('active');});
+  drop.classList.add('open');
+  btn.classList.add('active');
+
+  // Return cached result if available
+  var cacheKey=name+'|'+slot;
+  if(_coachCache[cacheKey]){drop.innerHTML=_coachCache[cacheKey];return;}
+
+  // Build full lineup context for the prompt
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var allP=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var pMap={};allP.forEach(function(p){pMap[p.name]=p;});
+  var lineup=lineupOrder.filter(function(n){return pMap[n];});
+  var player=pMap[name];
+  if(!player){drop.innerHTML='<div class="lc-loading">Player data not found.</div>';return;}
+
+  function fmtPlayer(n,idx){
+    var p=pMap[n]; if(!p) return '';
+    var pspa=getPSPA(p);
+    var trend=trendCategories(p);
+    return 'Slot '+(idx+1)+': '+n
+      +' | AVG '+p.avg.toFixed(3)+' | OBP '+p.obp.toFixed(3)+' | OPS '+p.ops.toFixed(3)
+      +' | QAB% '+p.qab_pct.toFixed(1)+' | BB '+p.bb+' | K '+p.so+' | HR '+(p.hr||0)
+      +(pspa>0?' | PSPA '+pspa.toFixed(1):'')
+      +(trend>0?' | Trend↑'+trend:'')
+      +(p.pit&&p.pit.ip>0?' | Pitcher ('+p.pit.ip.toFixed(1)+' IP, '+p.pit.sp.toFixed(1)+'% S%)':'');
+  }
+
+  var lineupContext=lineup.map(function(n,i){return fmtPlayer(n,i);}).join('\n');
+  var slotNames=['Leadoff','#2 Hitter','#3 Best Hitter','Cleanup','#5 Power Bat','#6','#7','#8','#9'];
+  var slotName=slotNames[slot]||'Slot '+(slot+1);
+
+  var prompt='You are a youth baseball coach assistant for a 12U travel team. Be direct and brief — coaches are busy.\n\n'
+    +'FULL LINEUP:\n'+lineupContext+'\n\n'
+    +'TASK: Justify why '+name+' is batting '+slotName+' (slot '+(slot+1)+').\n\n'
+    +'Format your response as exactly 3 short paragraphs with these bold labels:\n'
+    +'**Why slot '+(slot+1)+':** (2-3 sentences — cite specific stats and how they compare to the players around them)\n'
+    +'**Case for moving up:** (1-2 sentences — what stats or trends support a higher slot)\n'
+    +'**Case for moving down:** (1-2 sentences — what stats or weaknesses suggest a lower slot could work)\n\n'
+    +'Use only the data provided. No filler phrases. Cite actual numbers.';
+
+  drop.innerHTML='<div class="lc-loading">Asking coach…</div>';
+
+  callClaude({model:'claude-sonnet-4-6',max_tokens:350,messages:[{role:'user',content:prompt}]})
+    .then(function(d){
+      var text=(d.content&&d.content[0]&&d.content[0].text)||'No response.';
+      // Convert **bold** markdown to <strong> and newlines to paragraph breaks
+      var html=text
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .split(/\n\n+/)
+        .map(function(p){return '<p>'+p.replace(/\n/g,' ')+'</p>';})
+        .join('');
+      var result='<div class="lc-text">'+html+'</div>';
+      _coachCache[cacheKey]=result;
+      drop.innerHTML=result;
+    })
+    .catch(function(e){
+      drop.innerHTML='<div class="lc-loading">Couldn\'t reach Claude — check your API key in Settings.</div>';
+    });
+}
+
 function autoLineup(){
   var btn=document.getElementById('lineup-strategy-btn');
   var icon=document.getElementById('lineup-strategy-icon');
@@ -5061,7 +5152,7 @@ function autoLineup(){
     var unavailable=allP.filter(function(p){return !isPlayerAvailable(p.name);});
     if(players.length){
       lineupOrder=buildSmartLineup(players).concat(unavailable.map(function(p){return p.name;}));
-      save();renderLineup();
+      _coachCache={};save();renderLineup();
     }
 
     // Done state
@@ -5154,8 +5245,6 @@ function renderLineup(){
   var lineup=lineupOrder.slice(0,players.length);
   var SLOT_ROLES=['Leadoff','#2 Hitter','Best Hitter','Cleanup','#5 Power','','','','',''];
 
-  var SLOT_ROLES=['Leadoff','#2 Hitter','Best Hitter','Cleanup','#5 Power','','','','',''];
-
   ls.innerHTML=lineup.map(function(nm,i){
     var p=pMap[nm];if(!p)return '';
     var ov=rosterOverrides[nm]||{};
@@ -5184,14 +5273,21 @@ function renderLineup(){
     var tagsHtml=lineupShowNotes&&tags.length
       ?'<div class="lu-tags">'+tags.map(function(t){return '<span class="lu-tag '+t.cls+' '+(t.auto?'auto':'coach')+'">'+t.label+'</span>';}).join('')+'</div>':'';
 
-    return '<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)"'+absentStyle+'>'
-      +'<div class="lu-slot-num">'+(i+1)+'</div>'
-      +'<div class="lu-player-body">'
-        +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+absentBadge+'</div>'
-        +'<div class="lu-player-stats">'+statLine+'</div>'
-        +tagsHtml
+    var dropId='lu-drop-'+i;
+    var btnId='lu-askbtn-'+i;
+
+    return '<div class="lu-slot-wrap">'
+      +'<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)"'+absentStyle+'>'
+        +'<div class="lu-slot-num">'+(i+1)+'</div>'
+        +'<div class="lu-player-body">'
+          +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+absentBadge+'</div>'
+          +'<div class="lu-player-stats">'+statLine+'</div>'
+          +tagsHtml
+        +'</div>'
+        +'<div class="lu-gp">'+p.gp+'g</div>'
+        +'<button class="lu-ask-btn" id="'+btnId+'" onclick="event.stopPropagation();askCoach(\''+esc(nm)+'\','+i+')">💬 Ask</button>'
       +'</div>'
-      +'<div class="lu-gp">'+p.gp+'g</div>'
+      +'<div class="lu-coach-drop" id="'+dropId+'"></div>'
       +'</div>';
   }).join('');
 
@@ -5492,7 +5588,7 @@ function luDrop(e){
   if(!luDragSrc||luDragSrc===tgt)return;
   var si=lineupOrder.indexOf(luDragSrc),ti=lineupOrder.indexOf(tgt);
   lineupOrder.splice(si,1);lineupOrder.splice(ti,0,luDragSrc);
-  save();renderLineup();
+  _coachCache={};save();renderLineup();
 }
 
 // ── METRICS PAGE ──
@@ -6986,7 +7082,7 @@ function confirmDeletePlayer(name){
   save();renderAll();
 }
 
-function moveToBattingOrder(nm){var idx=lineupOrder.indexOf(nm);if(idx<0)return;lineupOrder.splice(idx,1);lineupOrder.splice(Math.min(8,lineupOrder.length),0,nm);save();renderLineup();}
+function moveToBattingOrder(nm){var idx=lineupOrder.indexOf(nm);if(idx<0)return;lineupOrder.splice(idx,1);lineupOrder.splice(Math.min(8,lineupOrder.length),0,nm);_coachCache={};save();renderLineup();}
 
 // ── UPLOAD PAGE ──
 var currentUploadType='csv';
