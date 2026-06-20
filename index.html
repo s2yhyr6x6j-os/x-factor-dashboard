@@ -568,7 +568,8 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .lu-row-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0;gap:6px}
 
 /* Player comparison: checkbox + floating button + modal */
-.lu-cmp-check{width:18px;height:18px;flex-shrink:0;margin-top:2px;cursor:pointer;accent-color:#51a2ff}
+.lu-slot-col{display:flex;flex-direction:column;align-items:center;justify-content:space-between;align-self:stretch;flex-shrink:0}
+.lu-cmp-check{width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:#51a2ff}
 .lu-cmp-fab{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:300;display:none;align-items:center;gap:8px;background:#51a2ff;color:#fff;font-family:var(--ff);font-weight:700;font-size:13px;padding:12px 22px;border-radius:30px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:background .15s}
 .lu-cmp-fab.show{display:flex}
 .lu-cmp-fab:hover{background:var(--blue)}
@@ -601,6 +602,15 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .cmp-best{position:relative}
 .cmp-best::after{content:'★';font-size:9px;margin-left:4px;vertical-align:super}
 .cmp-empty{padding:40px;text-align:center;color:var(--sub);font-size:13px}
+
+body.light-mode .cmp-card{background:#ffffff;border-color:#e5e7eb;box-shadow:0 1px 1px rgba(0,0,0,.16)}
+body.light-mode .cmp-hdr,body.light-mode .cmp-table th,body.light-mode .cmp-table td{border-color:#e5e7eb}
+body.light-mode .cmp-table th.cmp-stat-col,body.light-mode .cmp-table td.cmp-stat-col{background:#ffffff}
+body.light-mode .cmp-hdr-title{color:#111827}
+body.light-mode .cmp-table thead th{color:#111827}
+body.light-mode .cmp-clear-link{color:#6b7280}
+body.light-mode .cmp-clear-link:hover,body.light-mode .cmp-close:hover{color:#111827}
+body.light-mode .lu-cmp-fab{box-shadow:0 2px 10px rgba(0,0,0,.18)}
 .lu-ask-btn{font-family:var(--ff);font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 9px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--sub);cursor:pointer;transition:all .15s;white-space:nowrap}
 .lu-ask-btn:hover{border-color:#51a2ff;color:#51a2ff}
 .lu-ask-btn.active{border-color:#51a2ff;color:#51a2ff;background:rgba(81,162,255,.08)}
@@ -5503,8 +5513,10 @@ function renderLineup(){
 
     return '<div class="lu-slot-wrap">'
       +'<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)"'+absentStyle+'>'
-        +'<input type="checkbox" class="lu-cmp-check" '+(_cmpSelected.has(nm)?'checked':'')+' onclick="event.stopPropagation();toggleCompare(\''+esc(nm)+'\')" aria-label="Add to comparison">'
-        +'<div class="lu-slot-num">'+(i+1)+'</div>'
+        +'<div class="lu-slot-col">'
+          +'<div class="lu-slot-num">'+(i+1)+'</div>'
+          +'<input type="checkbox" class="lu-cmp-check" '+(_cmpSelected.has(nm)?'checked':'')+' onclick="event.stopPropagation();toggleCompare(\''+esc(nm)+'\')" aria-label="Add to comparison">'
+        +'</div>'
         +'<div class="lu-player-body">'
           +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+absentBadge+'</div>'
           +'<div class="lu-player-stats">'+statLine+'</div>'
