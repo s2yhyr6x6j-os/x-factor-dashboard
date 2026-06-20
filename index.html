@@ -566,6 +566,41 @@ button.optimizeRot:hover,.lineup-strategy-btn:hover{background: rgba(124, 58, 23
 .lu-gp{font-size:11px;color:var(--sub);flex-shrink:0}
 .lu-slot-wrap{margin-bottom:8px}
 .lu-row-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0;gap:6px}
+
+/* Player comparison: checkbox + floating button + modal */
+.lu-cmp-check{width:18px;height:18px;flex-shrink:0;margin-top:2px;cursor:pointer;accent-color:#51a2ff}
+.lu-cmp-fab{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:300;display:none;align-items:center;gap:8px;background:#51a2ff;color:#fff;font-family:var(--ff);font-weight:700;font-size:13px;padding:12px 22px;border-radius:30px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:background .15s}
+.lu-cmp-fab.show{display:flex}
+.lu-cmp-fab:hover{background:var(--blue)}
+.lu-cmp-fab svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.cmp-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.75);z-index:600;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px}
+.cmp-overlay.open{display:flex}
+@media(max-width:768px){.cmp-overlay{padding:0;align-items:stretch}.cmp-card{border-radius:0;min-height:100vh;max-width:100%!important}}
+.cmp-card{background:#101828;border:1px solid var(--border);border-radius:14px;width:auto;max-width:95vw;margin:auto;display:flex;flex-direction:column;max-height:92vh}
+.cmp-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cmp-hdr-title{font-size:16px;font-weight:700;color:var(--hdr)}
+.cmp-hdr-actions{display:flex;align-items:center;gap:14px}
+.cmp-clear-link{font-size:11px;color:var(--sub);background:none;border:none;cursor:pointer;text-decoration:underline}
+.cmp-clear-link:hover{color:var(--hdr)}
+.cmp-close{background:none;border:none;color:var(--sub);cursor:pointer;font-size:20px;line-height:1;padding:2px}
+.cmp-close:hover{color:var(--hdr)}
+.cmp-body{overflow:auto;padding:16px 20px 20px}
+.cmp-table{border-collapse:collapse;font-size:13px}
+.cmp-table th,.cmp-table td{padding:9px 16px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--border)}
+.cmp-table th.cmp-stat-col,.cmp-table td.cmp-stat-col{text-align:left;font-weight:600;color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:.04em;position:sticky;left:0;background:#101828}
+.cmp-table thead th{font-size:12px;color:var(--hdr);border-bottom:2px solid var(--border);padding-bottom:10px}
+.cmp-player-th{display:flex;flex-direction:column;align-items:center;gap:4px}
+.cmp-player-name{font-weight:700}
+.cmp-remove-btn{background:none;border:none;color:var(--sub);cursor:pointer;font-size:11px;padding:0}
+.cmp-remove-btn:hover{color:#fb7185}
+.cmp-section-row td{padding:14px 16px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#51a2ff;border-bottom:none}
+.cmp-table td.elite{color:var(--purple);font-weight:700}
+.cmp-table td.good{color:var(--green)}
+.cmp-table td.warn{color:var(--amber)}
+.cmp-table td.urgent{color:#fb7185}
+.cmp-best{position:relative}
+.cmp-best::after{content:'★';font-size:9px;margin-left:4px;vertical-align:super}
+.cmp-empty{padding:40px;text-align:center;color:var(--sub);font-size:13px}
 .lu-ask-btn{font-family:var(--ff);font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 9px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--sub);cursor:pointer;transition:all .15s;white-space:nowrap}
 .lu-ask-btn:hover{border-color:#51a2ff;color:#51a2ff}
 .lu-ask-btn.active{border-color:#51a2ff;color:#51a2ff;background:rgba(81,162,255,.08)}
@@ -2379,6 +2414,25 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
   <div class="lu-footer-note">
     ☝️ <strong>Trend:</strong> For lineup slots 6-9, calculates player's recent performance versus their earlier season performance across four batting categories: AVG, OBP, OPS, and QAB%. Shows who might be playing their best ball now.</div>
+</div>
+
+<!-- Player comparison floating button + modal -->
+<button class="lu-cmp-fab" id="lu-cmp-fab" onclick="openCompareModal()">
+  <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+  <span id="lu-cmp-fab-label">Compare</span>
+</button>
+
+<div class="cmp-overlay" id="cmp-overlay" onclick="if(event.target===this)closeCompareModal()">
+  <div class="cmp-card">
+    <div class="cmp-hdr">
+      <div class="cmp-hdr-title">Player Comparison</div>
+      <div class="cmp-hdr-actions">
+        <button class="cmp-clear-link" onclick="clearCompare()">Clear all</button>
+        <button class="cmp-close" onclick="closeCompareModal()">✕</button>
+      </div>
+    </div>
+    <div class="cmp-body" id="cmp-body"></div>
+  </div>
 </div>
 
 <!-- ROTATION -->
@@ -5167,6 +5221,140 @@ function collapseCoach(slot){
   if(btn){btn.classList.remove('active');btn.innerHTML='💬 Why?';}
 }
 
+// ── PLAYER COMPARISON ──
+var _cmpSelected=new Set();
+
+function toggleCompare(name){
+  if(_cmpSelected.has(name)) _cmpSelected.delete(name);
+  else _cmpSelected.add(name);
+  updateCompareFab();
+}
+
+function updateCompareFab(){
+  var fab=document.getElementById('lu-cmp-fab');
+  var label=document.getElementById('lu-cmp-fab-label');
+  if(!fab) return;
+  var lineupPage=document.getElementById('page-lineup');
+  var onLineupPage=lineupPage&&lineupPage.classList.contains('active');
+  var n=_cmpSelected.size;
+  if(onLineupPage&&n>=2){
+    fab.classList.add('show');
+    if(label) label.textContent='Compare ('+n+')';
+  } else {
+    fab.classList.remove('show');
+  }
+}
+
+function clearCompare(){
+  _cmpSelected.clear();
+  updateCompareFab();
+  closeCompareModal();
+  renderLineup();
+}
+
+function removeFromCompare(name){
+  _cmpSelected.delete(name);
+  updateCompareFab();
+  if(_cmpSelected.size<2){closeCompareModal();renderLineup();return;}
+  renderCompareModal();
+  renderLineup();
+}
+
+function openCompareModal(){
+  document.getElementById('cmp-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  renderCompareModal();
+}
+
+function closeCompareModal(){
+  document.getElementById('cmp-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function renderCompareModal(){
+  var body=document.getElementById('cmp-body');
+  if(!body) return;
+
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var allP=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var pMap={};allP.forEach(function(p){pMap[p.name]=p;});
+
+  // Keep selection in current lineup order
+  var names=lineupOrder.filter(function(n){return _cmpSelected.has(n)&&pMap[n];});
+  var list=names.map(function(n){return pMap[n];});
+
+  if(list.length<2){
+    body.innerHTML='<div class="cmp-empty">Select at least 2 players to compare.</div>';
+    return;
+  }
+
+  // Local ERA classifier — ERA isn't in the global STAT_THRESHOLDS table
+  function eraClass(v){
+    if(v==null||isNaN(v)) return '';
+    if(v<=1.99) return 'elite';
+    if(v<=3.0) return 'good';
+    if(v<=5.0) return 'warn';
+    return 'urgent';
+  }
+
+  // Batting rows: [label, key for statClass (or null), hi=better-is-higher, getValue(p), format(v)]
+  var battingRows=[
+    ['AVG','avg',true,function(p){return p.avg;},function(v){return v.toFixed(3);}],
+    ['OBP','obp',true,function(p){return p.obp;},function(v){return v.toFixed(3);}],
+    ['OPS','ops',true,function(p){return p.ops;},function(v){return v.toFixed(3);}],
+    ['QAB%','qab',true,function(p){return p.qab_pct;},function(v){return v.toFixed(1)+'%';}],
+    ['AB',null,true,function(p){return p.ab;},function(v){return String(v);}],
+    ['BB',null,true,function(p){return p.bb;},function(v){return String(v);}],
+    ['K',null,false,function(p){return p.so;},function(v){return String(v);}],
+    ['HR',null,true,function(p){return p.hr||0;},function(v){return String(v);}]
+  ];
+
+  var hasPitcher=list.some(function(p){return p.pit&&p.pit.ip>0;});
+  var pitchingRows=[
+    ['IP',null,true,function(p){return p.pit?p.pit.ip:0;},function(v){return v.toFixed(1);}],
+    ['S%','sp',true,function(p){return p.pit?p.pit.sp:0;},function(v){return v.toFixed(1)+'%';}],
+    ['FPS%','fps',true,function(p){return p.pit?p.pit.fps:0;},function(v){return v.toFixed(1)+'%';}],
+    ['WHIP','whip',false,function(p){return p.pit?p.pit.whip:0;},function(v){return v.toFixed(2);}],
+    ['ERA',null,false,function(p){return p.pit?p.pit.era:0;},function(v){return v.toFixed(2);}],
+    ['K',null,true,function(p){return p.pit?p.pit.k:0;},function(v){return String(v);}],
+    ['BB',null,false,function(p){return p.pit?p.pit.bb:0;},function(v){return String(v);}]
+  ];
+
+  function buildRows(rows, onlyPitchers){
+    return rows.map(function(r){
+      var label=r[0],key=r[1],hi=r[2],getVal=r[3],fmt=r[4];
+      var vals=list.map(getVal);
+      var validVals=vals.filter(function(v,i){return !onlyPitchers||(list[i].pit&&list[i].pit.ip>0);});
+      var bestVal=validVals.length?(hi?Math.max.apply(null,validVals):Math.min.apply(null,validVals)):null;
+      var cells=list.map(function(p,i){
+        if(onlyPitchers&&!(p.pit&&p.pit.ip>0)) return '<td>—</td>';
+        var v=vals[i];
+        var cls=key?(key==='era'?'':statClass(key,v)):(label==='ERA'?eraClass(v):'');
+        var isBest=bestVal!==null&&v===bestVal&&validVals.length>1&&new Set(validVals).size>1;
+        return '<td class="'+(cls||'')+(isBest?' cmp-best':'')+'">'+fmt(v)+'</td>';
+      }).join('');
+      return '<tr><td class="cmp-stat-col">'+label+'</td>'+cells+'</tr>';
+    }).join('');
+  }
+
+  var html='<table class="cmp-table"><thead><tr><th class="cmp-stat-col"></th>'
+    +list.map(function(p){
+      return '<th><div class="cmp-player-th"><span class="cmp-player-name">'+escHtml(p.name)+'</span>'
+        +'<button class="cmp-remove-btn" onclick="removeFromCompare(\''+esc(p.name)+'\')">remove ✕</button></div></th>';
+    }).join('')
+    +'</tr></thead><tbody>'
+    +'<tr class="cmp-section-row"><td colspan="'+(list.length+1)+'">⚡ Batting</td></tr>'
+    +buildRows(battingRows,false);
+
+  if(hasPitcher){
+    html+='<tr class="cmp-section-row"><td colspan="'+(list.length+1)+'">⚾ Pitching</td></tr>'
+      +buildRows(pitchingRows,true);
+  }
+
+  html+='</tbody></table>';
+  body.innerHTML=html;
+}
+
 function autoLineup(){
   var btn=document.getElementById('lineup-strategy-btn');
   var icon=document.getElementById('lineup-strategy-icon');
@@ -5278,6 +5466,10 @@ function renderLineup(){
   var lineup=lineupOrder.slice(0,players.length);
   var SLOT_ROLES=['Leadoff','#2 Hitter','Best Hitter','Cleanup','#5 Power','','','','',''];
 
+  // Prune comparison selections that fell out of the active lineup (e.g. player hidden)
+  Array.from(_cmpSelected).forEach(function(n){if(!pMap[n]) _cmpSelected.delete(n);});
+  updateCompareFab();
+
   ls.innerHTML=lineup.map(function(nm,i){
     var p=pMap[nm];if(!p)return '';
     var ov=rosterOverrides[nm]||{};
@@ -5311,6 +5503,7 @@ function renderLineup(){
 
     return '<div class="lu-slot-wrap">'
       +'<div class="lu-player-row" draggable="true" data-name="'+esc(nm)+'" ondragstart="luDragStart(event)" ondragover="luDragOver(event)" ondrop="luDrop(event)" ondragleave="luDragLeave(event)"'+absentStyle+'>'
+        +'<input type="checkbox" class="lu-cmp-check" '+(_cmpSelected.has(nm)?'checked':'')+' onclick="event.stopPropagation();toggleCompare(\''+esc(nm)+'\')" aria-label="Add to comparison">'
         +'<div class="lu-slot-num">'+(i+1)+'</div>'
         +'<div class="lu-player-body">'
           +'<div class="lu-player-name"><span class="lu-name-link" onclick="event.stopPropagation();openPlayer(\''+esc(nm)+'\')">'+nm+'</span> <span class="lu-player-jersey">#'+num+'</span>'+absentBadge+'</div>'
@@ -8289,11 +8482,13 @@ var pageNames={home:'Home',roster:'Roster',hitting:'Hitting',pitching:'Pitching'
 
 function goPage(id,btn){
   closePlayer(); // Navigating away always dismisses the Player Detail view, never leaves it stuck on top
+  closeCompareModal();
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active');});
   document.getElementById('page-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
   closeMobileSidebar();
+  updateCompareFab();
   if(id==='metrics')renderMetrics();
   if(id==='pitchcount')renderPitchCountPage();
   if(id==='rotation'){renderRotationPage();var rlo=document.getElementById('rotation-last-optimized');if(rlo){if(!_rotLastOptimized){rlo.textContent='';}else if(getRotationStale()){rlo.innerHTML='Last Optimized: '+formatOptimizedTime(_rotLastOptimized)+' &nbsp;<span style="color:#f59e0b;font-weight:700">⚠ Optimization recommended</span>';}else{rlo.textContent='Last Optimized: '+formatOptimizedTime(_rotLastOptimized);}}}
