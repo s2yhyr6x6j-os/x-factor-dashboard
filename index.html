@@ -578,7 +578,7 @@ body.light-mode .lu-coach-drop{background:#fff;border-top:1px solid var(--border
 .lu-coach-drop .lc-loading{color:var(--sub);font-style:italic}
 .lu-coach-drop .lc-text p{margin:0 0 6px}
 .lu-coach-drop .lc-text p:last-child{margin:0}
-.lu-coach-drop .lc-text strong{color:var(--hdr)}
+.lu-coach-drop .lc-text strong{color:#51a2ff;text-transform:uppercase}
 .lu-coach-footer{display:flex;justify-content:flex-end;margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}
 .lu-hide-btn{background:none;border:none;color:var(--sub);cursor:pointer;font-family:var(--ff);font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;padding:0}
 .lu-hide-btn:hover{color:var(--hdr)}
@@ -5112,14 +5112,24 @@ function askCoach(name, slot){
   var lineupContext=lineup.map(function(n,i){return fmtPlayer(n,i);}).join('\n');
   var slotNames=['Leadoff','#2 Hitter','#3 Best Hitter','Cleanup','#5 Power Bat','#6','#7','#8','#9'];
   var slotName=slotNames[slot]||'Slot '+(slot+1);
+  var isFirst=slot===0;
+  var isLast=slot===lineup.length-1;
+
+  var whyLabels=['Why Leadoff','Why the 2nd Spot','Why the 3rd Spot','Why Cleanup','Why the 5th Spot','Why the 6th Spot','Why the 7th Spot','Why the 8th Spot','Why the 9th Spot'];
+  var whyLabel=whyLabels[slot]||'Why slot '+(slot+1);
+  var sections='**'+whyLabel+':** (2-3 sentences — cite specific stats and how they compare to the players around them)\n';
+  if(!isFirst) sections+='**Case for moving up:** (1-2 sentences — what stats or trends support a higher slot)\n';
+  if(!isLast) sections+='**Case for moving down:** (1-2 sentences — what stats or weaknesses suggest a lower slot could work)\n';
+
+  var pspaNote='PSPA (pitches seen per at-bat) interpretation: a HIGH PSPA is a STRENGTH for leadoff and table-setter slots (1-2) — it means the player works deep counts, sees a lot of pitches, draws walks, and tires out the opposing pitcher early, all of which set the tone for the inning. A LOW PSPA at the top of the order is a WEAKNESS, not a strength — it means the player is putting the ball in play early in the count rather than working the at-bat, which is the opposite of what a leadoff hitter should do. Never describe a low PSPA as "keeping the line moving" or as a positive for slots 1-2.';
 
   var prompt='You are a youth baseball coach assistant for a 12U travel team. Be direct and brief — coaches are busy.\n\n'
+    +pspaNote+'\n\n'
     +'FULL LINEUP:\n'+lineupContext+'\n\n'
     +'TASK: Justify why '+name+' is batting '+slotName+' (slot '+(slot+1)+').\n\n'
-    +'Format your response as exactly 3 short paragraphs with these bold labels:\n'
-    +'**Why slot '+(slot+1)+':** (2-3 sentences — cite specific stats and how they compare to the players around them)\n'
-    +'**Case for moving up:** (1-2 sentences — what stats or trends support a higher slot)\n'
-    +'**Case for moving down:** (1-2 sentences — what stats or weaknesses suggest a lower slot could work)\n\n'
+    +'IMPORTANT: Double-check every stat and every player name against the lineup data BEFORE writing your response. Write only the final, verified answer — never think out loud, second-guess yourself, or leave in corrections like "wait, that\'s actually..." or "no, I mean...". If you reference a stat, confirm it belongs to '+name+' and not another player before including it.\n\n'
+    +'Format your response as exactly '+(isFirst||isLast?2:3)+' short paragraphs with these bold labels:\n'
+    +sections+'\n'
     +'Use only the data provided. No filler phrases. Cite actual numbers.';
 
   // Spinning baseball on button while loading
