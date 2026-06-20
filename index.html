@@ -5117,9 +5117,9 @@ function askCoach(name, slot){
 
   var whyLabels=['Why Leadoff','Why the 2nd Spot','Why the 3rd Spot','Why Cleanup','Why the 5th Spot','Why the 6th Spot','Why the 7th Spot','Why the 8th Spot','Why the 9th Spot'];
   var whyLabel=whyLabels[slot]||'Why slot '+(slot+1);
-  var sections='**'+whyLabel+':** (2-3 sentences — cite specific stats and how they compare to the players around them)\n';
+  var sections='**'+whyLabel+':** (2-3 sentences — ONLY the stats and strengths that support this placement. Do not mention weaknesses or concerns here — save those entirely for "Case for moving down".)\n';
   if(!isFirst) sections+='**Case for moving up:** (1-2 sentences — what stats or trends support a higher slot)\n';
-  if(!isLast) sections+='**Case for moving down:** (1-2 sentences — what stats or weaknesses suggest a lower slot could work)\n';
+  if(!isLast) sections+='**Case for moving down:** (1-2 sentences — what stats or weaknesses suggest a lower slot could work. This is the ONLY section that should mention weaknesses or concerns.)\n';
 
   var pspaNote='PSPA (pitches seen per at-bat) interpretation: a HIGH PSPA is a STRENGTH for leadoff and table-setter slots (1-2) — it means the player works deep counts, sees a lot of pitches, draws walks, and tires out the opposing pitcher early, all of which set the tone for the inning. A LOW PSPA at the top of the order is a WEAKNESS, not a strength — it means the player is putting the ball in play early in the count rather than working the at-bat, which is the opposite of what a leadoff hitter should do. Never describe a low PSPA as "keeping the line moving" or as a positive for slots 1-2.';
 
@@ -5128,6 +5128,7 @@ function askCoach(name, slot){
     +'FULL LINEUP:\n'+lineupContext+'\n\n'
     +'TASK: Justify why '+name+' is batting '+slotName+' (slot '+(slot+1)+').\n\n'
     +'IMPORTANT: Double-check every stat and every player name against the lineup data BEFORE writing your response. Write only the final, verified answer — never think out loud, second-guess yourself, or leave in corrections like "wait, that\'s actually..." or "no, I mean...". If you reference a stat, confirm it belongs to '+name+' and not another player before including it.\n\n'
+    +'Each section must cover different ground — never repeat the same stat or point across two sections. A weakness or concern belongs in exactly one place: "Case for moving down". It should never appear in the "'+whyLabel+'" section, even briefly or as a caveat.\n\n'
     +'Format your response as exactly '+(isFirst||isLast?2:3)+' short paragraphs with these bold labels:\n'
     +sections+'\n'
     +'Use only the data provided. No filler phrases. Cite actual numbers.';
