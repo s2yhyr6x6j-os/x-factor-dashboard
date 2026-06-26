@@ -3525,7 +3525,10 @@ function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function escHtml(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
 
 // A player is hidden unless they are the TARGET of a remapTo — remap targets are always shown
+var PERMANENT_GUESTS=['Coe Melcher','Maze Milsap','RJ Vande Hoef'];
+
 function isHidden(name){
+  if(PERMANENT_GUESTS.indexOf(name)>=0) return true;
   var ov=rosterOverrides[name]||{};
   if(!ov.hidden){
     // Also check if a same-last-name entry is hidden (catches spelling variants like Milsap/Millsap)
@@ -3912,7 +3915,7 @@ function renderRoster(){
 
   // Sort by jersey number
   var sorted=[].concat(players)
-    .filter(function(p){return !(rosterOverrides[p.name]&&rosterOverrides[p.name].hidden);})
+    .filter(function(p){return !(rosterOverrides[p.name]&&rosterOverrides[p.name].hidden)&&PERMANENT_GUESTS.indexOf(p.name)<0;})
     .sort(function(a,b){
     var an=parseInt((rosterOverrides[a.name]||{}).num||a.num||'99');
     var bn=parseInt((rosterOverrides[b.name]||{}).num||b.num||'99');
@@ -4217,6 +4220,14 @@ function renderRosterHidden(){
     var dispName=ov.displayName||k;
     if(seen[dispName]) return;
     seen[dispName]={key:k,name:dispName,num:ov.num!=null?ov.num:'?'};
+  });
+
+  // Permanent guests — always shown here regardless of KV state
+  PERMANENT_GUESTS.forEach(function(name){
+    var ov=rosterOverrides[name]||{};
+    var dispName=ov.displayName||name;
+    if(seen[dispName]) return;
+    seen[dispName]={key:name,name:dispName,num:ov.num!=null?ov.num:'?'};
   });
 
   var entries=Object.values(seen);
