@@ -3575,7 +3575,8 @@ var spChartObj=null,batTrendChartObj=null,donutChartObj=null;
 var CHART_COLORS=['#22c55e','#3b82f6','#f59e0b','#a855f7','#ef4444','#06b6d4','#f97316','#ec4899','#84cc16','#8b5cf6'];
 
 function renderOverview(){
-  var players=getPlayers();
+  var _excl=['E Smith','E. Smith','Easton Smith'];
+  var players=getPlayers().filter(function(p){return p.ab>0&&_excl.indexOf(p.name)<0&&!isHidden(p.name);});
   var w=gameLog.filter(function(g){return g.result==='W';}).length;
   var l=gameLog.filter(function(g){return g.result==='L';}).length;
   updateRecord(w,l);
@@ -3680,7 +3681,7 @@ function renderDonut(pitchers){
 
 function renderBatBars(){
   var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
   if(!players.length){var _bb=document.getElementById('bat-bars');if(_bb)_bb.innerHTML='<div class="empty" style="padding:20px 0;text-align:left;font-size:12px">Upload season CSV to populate</div>';return;}
   var sorted=[].concat(players).sort(function(a,b){return b[batTogKey]-a[batTogKey];}).slice(0,8);
   var max=sorted.reduce(function(m,p){return Math.max(m,p[batTogKey]||0);},0)||1;
@@ -3692,7 +3693,8 @@ function renderBatBars(){
 }
 
 function renderPitBars(){
-  var pitchers=getPitchers();
+  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var pitchers=getPitchers().filter(function(p){return EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
   if(!pitchers.length){var _pb=document.getElementById('pit-bars');if(_pb)_pb.innerHTML='<div class="empty" style="padding:20px 0;text-align:left;font-size:12px">Upload season CSV to populate</div>';return;}
   var lb=pitTogKey==='era'||pitTogKey==='whip';
   var kfn=function(p){return pitTogKey==='k'?p.pit.k:pitTogKey==='sp'?p.pit.sp:pitTogKey==='era'?p.pit.era:p.pit.whip;};
@@ -4478,7 +4480,10 @@ function setPitLbTog(key, btn){
 
 function renderPitchingPage(){
   var pitchers=getSeasonPitchers();
-  if(!pitchers.length) pitchers=getPitchers();
+  if(!pitchers.length){
+    var EXCLUDED_FB=['E Smith','E. Smith','Easton Smith'];
+    pitchers=getPitchers().filter(function(p){return EXCLUDED_FB.indexOf(p.name)<0&&!isHidden(p.name);});
+  }
 
   STAT_THRESHOLDS.sp={elite:70,good:60,warn:50,hi:true};
   STAT_THRESHOLDS.whip={elite:0.99,good:1.5,warn:2.0,hi:false};
