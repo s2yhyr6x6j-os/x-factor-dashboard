@@ -3525,7 +3525,7 @@ function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function escHtml(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
 
 // A player is hidden unless they are the TARGET of a remapTo — remap targets are always shown
-var PERMANENT_GUESTS=['Coe Melcher','Maze Milsap','RJ Vande Hoef'];
+var PERMANENT_GUESTS=['Coe Melcher','Maze Milsap','RJ Vande Hoef','Riley Miller'];
 
 function isHidden(name){
   if(PERMANENT_GUESTS.indexOf(name)>=0) return true;
