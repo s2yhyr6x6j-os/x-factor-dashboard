@@ -6663,6 +6663,7 @@ function kvSet(key,value){
 
 function kvSave(){
   if(!_isVercel) return;
+  if(!_kvSynced) return; // Never write to KV before we've loaded from it — prevents save() during load() from wiping roster/hidden data
   var saves=[
     kvSet('sba_games_v2', importedGames),
     kvSet('sba_gl_v2', gameLog),
