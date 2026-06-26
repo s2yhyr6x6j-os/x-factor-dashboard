@@ -3525,12 +3525,7 @@ function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function escHtml(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
 
 // A player is hidden unless they are the TARGET of a remapTo — remap targets are always shown
-// Players who are permanently listed as Guest/Inactive regardless of KV state.
-// Add names here exactly as they appear in box score data.
-var PERMANENT_GUESTS=['Coe Melcher','Maze Milsap','RJ Vande Hoef'];
-
 function isHidden(name){
-  if(PERMANENT_GUESTS.indexOf(name)>=0) return true;
   var ov=rosterOverrides[name]||{};
   if(!ov.hidden){
     // Also check if a same-last-name entry is hidden (catches spelling variants like Milsap/Millsap)
