@@ -5162,66 +5162,75 @@ function askCoach(name, slot){
   drop.classList.add('open');
   btn.classList.add('active');
 
-  // Return cached result if available
-  var cacheKey=name+'|'+slot;
+  var hideBtn='<div class="lu-coach-footer"><button class="lu-hide-btn" onclick="collapseCoach('+slot+')">'
+    +'<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>Hide</button></div>';
+
+  // Batting order = available players only (unavailable kids are listed below the order)
+  var allP=getPlayers().filter(function(p){return p.ab>0&&!isHidden(p.name);});
+  var pMap={};allP.forEach(function(p){pMap[p.name]=p;});
+  var player=pMap[name];
+  if(!player){drop.innerHTML='<div class="lc-loading">Player data not found.</div>'+hideBtn;return;}
+  if(!isPlayerAvailable(name)){
+    drop.innerHTML='<div class="lc-text"><p>'+escHtml(name)+' is marked unavailable for the next game, so he isn’t in the batting order.</p></div>'+hideBtn;
+    return;
+  }
+  var lineup=lineupOrder.filter(function(n){return pMap[n]&&isPlayerAvailable(n);});
+  var bSlot=lineup.indexOf(name);
+  if(bSlot<0){drop.innerHTML='<div class="lc-loading">Player is not in the batting order.</div>'+hideBtn;return;}
+
+  // Was this order produced by the optimizer, or set by hand?
+  var autoOrder=lineup;
+  try{autoOrder=buildSmartLineup(lineup.map(function(n){return pMap[n];}));}catch(e){}
+  var isAuto=autoOrder.join('|')===lineup.join('|');
+  var autoSlot=autoOrder.indexOf(name);if(autoSlot<0)autoSlot=bSlot;
+
+  // Cache is tied to the exact order and stats, so edits or new games invalidate it
+  var cacheKey=name+'|'+bSlot+'|'+lineup.join(',')+'|'+player.pa+'|'+player.h+'|'+player.bb;
   if(_coachCache[cacheKey]){drop.innerHTML=_coachCache[cacheKey];return;}
 
-  // Build full lineup context for the prompt
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allP=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
-  var pMap={};allP.forEach(function(p){pMap[p.name]=p;});
-  var lineup=lineupOrder.filter(function(n){return pMap[n];});
-  var player=pMap[name];
-  if(!player){drop.innerHTML='<div class="lc-loading">Player data not found.</div>';return;}
-
   function fmtPlayer(n,idx){
-    var p=pMap[n]; if(!p) return '';
+    var p=pMap[n];
     var pspa=getPSPA(p);
     var trend=trendCategories(p);
     return 'Slot '+(idx+1)+': '+n
-      +' | AVG '+p.avg.toFixed(3)+' | OBP '+p.obp.toFixed(3)+' | OPS '+p.ops.toFixed(3)
+      +' | PA '+p.pa+(p.pa<AI_MIN_PA?' (small sample)':'')
+      +' | AVG '+_aiFmt(p.avg,'rate')+' | OBP '+_aiFmt(p.obp,'rate')+' | OPS '+_aiFmt(p.ops,'rate')
       +' | QAB% '+p.qab_pct.toFixed(1)+' | BB '+p.bb+' | K '+p.so+' | HR '+(p.hr||0)
-      +(pspa>0?' | PSPA '+pspa.toFixed(1):'')
-      +(trend>0?' | Trend↑'+trend:'')
-      +(p.pit&&p.pit.ip>0?' | Pitcher ('+p.pit.ip.toFixed(1)+' IP, '+p.pit.sp.toFixed(1)+'% S%)':'');
+      +(pspa>0?' | P/PA '+pspa.toFixed(1):'')
+      +(trend>0?' | improving in '+trend+' of 4 hitting categories':'');
   }
+  var lineupContext=lineup.map(fmtPlayer).join('\n');
+  var slotNames=['leadoff','2nd','3rd','cleanup (4th)','5th','6th','7th','8th','9th','10th','11th','12th'];
+  var slotName=slotNames[bSlot]||_aiOrdinal(bSlot+1);
+  var isFirst=bSlot===0, isLast=bSlot===lineup.length-1;
 
-  var lineupContext=lineup.map(function(n,i){return fmtPlayer(n,i);}).join('\n');
-  var slotNames=['Leadoff','#2 Hitter','#3 Best Hitter','Cleanup','#5 Power Bat','#6','#7','#8','#9'];
-  var slotName=slotNames[slot]||'Slot '+(slot+1);
-  var isFirst=slot===0;
-  var isLast=slot===lineup.length-1;
+  var rules='HOW THE LINEUP OPTIMIZER BUILDS AN ORDER:\n'
+    +'- Slot 3: best hitter by AVG×1.5 + OPS.\n'
+    +'- Slots 4-5: next best by OPS×0.6 + HR×0.4.\n'
+    +'- Slots 1-2: highest OBP of those left (ties broken by walks, then P/PA, then improving categories).\n'
+    +'- Slots 6+: OBP and QAB% blended equally.\n'
+    +'P/PA (pitches per plate appearance): high is a strength at the top of the order (works counts, draws walks, tires the pitcher); low means he puts early pitches in play. Never describe a low P/PA as a positive for slots 1-2.\n';
+  var origin=isAuto
+    ?'This order matches the optimizer exactly.'
+    :'The coach has adjusted this order by hand. The optimizer would bat '+name+' '+(slotNames[autoSlot]||_aiOrdinal(autoSlot+1))+'. Explain what the data does and does not support about the current spot; do not pretend the optimizer chose it.';
 
-  var whyLabels=['Why Leadoff','Why the 2nd Spot','Why the 3rd Spot','Why Cleanup','Why the 5th Spot','Why the 6th Spot','Why the 7th Spot','Why the 8th Spot','Why the 9th Spot'];
-  var whyLabel=whyLabels[slot]||'Why slot '+(slot+1);
-  var sections='**'+whyLabel+':** (2-3 sentences — ONLY the stats and strengths that support this placement. Do not mention weaknesses or concerns here — save those entirely for "Case for moving down".)\n';
-  if(!isFirst) sections+='**Case for moving up:** (1-2 sentences — what stats or trends support a higher slot)\n';
-  if(!isLast) sections+='**Case for moving down:** (1-2 sentences — what stats or weaknesses suggest a lower slot could work. This is the ONLY section that should mention weaknesses or concerns.)\n';
+  var whyLabel='Why '+(bSlot===0?'leadoff':bSlot===3?'cleanup':'the '+slotName+' spot');
+  var sections='**'+whyLabel+':** 2-3 sentences, only the stats that support this spot.\n';
+  if(!isFirst) sections+='**Case for moving up:** 1-2 sentences.\n';
+  if(!isLast) sections+='**Case for moving down:** 1-2 sentences. This is the only section that mentions weaknesses.\n';
 
-  var pspaNote='PSPA (pitches seen per at-bat) interpretation: a HIGH PSPA is a STRENGTH for leadoff and table-setter slots (1-2) — it means the player works deep counts, sees a lot of pitches, draws walks, and tires out the opposing pitcher early, all of which set the tone for the inning. A LOW PSPA at the top of the order is a WEAKNESS, not a strength — it means the player is putting the ball in play early in the count rather than working the at-bat, which is the opposite of what a leadoff hitter should do. Never describe a low PSPA as "keeping the line moving" or as a positive for slots 1-2.';
+  var prompt=rules+'\n'+origin+'\n\nBATTING ORDER (available players):\n'+lineupContext+'\n\n'
+    +'TASK: Explain why '+name+' is batting '+slotName+' (slot '+(bSlot+1)+' of '+lineup.length+').\n'
+    +'Every stat you cite must be '+name+'’s or a named comparison from the list above. If he has a small sample, say so. Do not repeat a point across sections.\n\n'
+    +'Format: exactly '+(isFirst||isLast?2:3)+' short paragraphs with these bold labels:\n'+sections;
 
-  var prompt='You are a youth baseball coach assistant for a 12U travel team. Be direct and brief — coaches are busy.\n\n'
-    +pspaNote+'\n\n'
-    +'FULL LINEUP:\n'+lineupContext+'\n\n'
-    +'TASK: Justify why '+name+' is batting '+slotName+' (slot '+(slot+1)+').\n\n'
-    +'IMPORTANT: Double-check every stat and every player name against the lineup data BEFORE writing your response. Write only the final, verified answer — never think out loud, second-guess yourself, or leave in corrections like "wait, that\'s actually..." or "no, I mean...". If you reference a stat, confirm it belongs to '+name+' and not another player before including it.\n\n'
-    +'Each section must cover different ground — never repeat the same stat or point across two sections. A weakness or concern belongs in exactly one place: "Case for moving down". It should never appear in the "'+whyLabel+'" section, even briefly or as a caveat.\n\n'
-    +'Format your response as exactly '+(isFirst||isLast?2:3)+' short paragraphs with these bold labels:\n'
-    +sections+'\n'
-    +'Use only the data provided. No filler phrases. Cite actual numbers.';
-
-  // Spinning baseball on button while loading
   btn.innerHTML='<span class="lu-spinner">⚾</span> Asking Coach…';
   btn.disabled=true;
   drop.innerHTML='';
 
-  var hideBtn='<div class="lu-coach-footer"><button class="lu-hide-btn" onclick="collapseCoach('+slot+')">'
-    +'<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>Hide</button></div>';
-
-  callClaude({model:'claude-sonnet-4-6',max_tokens:350,messages:[{role:'user',content:prompt}]})
-    .then(function(d){
+  _aiAsk({model:AI_MODEL,max_tokens:500,temperature:0.2,system:AI_COACH_SYSTEM,messages:[{role:'user',content:prompt}]})
+    .then(function(text){
       btn.innerHTML='💬 Why?';btn.disabled=false;
-      var text=(d.content&&d.content[0]&&d.content[0].text)||'No response.';
       var html=text
         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
         .split(/\n\n+/)
@@ -5816,6 +5825,8 @@ function ppDrop(e){
   ppDragSrc=null;
 }
 
+
+
 function askSkipper(name){
   var apiKey=getApiKey();
   if(!apiKey&&!(window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&window.location.protocol==='https:')){alert('Set your API key in Upload to use Ask Skipper.');return;}
@@ -5828,7 +5839,6 @@ function askSkipper(name){
     if(text) alert('Skipper on '+name+':\n\n'+text);
   }).catch(function(){alert('Could not reach Skipper — check your API key.');});
 }
-
 
 // Drag and drop
 var luDragSrc=null;
@@ -6171,7 +6181,7 @@ function generateAllInsights(){
   updateProgress();
 
   // Build prompt for a player (same as regenerateInsights but extracted)
-  function buildPrompt(p){    var firstName=p.name.split(' ')[0];    var teammates=players.filter(function(x){return x.name!==p.name&&x.ab>5;});    var teamAvgOBP=teammates.length?teammates.reduce(function(s,x){return s+x.obp;},0)/teammates.length:0;    var teamAvgAVG=teammates.length?teammates.reduce(function(s,x){return s+x.avg;},0)/teammates.length:0;    var teamAvgQAB=teammates.length?teammates.reduce(function(s,x){return s+x.qab_pct;},0)/teammates.length:0;    var pitSP=teammates.filter(function(x){return x.pit&&x.pit.sp>0;});    var teamAvgSP=pitSP.length?pitSP.reduce(function(s,x){return s+x.pit.sp;},0)/pitSP.length:61;    var pitFPS=teammates.filter(function(x){return x.pit&&x.pit.fps>0;});    var teamAvgFPS=pitFPS.length?pitFPS.reduce(function(s,x){return s+x.pit.fps;},0)/pitFPS.length:61;    var recentGames=p.games?p.games.slice(-3):[];    var earlyGames=p.games?p.games.slice(0,3):[];    var recentAVG=recentGames.length&&recentGames.reduce(function(s,g){return s+g.ab;},0)>0?(recentGames.reduce(function(s,g){return s+g.h;},0)/recentGames.reduce(function(s,g){return s+g.ab;},0)):null;    var earlyAVG=earlyGames.length&&earlyGames.reduce(function(s,g){return s+g.ab;},0)>0?(earlyGames.reduce(function(s,g){return s+g.h;},0)/earlyGames.reduce(function(s,g){return s+g.ab;},0)):null;    var kbb_bat=p.so>0?(p.bb/p.so).toFixed(2):'—';    var kper9=p.pit&&p.pit.ip>0?((p.pit.k/pitIP(p.pit))*9).toFixed(1):'—';    var kbb_pit=p.pit&&p.pit.bb>0?(p.pit.k/p.pit.bb).toFixed(2):'—';    var fip=p.pit&&p.pit.ip>0?((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/pitIP(p.pit)+3.2).toFixed(2):'—';    var pitGames=p.pitGames?p.pitGames.length:0;    var totalNP=p.pit&&p.pit.np?p.pit.np:0;    var recentDetail='';    if(p.games&&p.games.length>=2){var lt=p.games.slice(-2);var rh=lt.reduce(function(s,g){return s+g.h;},0);var ra=lt.reduce(function(s,g){return s+g.ab;},0);if(ra>0)recentDetail=rh+' hits in last 2 games ('+ra+' AB)';}    return 'You are writing coaching insight cards for a 12U baseball player named '+firstName+'. These cards are shown to the player and their parents. Match this exact voice — punchy title, specific numbers, baseball context, age comparison.\n\nPLAYER: '+p.name+' | '+p.gp+' games\nBATTING: AVG '+p.avg.toFixed(3)+' (team '+teamAvgAVG.toFixed(3)+') | OBP '+p.obp.toFixed(3)+' (team '+teamAvgOBP.toFixed(3)+') | OPS '+p.ops.toFixed(3)+' | QAB% '+p.qab_pct.toFixed(1)+'% (team '+teamAvgQAB.toFixed(1)+'%) | PA '+p.pa+' | H '+p.h+' | BB '+p.bb+' | K '+p.so+' | HR '+p.hr+' | RBI '+p.rbi+' | SB '+p.sb+' | BB/K '+kbb_bat+(recentDetail?'\nRecent: '+recentDetail:'')+(recentAVG!==null&&earlyAVG!==null?'\nTrend: .'+Math.round(recentAVG*1000)+' AVG recent vs .'+Math.round(earlyAVG*1000)+' AVG early':'')+'\n'+(p.pit?'PITCHING ('+pitGames+' games'+(totalNP?', '+totalNP+' pitches':'')+'):  S% '+p.pit.sp.toFixed(1)+'% (team '+teamAvgSP.toFixed(1)+'%) | FPS% '+p.pit.fps.toFixed(1)+'% (team '+teamAvgFPS.toFixed(1)+'%) | K '+p.pit.k+' in '+p.pit.ip.toFixed(1)+' IP ('+kper9+' K/9) | BB '+p.pit.bb+' | K/BB '+kbb_pit+' | WHIP '+p.pit.whip.toFixed(2)+' | FIP '+fip+'\n':'')+'\nTHRESHOLDS (only praise stats that meet these — never praise below threshold):\nBatting: OBP\u2265.450 | AVG\u2265.400 | OPS\u2265.800 | QAB%\u226560 | BB/K\u22650.75 | SB\u22655 (always praise)\nPitching: S%\u226560 | FPS%\u226560 | WHIP\u22641.5 | K/BB\u22651.5 | K/9\u22656.0 | NEVER praise ERA\n\nEXACT VOICE EXAMPLES:\n\n"Dominating on the Mound" — With 25 strikeouts in just 15.1 innings, Dayton is averaging 1.6 K\'s per inning. His K/BB ratio of 3.57 shows he\'s missing bats while maintaining control — a rare combo at this age. [badge: 3.57 K/BB]\n\n"Pounding the Zone" — At 63.4% strike rate and 73% first-pitch strike rate, Nixon is well above team averages (60.8% S%, 61.3% FPS%). He attacks the zone and gets ahead of hitters — a huge advantage at this level where many young pitchers struggle to throw strikes. [badge: 63.4% S%]\n\n"Quality At-Bats Machine \u2197" — Nixon posts a 73.9% QAB rate, crushing the team average of 58.2%. He consistently puts together competitive at-bats — working counts, making hard contact, and avoiding easy outs. This discipline is a huge asset for the lineup. [badge: 73.9% QAB%]\n\n"Elite Plate Discipline \u2197" — Griffin\'s .500 OBP is outstanding — he\'s getting on base half the time he steps up. With 10 walks in 48 plate appearances, he\'s showing mature pitch recognition well above the team average (.453 OBP). [badge: .500 OBP]\n\n"Perfect on the Basepaths \u2197" — Nixon is 11-for-11 on stolen base attempts — 100% success rate. His speed and instincts make him a constant threat once he reaches base. That\'s elite baserunning awareness for a 12-year-old. [badge: 11/11 SB]\n\n"Pitching Command Trending Up \u2197" — Carson\'s strike percentage has improved from 57% in his first 3 outings to 69% in his last 3. His most recent start showed elite command at 78.9% strikes with 4 Ks and zero walks. [badge: 69% S%]\n\nRULES:\n- Title: specific, punchy. Add \u2197 if stat is trending up.\n- Text: Sentence 1 = key stat + exact number vs team avg. Sentence 2 = baseball meaning. Sentence 3 = age context.\n- badge_val: most impressive single number. badge_lbl: stat name (4 chars max).\n- Praise tab: 2-3 insights. Only stats meeting thresholds. Pitchers: lead with pitching stats if they qualify.\n- Focus tab: 1 area with exact stat in title. 3 bullets with data. 2 drills with measurable targets.\n- Plan tab: 2 drills, specific and named.\n- NEVER be vague. ALWAYS use the player\'s exact numbers.\n\nReturn ONLY valid JSON:\n{"celebrate":{"title":"What '+firstName+' Is Doing Well","insights":[{"badge_val":"val","badge_lbl":"lbl","title":"Title \\u2197","text":"2-3 sentences with exact stats"}]},"focus":{"title":"Specific Stat Area","bullets":["exact stat + observation","why it matters at 12U","data point"],"drills":[{"name":"Drill Name","duration":"10m","goal":"one sentence with measurable goal","instructions":"step-by-step with a number to hit"},{"name":"Drill 2","duration":"8m","goal":"one sentence","instructions":"steps"}]},"plan":{"title":"Practice Plan","drills":[{"name":"Drill","duration":"10m","goal":"goal","instructions":"steps"},{"name":"Drill 2","duration":"8m","goal":"goal","instructions":"steps"}]}}';  }
+  // Prompt building, verification and retry live in runInsightGeneration (AI ACCURACY LAYER)
   // Process sequentially with 1s delay between to avoid rate limits
   var idx=0;
   function processNext(){
@@ -6189,15 +6199,14 @@ function generateAllInsights(){
       return;
     }
     var p=players[idx++];
-    var prompt=buildPrompt(p);
-
+    var allPlayers=getPlayers();
+    var notes=(_pdCoachNotes&&_pdCoachNotes[p.name])||{};
     function attempt(isRetry){
-      return callClaude({model:'claude-sonnet-4-6',max_tokens:2500,messages:[{role:'user',content:prompt}]})
-      .then(function(data){
-        var raw=data.content&&data.content[0]&&data.content[0].text;
-        if(!raw) throw new Error('No response');
-        raw=raw.replace(/```json|```/g,'').trim();
-        var insights=JSON.parse(raw);
+      return runInsightGeneration(p,allPlayers,{
+        gameNotes:(notes.game||[]).map(function(n){return n.text;}).join('; '),
+        devNotes:(notes.dev||[]).map(function(n){return n.text;}).join('; ')
+      })
+      .then(function(insights){
         var stored={insights:insights,generatedAt:new Date().toISOString(),player:p.name};
         playerInsights[p.name]=stored;
         try{localStorage.setItem('sba_insights_'+p.name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
@@ -6205,7 +6214,7 @@ function generateAllInsights(){
         done++;updateProgress();
       })
       .catch(function(e){
-        if(!isRetry) return attempt(true); // one retry before giving up — catches truncated JSON/rate-limit blips
+        if(!isRetry) return attempt(true); // one retry for network/rate-limit blips
         failed.push(p.name);done++;updateProgress();
       });
     }
@@ -6635,6 +6644,330 @@ function callClaude(body){
       body:JSON.stringify(body)
     }).then(function(r){return r.json();});
   }
+}
+
+
+// ── AI ACCURACY LAYER ──
+// One source of truth for every coaching-insight prompt. The dashboard computes all
+// numbers here; the model only chooses among them and writes the words. Every
+// response is then checked against the data before it is shown or saved.
+var AI_MODEL='claude-sonnet-5-5';
+var AI_MIN_PA=15;   // below this, batting rates are "early season" — never praised
+var AI_MIN_IP=5;    // below this, pitching rates are "early season" — never praised
+
+var AI_INSIGHT_SYSTEM=[
+'You write coaching insight cards for players on SBA Red, a 12U travel baseball team. The player (age 11-12) and their parents read these cards.',
+'',
+'VOICE: a coach who knows this kid. Punchy, specific titles. Warm, honest, encouraging. Celebrate process (working counts, throwing strikes) as much as results. Plain words a 12-year-old understands.',
+'',
+'ACCURACY RULES (these override style):',
+'1. Use ONLY numbers that appear in DATA, written exactly as DATA shows them. Do not calculate new stats, percentages, ratios, per-inning rates or "X-for-X" lines. Do not turn a number into a fraction or phrase like "half the time".',
+'2. Compare ONLY to the teammates\' averages and team ranks in DATA. Never claim how a stat compares to 12-year-olds in general, other teams, high school or MLB (no "rare at this age", "elite for a 12-year-old"). For age context, explain why the skill matters for a player\'s development at 12U instead.',
+'3. Praise ONLY stats listed under PRAISE-ELIGIBLE. Never praise ERA. Never praise a stat marked (small sample).',
+'4. Never mention any other player by name. Never describe effort, attitude, health or personality unless COACH NOTES say it.',
+'5. Put the \u2197 arrow only on a card about a stat listed under TRENDING UP. If TRENDING UP says none, use no arrows.',
+'6. Stolen bases: there is no caught-stealing data. Never state a success rate or "perfect" record on the bases.',
+'7. Use "elite", "dominant" or "best on the team" only for a stat where DATA shows team rank 1st.',
+'8. Focus tab: choose the area from FOCUS CANDIDATES. Frame it as the next step to grow, never as a flaw. Never use: struggling, weak, poor, bad, liability, can\'t, problem.',
+'9. If the player has a small sample, say it is early in the season rather than drawing firm conclusions.',
+'',
+'DRILL RULES:',
+'- Named, real, age-appropriate drills a coach or parent can run with a bucket of balls, a tee, a net or a partner.',
+'- Each drill has a measurable target (reps, a count to hit, or a percentage) and step-by-step instructions.',
+'- Pitching drills follow MLB Pitch Smart for 11-12 year olds: no curveballs, sliders or other breaking pitches (fastball command and changeup only); no weighted balls; no max-effort long toss; any drill thrown from the mound is 25 pitches or fewer and only on a day the player is not pitching in a game and is not on required rest.',
+'',
+'Return ONLY valid JSON in the requested shape. No markdown, no commentary.'
+].join('\n');
+
+var AI_COACH_SYSTEM=[
+'You are a lineup assistant for the coaches of SBA Red, a 12U travel baseball team. Coaches are busy: be direct, brief and accurate.',
+'Use only the stats and rules provided. Quote numbers exactly as given; do not compute new ones.',
+'Never invent reasons that are not in the data (speed, attitude, handedness, defense, "clutch") unless the coach notes say them.',
+'If the data does not clearly support a slot, say so plainly — an honest answer is more useful than a defense of the lineup.',
+'Write only the final answer: no thinking out loud, no self-corrections.'
+].join('\n');
+
+function _aiMean(arr){var v=arr.filter(function(x){return x!=null&&isFinite(x);});return v.length?v.reduce(function(s,x){return s+x;},0)/v.length:null;}
+function _aiFmt(v,kind){
+  if(v==null||!isFinite(v)) return '—';
+  if(kind==='rate'){var s=v.toFixed(3);return v<1?s.replace(/^0/,''):s;}
+  if(kind==='pct') return v.toFixed(1)+'%';
+  if(kind==='ratio') return v.toFixed(2);
+  if(kind==='one') return v.toFixed(1);
+  return String(Math.round(v));
+}
+function _aiOrdinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+function _aiIP(p){return p.pit?(p.pit.ipTrue!=null?p.pit.ipTrue:pitIP(p.pit)):0;}
+
+// Stat definitions. thr = praise threshold set by the coaching staff.
+var AI_BAT_STATS=[
+  {key:'avg',label:'AVG',kind:'rate',thr:0.400,cat:'contact',get:function(p){return p.ab>0?p.avg:null;}},
+  {key:'obp',label:'OBP',kind:'rate',thr:0.450,cat:'plate',get:function(p){return p.pa>0?p.obp:null;}},
+  {key:'ops',label:'OPS',kind:'rate',thr:0.800,cat:'power',get:function(p){return p.ab>0?p.ops:null;}},
+  {key:'qab',label:'QAB%',kind:'pct',thr:60,cat:'plate',get:function(p){return p.pa>0&&p.qab_pct>0?p.qab_pct:null;}},
+  {key:'bbk',label:'BB/K',kind:'ratio',thr:0.75,cat:'plate',get:function(p){return p.so>0?p.bb/p.so:null;}},
+  {key:'bbpct',label:'BB%',kind:'pct',cat:'plate',get:function(p){return p.pa>0?p.bb/p.pa*100:null;}},
+  {key:'kpct',label:'K%',kind:'pct',lower:true,cat:'contact',get:function(p){return p.pa>0?p.so/p.pa*100:null;}},
+  {key:'pspa',label:'P/PA',kind:'one',cat:'plate',get:function(p){return p.ps>0&&p.pa>0?p.ps/p.pa:null;}},
+  {key:'xbh',label:'XBH',kind:'count',cat:'power',count:true,get:function(p){return (p.d||0)+(p.t||0)+(p.hr||0);}},
+  {key:'sb',label:'SB',kind:'count',thr:5,cat:'speed',count:true,get:function(p){return p.sb||0;}}
+];
+var AI_PIT_STATS=[
+  {key:'sp',label:'S%',kind:'pct',thr:60,get:function(p){return p.pit&&p.pit.sp>0?p.pit.sp:null;}},
+  {key:'fps',label:'FPS%',kind:'pct',thr:60,get:function(p){return p.pit&&p.pit.fps>0?p.pit.fps:null;}},
+  {key:'whip',label:'WHIP',kind:'ratio',thr:1.5,lower:true,get:function(p){return _aiIP(p)>0?p.pit.whip:null;}},
+  {key:'kbb',label:'K/BB',kind:'ratio',thr:1.5,get:function(p){return p.pit&&p.pit.bb>0?p.pit.k/p.pit.bb:null;}},
+  {key:'k9',label:'K/9',kind:'one',thr:6.0,get:function(p){var ip=_aiIP(p);return ip>0?p.pit.k/ip*9:null;}}
+];
+
+function _aiRows(p,teammates,defs,sampleOK,poolOK){
+  return defs.map(function(d){
+    var v=d.get(p); if(v==null) return null;
+    var others=teammates.filter(poolOK).map(d.get).filter(function(x){return x!=null;});
+    var team=_aiMean(others);
+    var pool=others.concat([v]);
+    var better=pool.filter(function(x){return d.lower?x<v-1e-9:x>v+1e-9;}).length;
+    var rank=better+1;
+    var tied=others.some(function(x){return Math.abs(x-v)<=1e-9;});
+    var okSample=d.count?true:sampleOK;
+    var meets=d.thr!=null&&(d.lower?v<=d.thr:v>=d.thr);
+    var worse=team!=null&&(d.lower?v>team:v<team);
+    var gap=team?Math.abs(v-team)/Math.abs(team):0;
+    return {key:d.key,label:d.label,cat:d.cat,kind:d.kind,lower:!!d.lower,value:v,shown:_aiFmt(v,d.kind),
+      team:team,teamShown:_aiFmt(team,d.kind),rank:rank,tied:tied,pool:pool.length,sampleOK:okSample,
+      meets:meets&&okSample,leads:rank===1&&!tied&&pool.length>=4&&okSample&&(!d.count||v>0),worse:worse&&okSample,gap:gap};
+  }).filter(Boolean);
+}
+
+function buildInsightFacts(p,players,opts){
+  opts=opts||{};
+  var firstName=p.name.split(' ')[0];
+  var teammates=players.filter(function(x){return x.name!==p.name&&x.ab>5&&!isHidden(x.name);});
+  var batOK=p.pa>=AI_MIN_PA;
+  var bat=_aiRows(p,teammates,AI_BAT_STATS,batOK,function(x){return x.pa>=AI_MIN_PA;});
+  var ip=_aiIP(p), pitCount=p.pitGames?p.pitGames.length:(p.pit&&p.pit.gp)||0;
+  var pitOK=ip>=AI_MIN_IP&&pitCount>=2;
+  var pit=p.pit&&ip>0?_aiRows(p,teammates.filter(function(x){return x.pit&&_aiIP(x)>0;}),AI_PIT_STATS,pitOK,function(x){return _aiIP(x)>=AI_MIN_IP;}):[];
+  var allRows=bat.concat(pit);
+
+  // Trends — computed here, never inferred by the model
+  var trends=[];
+  var g=p.games||[];
+  if(g.length>=6){
+    var e3=g.slice(0,3),r3=g.slice(-3);
+    var eAB=sum(e3,'ab'),rAB=sum(r3,'ab');
+    if(eAB>=6&&rAB>=6){
+      var eA=sum(e3,'h')/eAB,rA=sum(r3,'h')/rAB;
+      if(rA-eA>=0.050) trends.push('AVG: '+_aiFmt(eA,'rate')+' in first 3 games \u2192 '+_aiFmt(rA,'rate')+' in last 3 games');
+    }
+  }
+  var pg=p.pitGames||[];
+  if(pg.length>=4){
+    var h=Math.min(3,Math.floor(pg.length/2)),ep=pg.slice(0,h),rp=pg.slice(-h);
+    var eNP=sum(ep,'np'),rNP=sum(rp,'np');
+    if(eNP>=30&&rNP>=30){
+      var eS=sum(ep,'ns')/eNP*100,rS=sum(rp,'ns')/rNP*100;
+      if(rS-eS>=3) trends.push('S%: '+_aiFmt(eS,'pct')+' in first '+h+' outings \u2192 '+_aiFmt(rS,'pct')+' in last '+h+' outings');
+    }
+  }
+  var recent='';
+  if(g.length>=2){var lt=g.slice(-2),ra=sum(lt,'ab');if(ra>0)recent=sum(lt,'h')+' hits in '+ra+' at-bats over the last 2 games';}
+
+  // Praise: threshold met, or leads the team. Pitchers lead with pitching.
+  var praise=allRows.filter(function(r){return r.meets||r.leads;});
+  if(pitOK) praise.sort(function(a,b){return (pit.indexOf(b)>=0)-(pit.indexOf(a)>=0);});
+
+  // Focus: furthest behind teammates' average, optionally limited to a focus area
+  var focusCats={plate:['plate'],contact:['contact'],power:['power'],pitching:null,mental:null};
+  var pool=allRows.filter(function(r){return r.worse&&!(r.key==='sb');});
+  if(opts.focus==='pitching') pool=pool.filter(function(r){return pit.indexOf(r)>=0;});
+  else if(focusCats[opts.focus]) pool=pool.filter(function(r){return focusCats[opts.focus].indexOf(r.cat)>=0;});
+  var focus=pool.sort(function(a,b){return b.gap-a.gap;}).slice(0,3);
+  var focusAhead=!focus.length;
+  if(!focus.length){
+    // Ahead of the team everywhere: grow the stat with the lowest team rank
+    focus=allRows.filter(function(r){return r.sampleOK&&r.key!=='sb';}).sort(function(a,b){return (b.rank/b.pool)-(a.rank/a.pool);}).slice(0,2);
+  }
+
+  function rowLine(r){
+    return r.label+' '+r.shown+(r.team!=null?' (teammates\u2019 avg '+r.teamShown+', team rank '+(r.tied?'tied ':'')+_aiOrdinal(r.rank)+' of '+r.pool+')':'')+(r.sampleOK?'':' (small sample)');
+  }
+  var L=[];
+  L.push('PLAYER: '+p.name+' (call him '+firstName+') | '+p.gp+' games');
+  L.push('BATTING ('+p.pa+' PA, '+p.ab+' AB'+(batOK?'':' — small sample, early in the season')+'): H '+p.h+' | 2B '+(p.d||0)+' | 3B '+(p.t||0)+' | HR '+(p.hr||0)+' | RBI '+(p.rbi||0)+' | R '+(p.r||0)+' | BB '+p.bb+' | K '+p.so+' | HBP '+(p.hbp||0)+' | SB '+(p.sb||0));
+  bat.forEach(function(r){L.push('  '+rowLine(r));});
+  if(pit.length){
+    L.push('PITCHING ('+pitCount+' outings, '+p.pit.ip+' IP'+(p.pit.np?', '+p.pit.np+' pitches':'')+(pitOK?'':' — small sample, early in the season')+'): K '+p.pit.k+' | BB '+p.pit.bb+' | H '+p.pit.h+' | FIP '+((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/ip+3.2).toFixed(2));
+    pit.forEach(function(r){L.push('  '+rowLine(r));});
+  }
+  if(recent) L.push('RECENT: '+recent);
+  L.push('');
+  L.push('TRENDING UP: '+(trends.length?trends.join(' ; '):'none'));
+  L.push('PRAISE-ELIGIBLE: '+(praise.length?praise.map(function(r){return r.label+' '+r.shown+(r.leads?' (1st on team)':'');}).join(' | '):'none — see rule below'));
+  L.push('FOCUS CANDIDATES'+(focusAhead?' (he is already at or above teammates here — frame it as raising his own bar, not catching up)':'')+': '+focus.map(function(r){return r.label+' '+r.shown+(r.team!=null?' vs teammates\u2019 '+r.teamShown:'');}).join(' | '));
+  var notes=[opts.gameNotes,opts.devNotes].filter(Boolean).join('; ');
+  if(notes) L.push('COACH NOTES (the coach\u2019s own words; you may use them, but add nothing beyond them): '+notes);
+  if(opts.customContext) L.push('COACH CONTEXT FOR THIS REQUEST: '+opts.customContext);
+
+  var dataText=L.join('\n');
+  var others=[];
+  teammates.concat(players.filter(function(x){return isHidden(x.name);})).forEach(function(x){
+    x.name.split(/\s+/).forEach(function(part){
+      if(part.length>=3&&p.name.split(/\s+/).indexOf(part)<0&&others.indexOf(part)<0) others.push(part);
+    });
+  });
+  return {player:p,firstName:firstName,dataText:dataText,allowed:_aiNumbers(dataText).map(function(t){return t.n;}),
+    trends:trends,praise:praise,focus:focus,rows:allRows,otherNames:others};
+}
+
+var AI_FOCUS_TEXT={
+  plate:'The coach asked for a plate-discipline focus: walks, strikeouts, working counts.',
+  contact:'The coach asked for a contact focus: putting the ball in play, swing decisions.',
+  power:'The coach asked for a power focus: extra-base hits and driving the ball.',
+  pitching:'The coach asked for a pitching-only focus: command, strike rates, attacking hitters.',
+  mental:'The coach asked for a mental-approach focus: routines, process over results, resetting after mistakes. Keep the stats from DATA, but make the drills about routines and approach.'
+};
+
+function buildInsightPrompt(p,players,opts){
+  opts=opts||{};
+  var f=buildInsightFacts(p,players,opts);
+  var fn=f.firstName;
+  var prompt='Write the coaching insight cards for '+fn+'.\n\n'
+    +'DATA (the only source of numbers):\n'+f.dataText+'\n\n'
+    +(AI_FOCUS_TEXT[opts.focus]?'FOCUS REQUEST: '+AI_FOCUS_TEXT[opts.focus]+'\n\n':'')
+    +'STYLE EXAMPLES — for voice and structure only. "Alex" is not a real player and these numbers are not '+fn+'\u2019s:\n'
+    +'"Pounding the Zone" — Alex throws strikes at a 64.1% rate, ahead of the teammates\u2019 average of 58.9%. Getting ahead in the count means hitters have to chase his pitch, not the other way around. At 12U, throwing strikes is the single biggest thing that separates pitchers who can go deep into games. [badge: 64.1% S%]\n'
+    +'"Seeing the Ball Early \u2197" — Alex has raised his average from .231 in his first 3 games to .455 in his last 3. He\u2019s squaring up more pitches and the hard work in the cage is showing. Building a repeatable swing now sets him up as pitching gets faster each season. [badge: .455 AVG]\n'
+    +'"Tough Out" — Alex\u2019s .489 OBP is 1st on the team. He gets on base and gives the hitters behind him chances to drive him in. Learning to take a walk is a skill many young hitters don\u2019t develop until much later. [badge: .489 OBP]\n\n'
+    +'CARD RULES:\n'
+    +'- Praise tab: 2-3 cards, each about a different PRAISE-ELIGIBLE stat. If fewer than 2 are eligible, write 1-2 cards about the best-ranked stats or a trend, framed as progress, without calling them strengths of the team. If none at all, write 1 card on what the data shows he is building (e.g. games played, at-bats, contact), honestly and kindly.\n'
+    +'- Card text: sentence 1 = the stat and teammates\u2019 average or team rank from DATA. Sentence 2 = what it means in a game. Sentence 3 = why it matters for development at 12U.\n'
+    +'- badge_val = the card\u2019s number exactly as in DATA. badge_lbl = the stat label (4 chars max).\n'
+    +'- Focus tab: 1 area from FOCUS CANDIDATES, with the stat in the title. 3 bullets: the stat vs teammates\u2019 average, why it matters at 12U, and a concrete thing to work on. 2 drills.\n'
+    +'- Plan tab: 2 drills that build on the Praise strengths or round out the game (different from the Focus drills).\n\n'
+    +'Return ONLY this JSON:\n'
+    +'{"celebrate":{"title":"What '+fn+' Is Doing Well","insights":[{"badge_val":"","badge_lbl":"","title":"","text":""}]},'
+    +'"focus":{"title":"","bullets":["","",""],"drills":[{"name":"","duration":"10m","goal":"","instructions":""},{"name":"","duration":"8m","goal":"","instructions":""}]},'
+    +'"plan":{"title":"Practice Plan","drills":[{"name":"","duration":"10m","goal":"","instructions":""},{"name":"","duration":"8m","goal":"","instructions":""}]}}';
+  return {prompt:prompt,facts:f};
+}
+
+// Pull numbers out of text, remembering how many decimals were written
+function _aiNumbers(text){
+  var out=[],re=/(\d*\.\d+|\d+)/g,m;
+  while((m=re.exec(String(text||'')))){var t=m[1],dot=t.indexOf('.');out.push({t:t,n:parseFloat(t),dec:dot<0?0:t.length-dot-1,i:m.index});}
+  return out;
+}
+function _aiNumberOK(tok,allowed,text){
+  // Small counts ("2 games", "3 outings") and the 12U / 12-year-old label are always fine
+  if(tok.dec===0&&tok.n<=6) return true;
+  if(tok.n===12&&/^\s*(U|-year|\s*year)/i.test(text.slice(tok.i+tok.t.length,tok.i+tok.t.length+6))) return true;
+  var tol=0.5*Math.pow(10,-tok.dec)+1e-9;
+  return allowed.some(function(a){return Math.abs(a-tok.n)<=tol;});
+}
+function _aiNameHit(text,names){
+  return names.filter(function(nm){return new RegExp('\\b'+nm.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(text);});
+}
+
+function validateInsights(json,built){
+  var f=built.facts,issues=[],bad={insights:[],bullets:[]},structural=false;
+  if(!json||!json.celebrate||!Array.isArray(json.celebrate.insights)||!json.celebrate.insights.length){issues.push('celebrate.insights is missing or empty.');structural=true;}
+  if(!json||!json.focus||!json.focus.title||!Array.isArray(json.focus.bullets)||!Array.isArray(json.focus.drills)||!json.focus.drills.length){issues.push('focus must have title, bullets and drills.');structural=true;}
+  if(!json||!json.plan||!Array.isArray(json.plan.drills)||!json.plan.drills.length){issues.push('plan.drills is missing or empty.');structural=true;}
+  if(structural) return {ok:false,issues:issues,bad:bad,structural:true};
+
+  function check(text,where){
+    var probs=[];
+    _aiNumbers(text).forEach(function(t){if(!_aiNumberOK(t,f.allowed,text)) probs.push('"'+t.t+'"');});
+    if(probs.length) issues.push(where+' uses numbers not in DATA: '+probs.join(', ')+'.');
+    var names=_aiNameHit(text,f.otherNames);
+    if(names.length) issues.push(where+' mentions another player ('+names.join(', ')+').');
+    var ageClaim=/(for a|for an|at this|for his|for her)\s+(12|11|twelve|eleven)?[- ]?(year[- ]old|age)|rare at this|elite for/i.test(text);
+    if(ageClaim) issues.push(where+' compares him to 12-year-olds in general — compare only to teammates.');
+    return probs.length||names.length||ageClaim;
+  }
+  json.celebrate.insights.forEach(function(ins,i){
+    if(check([ins.badge_val,ins.title,ins.text].join(' \u00b7 '),'Praise card '+(i+1))) bad.insights.push(i);
+  });
+  if(check(json.focus.title,'Focus title')) bad.focusTitle=true;
+  json.focus.bullets.forEach(function(b,i){if(check(b,'Focus bullet '+(i+1))) bad.bullets.push(i);});
+  [json.focus.drills,json.plan.drills].forEach(function(ds,k){
+    ds.forEach(function(d,i){
+      var t=[d.name,d.goal,d.instructions].join(' ');
+      if(/curve|slider|breaking ball|weighted ball|max[- ]effort/i.test(t)) issues.push((k?'Plan':'Focus')+' drill '+(i+1)+' breaks Pitch Smart rules for 12U (no breaking pitches, weighted balls or max-effort throws).');
+      if(_aiNameHit(t,f.otherNames).length) issues.push((k?'Plan':'Focus')+' drill '+(i+1)+' mentions another player.');
+    });
+  });
+  return {ok:!issues.length,issues:issues,bad:bad,structural:false};
+}
+
+// Last resort after a retry: drop anything unverifiable rather than show it
+function cleanInsights(json,check,built){
+  var f=built.facts;
+  var keep=json.celebrate.insights.filter(function(_,i){return check.bad.insights.indexOf(i)<0;});
+  if(!keep.length){
+    var r=f.praise[0]||f.rows.slice().sort(function(a,b){return a.rank/a.pool-b.rank/b.pool;})[0];
+    keep=r?[{badge_val:r.shown,badge_lbl:r.label,title:r.leads?r.label+' Leads the Team':r.meets?'Strong '+r.label:'Building '+r.label,
+      text:f.firstName+'\u2019s '+r.label+' is '+r.shown+(r.team!=null?', compared with a teammates\u2019 average of '+r.teamShown:'')+'. Keep stacking good at-bats and reps.'}]:[];
+  }
+  json.celebrate.insights=keep;
+  json.focus.bullets=json.focus.bullets.filter(function(_,i){return check.bad.bullets.indexOf(i)<0;});
+  if(check.bad.focusTitle&&f.focus[0]) json.focus.title='Next Step: '+f.focus[0].label;
+  // Pitch Smart violations are never shown
+  [json.focus,json.plan].forEach(function(sec){
+    sec.drills=sec.drills.filter(function(d){return !/curve|slider|breaking ball|weighted ball|max[- ]effort/i.test([d.name,d.goal,d.instructions].join(' '));});
+  });
+  return json;
+}
+
+function _aiStripArrows(json,facts){
+  if(facts.trends.length) return json;
+  (json.celebrate.insights||[]).forEach(function(ins){if(ins.title)ins.title=String(ins.title).replace(/\s*\u2197/g,'');});
+  return json;
+}
+
+function _aiParseJSON(raw){
+  raw=String(raw||'').replace(/```json|```/g,'').trim();
+  var s=raw.indexOf('{'),e=raw.lastIndexOf('}');
+  if(s<0||e<s) throw new Error('No JSON in response');
+  return JSON.parse(raw.slice(s,e+1));
+}
+
+function _aiAsk(body){
+  return callClaude(body).then(function(d){
+    if(d&&d.error) throw new Error(d.error.message||'API error');
+    var raw=d&&d.content&&d.content[0]&&d.content[0].text;
+    if(!raw) throw new Error('No response');
+    return raw;
+  });
+}
+
+// Generate → verify → one corrective retry → clean. Resolves to the insights object.
+function runInsightGeneration(p,players,opts){
+  var built=buildInsightPrompt(p,players,opts);
+  var base={model:AI_MODEL,max_tokens:2500,temperature:0.3,system:AI_INSIGHT_SYSTEM};
+  var msgs=[{role:'user',content:built.prompt}];
+  return _aiAsk(Object.assign({},base,{messages:msgs})).then(function(raw){
+    var json=null,check;
+    try{json=_aiParseJSON(raw);check=validateInsights(json,built);}
+    catch(e){check={ok:false,issues:['The response was not valid JSON.'],structural:true};}
+    if(check.ok){json._verified=true;return _aiStripArrows(json,built.facts);}
+    var retry=msgs.concat([
+      {role:'assistant',content:String(raw).trim()||'{}'},
+      {role:'user',content:'These cards have problems that must be fixed:\n- '+check.issues.join('\n- ')+'\n\nRewrite the complete JSON fixing every problem. Use only numbers that appear in DATA, exactly as written there. Return ONLY the JSON.'}
+    ]);
+    return _aiAsk(Object.assign({},base,{messages:retry})).then(function(raw2){
+      var json2=_aiParseJSON(raw2);
+      var check2=validateInsights(json2,built);
+      if(check2.structural) throw new Error('Response did not match the card format');
+      if(!check2.ok){
+        if(window.console) console.warn('[insights] '+p.name+': removed unverified content after retry',check2.issues);
+        json2=cleanInsights(json2,check2,built);
+        json2._verified=false;
+      } else json2._verified=true;
+      return _aiStripArrows(json2,built.facts);
+    });
+  });
 }
 
 
@@ -7440,7 +7773,7 @@ Rules:
 - If a value is missing use 0. Return only the JSON object.`;
 
     callClaude({
-        model:'claude-sonnet-4-6',
+        model:AI_MODEL,
         max_tokens:2000,
         messages:[{
           role:'user',
@@ -8358,72 +8691,19 @@ function regenerateInsights(){
   var btn=document.getElementById('pd-regen-btn');
   btn.innerHTML='<span class="pd-regen-spinner"></span>Generating…';btn.disabled=true;btn.classList.add('loading');
 
-  // Team context for comparison
-  var teammates=players.filter(function(x){return x.name!==name&&x.ab>5;});
-  var teamAvgOBP=teammates.length?teammates.reduce(function(s,x){return s+x.obp;},0)/teammates.length:0;
-  var teamAvgAVG=teammates.length?teammates.reduce(function(s,x){return s+x.avg;},0)/teammates.length:0;
-  var teamAvgQAB=teammates.length?teammates.reduce(function(s,x){return s+x.qab_pct;},0)/teammates.length:0;
-
-  // Recent game trend (last 3 vs first 3)
-  var recentGames=p.games?p.games.slice(-3):[];
-  var earlyGames=p.games?p.games.slice(0,3):[];
-  var recentAVG=recentGames.length&&recentGames.reduce(function(s,g){return s+g.ab;},0)>0
-    ?(recentGames.reduce(function(s,g){return s+g.h;},0)/recentGames.reduce(function(s,g){return s+g.ab;},0)):null;
-  var earlyAVG=earlyGames.length&&earlyGames.reduce(function(s,g){return s+g.ab;},0)>0
-    ?(earlyGames.reduce(function(s,g){return s+g.h;},0)/earlyGames.reduce(function(s,g){return s+g.ab;},0)):null;
-
-  // Coach notes
+  // Coach notes + optional coach context feed the shared, verified prompt
   var notes=(_pdCoachNotes[name]||{});
-  var gameNotes=(notes.game||[]).map(function(n){return n.text;}).join('; ');
-  var devNotes=(notes.dev||[]).map(function(n){return n.text;}).join('; ');
   var coachContext=document.getElementById('ins-coach-context');
   var customContext=coachContext?coachContext.value.trim():'';
 
-  // Focus area instruction
-  var focusMap={
-    overall:'Give a balanced view across all aspects of this player\'s game.',
-    plate:'Focus specifically on plate discipline: walks, strikeouts, pitch counts, and the ability to work counts.',
-    contact:'Focus on contact rate, bat-to-ball skill, swing decisions, and hard contact.',
-    power:'Focus on extra-base hits, exit velocity potential, RBIs, and driving the ball.',
-    pitching:'Focus entirely on pitching: command, strike rates, efficiency, and how to attack hitters.',
-    mental:'Focus on mental approach, clutch situations, consistency, and process over results.'
-  };
-  var focusInstruction=focusMap[_insFocus]||focusMap.overall;
-
-  // Build the first name for personalization
-  var firstName=name.split(' ')[0];
-
-  var teamAvgSP=0,teamAvgFPS=0;
-  var pitchersWithSP=teammates.filter(function(x){return x.pit&&x.pit.sp>0;});
-  if(pitchersWithSP.length){teamAvgSP=pitchersWithSP.reduce(function(s,x){return s+x.pit.sp;},0)/pitchersWithSP.length;}
-  var pitchersWithFPS=teammates.filter(function(x){return x.pit&&x.pit.fps>0;});
-  if(pitchersWithFPS.length){teamAvgFPS=pitchersWithFPS.reduce(function(s,x){return s+x.pit.fps;},0)/pitchersWithFPS.length;}
-
-  // Build additional stats for richer context
-  var kbb=p.bb>0&&p.so>0?(p.bb/p.so).toFixed(2):'—';
-  var kper9=p.pit&&p.pit.ip>0?((p.pit.k/pitIP(p.pit))*9).toFixed(1):'—';
-  var kbb_pit=p.pit&&p.pit.bb>0?(p.pit.k/p.pit.bb).toFixed(2):'—';
-  var fip=p.pit&&p.pit.ip>0?((13*(p.pit.hr||0)+3*p.pit.bb-2*p.pit.k)/pitIP(p.pit)+3.2).toFixed(2):'—';
-  var pitGamesCount=p.pitGames?p.pitGames.length:0;
-  var totalPitches=p.pit&&p.pit.np?p.pit.np:0;
-
-  // Recent game batting trend detail
-  var recentGamesDetail='';
-  if(p.games&&p.games.length>=2){
-    var lastTwo=p.games.slice(-2);
-    var recentHits=lastTwo.reduce(function(s,g){return s+g.h;},0);
-    var recentAB=lastTwo.reduce(function(s,g){return s+g.ab;},0);
-    if(recentAB>0) recentGamesDetail=recentHits+' hits in last 2 games ('+recentAB+' AB)';
-  }
-
-  var prompt='You are writing coaching insight cards for a 12U baseball player named '+firstName+'. Match this exact voice — punchy title, specific numbers, baseball context, age comparison. Never vague.\n\nPLAYER: '+name+' | '+p.gp+' games\nBATTING: AVG '+p.avg.toFixed(3)+' (team '+teamAvgAVG.toFixed(3)+') | OBP '+p.obp.toFixed(3)+' (team '+teamAvgOBP.toFixed(3)+') | OPS '+p.ops.toFixed(3)+' | QAB% '+p.qab_pct.toFixed(1)+'% (team '+teamAvgQAB.toFixed(1)+'%) | PA '+p.pa+' | H '+p.h+' | BB '+p.bb+' | K '+p.so+' | HR '+p.hr+' | RBI '+p.rbi+' | SB '+p.sb+' | BB/K '+(p.so>0?(p.bb/p.so).toFixed(2):'—')+(recentGamesDetail?'\nRecent: '+recentGamesDetail:'')+(recentAVG!==null&&earlyAVG!==null?'\nTrend: .'+Math.round(recentAVG*1000)+' AVG recent vs .'+Math.round(earlyAVG*1000)+' AVG early':'')+'\n'+(p.pit?'PITCHING ('+pitGamesCount+' games'+(totalPitches?', '+totalPitches+' pitches':'')+'):  S% '+p.pit.sp.toFixed(1)+'% (team '+teamAvgSP.toFixed(1)+'%) | FPS% '+p.pit.fps.toFixed(1)+'% (team '+teamAvgFPS.toFixed(1)+'%) | K '+p.pit.k+' in '+p.pit.ip.toFixed(1)+' IP ('+kper9+' K/9) | BB '+p.pit.bb+' | K/BB '+kbb_pit+' | WHIP '+p.pit.whip.toFixed(2)+' | FIP '+fip+'\n':'')+(gameNotes?'\nCOACH NOTES: '+gameNotes:'')+(customContext?'\nCONTEXT: '+customContext:'')+'\n\nTHRESHOLDS (only praise stats meeting these):\nBatting: OBP≥.450 | AVG≥.400 | OPS≥.800 | QAB%≥60 | BB/K≥0.75 | SB≥5\nPitching: S%≥60 | FPS%≥60 | WHIP≤1.5 | K/BB≥1.5 | K/9≥6.0 | NEVER praise ERA\n\nEXACT VOICE EXAMPLES:\n"Dominating on the Mound" — With 25 strikeouts in just 15.1 innings, Dayton is averaging 1.6 K\'s per inning. His K/BB ratio of 3.57 shows he\'s missing bats while maintaining control — a rare combo at this age. [badge: 3.57 K/BB]\n"Pounding the Zone" — At 63.4% strike rate and 73% first-pitch strike rate, Nixon is well above team averages (60.8% S%, 61.3% FPS%). He attacks the zone and gets ahead of hitters — a huge advantage at this level. [badge: 63.4% S%]\n"Quality At-Bats Machine ↗" — Nixon posts a 73.9% QAB rate, crushing the team average of 58.2%. He consistently puts together competitive at-bats — working counts, making hard contact, and avoiding easy outs. [badge: 73.9% QAB%]\n"Elite Plate Discipline ↗" — Griffin\'s .500 OBP is outstanding — he\'s getting on base half the time he steps up. With 10 walks in 48 PA, he\'s showing mature pitch recognition well above the team average (.453 OBP). [badge: .500 OBP]\n"Perfect on the Basepaths ↗" — Nixon is 11-for-11 on stolen base attempts — 100% success rate. His speed and instincts make him a constant threat once he reaches base. [badge: 11/11 SB]\n\nRULES: Title = specific + punchy, add ↗ if trending up. Sentence 1 = key stat vs team avg. Sentence 2 = baseball meaning. Sentence 3 = age context. 2-3 praise insights. Pitchers lead with pitching. Focus = 1 area, 3 bullets, 2 drills with measurable targets. Plan = 2 drills.\n\nReturn ONLY valid JSON:\n{"celebrate":{"title":"What '+firstName+' Is Doing Well","insights":[{"badge_val":"val","badge_lbl":"lbl","title":"Title","text":"2-3 sentences with exact stats"}]},"focus":{"title":"Specific Stat Area","bullets":["exact stat + observation","why it matters at 12U","data point"],"drills":[{"name":"Drill","duration":"10m","goal":"measurable goal","instructions":"step-by-step with a number to hit"},{"name":"Drill 2","duration":"8m","goal":"goal","instructions":"steps"}]},"plan":{"title":"Practice Plan","drills":[{"name":"Drill","duration":"10m","goal":"goal","instructions":"steps"},{"name":"Drill 2","duration":"8m","goal":"goal","instructions":"steps"}]}}';
-
-  callClaude({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
-  .then(function(data){
-    var raw=data.content&&data.content[0]&&data.content[0].text;
-    if(!raw) throw new Error('No response');
-    raw=raw.replace(/```json|```/g,'').trim();
-    _pdInsights=JSON.parse(raw);
+  runInsightGeneration(p,players,{
+    focus:_insFocus,
+    gameNotes:(notes.game||[]).map(function(n){return n.text;}).join('; '),
+    devNotes:(notes.dev||[]).map(function(n){return n.text;}).join('; '),
+    customContext:customContext
+  })
+  .then(function(insights){
+    _pdInsights=insights;
     console.log('_pdInsights keys:', Object.keys(_pdInsights));
     console.log('celebrate data:', JSON.stringify(_pdInsights.celebrate).slice(0,200));
     console.log('_insightTab:', _insightTab);
