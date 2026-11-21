@@ -411,6 +411,8 @@ body.light-mode .sb-logo-light{display:block}
 .sort-sel{font-family:var(--ff);font-size:12px;font-weight:500;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--hdr);cursor:pointer;outline:none}
 .empty{text-align:center;color:var(--sub);font-size:13px;padding:48px 20px}
 .empty.roster-empty{padding:40px 0}
+.roster-empty-link{color:var(--blue);text-decoration:none;font-weight:600}
+.roster-empty-link:hover{text-decoration:underline}
 .roster-arm-status{font-size:11px;font-weight:600}
 .roster-arm-status.limited{color:var(--amber)}
 .roster-arm-status.resting{color:#fb7185}
@@ -1468,6 +1470,14 @@ body.light-mode .up-complete-card.error{background:#fff1f2}
 .guest-toggle-guest{background:#ef4444;color:#fff;border:none}
 .guest-toggle-roster{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.4)}
 body.light-mode .guest-modal-inner{background:#fff}
+.app-msg{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.app-msg-inner{background:var(--bg1);border:1px solid var(--border);border-radius:16px;padding:22px 22px 18px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.app-msg-title{font-size:16px;font-weight:800;color:var(--hdr);margin-bottom:6px}
+.app-msg-text{font-size:13px;color:var(--sub);line-height:1.5;margin-bottom:18px}
+.app-msg-btns{display:flex;gap:8px;justify-content:flex-end}
+.app-msg-btn{font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 16px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--sub)}
+.app-msg-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+body.light-mode .app-msg-inner{background:#fff}
 .bs-result-game{font-size:13px;font-weight:600;color:var(--hdr);margin:4px 0 16px;line-height:1.5}
 .bs-result-section{margin-bottom:16px}
 .bs-result-section-hdr{font-size:12px;font-weight:700;color:var(--hdr);margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -3911,7 +3921,7 @@ function renderRoster(){
   var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
   var el=document.getElementById('roster-list');
   if(!players||!el) return;
-  if(!players.length){el.innerHTML='<div class="empty roster-empty">Upload season CSV to populate roster</div>';return;}
+  if(!players.length){el.innerHTML='<div class="empty roster-empty"><a href="#" class="roster-empty-link" onclick="event.preventDefault();goPage(\'upload\',document.getElementById(\'nav-upload\'))">Upload season CSV to populate roster</a></div>';return;}
 
   // Sort by jersey number
   var sorted=[].concat(players)
@@ -8095,9 +8105,36 @@ function renderImportedList(){
       +'</div>';
   }).join('');
 }
+// In-app message (replaces the browser's alert box). opts: {action:'Button label', onAction:fn}
+function showAppMessage(title,text,opts){
+  opts=opts||{};
+  var old=document.getElementById('app-msg');if(old)old.remove();
+  var m=document.createElement('div');
+  m.className='app-msg';m.id='app-msg';
+  m.innerHTML='<div class="app-msg-inner" role="dialog" aria-modal="true">'
+    +'<div class="app-msg-title"></div><div class="app-msg-text"></div>'
+    +'<div class="app-msg-btns">'
+      +(opts.action?'<button class="app-msg-btn" data-close>Not now</button><button class="app-msg-btn primary" data-act></button>':'<button class="app-msg-btn primary" data-close>OK</button>')
+    +'</div></div>';
+  m.querySelector('.app-msg-title').textContent=title;
+  m.querySelector('.app-msg-text').textContent=text;
+  function close(){m.remove();document.removeEventListener('keydown',onKey);}
+  function onKey(e){if(e.key==='Escape')close();}
+  m.addEventListener('click',function(e){if(e.target===m||e.target.hasAttribute('data-close'))close();});
+  var act=m.querySelector('[data-act]');
+  if(act){act.textContent=opts.action;act.addEventListener('click',function(){close();if(opts.onAction)opts.onAction();});}
+  document.addEventListener('keydown',onKey);
+  document.body.appendChild(m);
+  (act||m.querySelector('[data-close]')).focus();
+}
+
 function fixPitchingData(){
   var seasonImps=importedGames.filter(function(g){return g.isSeason;});
-  if(!seasonImps.length){alert('No season CSV found. Upload the season CSV first.');return;}
+  if(!seasonImps.length){
+    showAppMessage('No season stats yet','Upload season CSV from GameChanger to populate the dashboard',
+      {action:'Go to Upload',onAction:function(){goPage('upload',document.getElementById('nav-upload'));}});
+    return;
+  }
   var csvMap={};
   seasonImps[seasonImps.length-1].players.forEach(function(p){
     if(!p.pitching||!p.pitching.ip) return;
