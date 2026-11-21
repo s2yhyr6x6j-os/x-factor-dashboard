@@ -6430,7 +6430,7 @@ function checkSharedView(){
 // CHANGE THE PASSWORD: replace SITE_PASSWORD_HASH with the SHA-256 hex digest
 // of your new password. Ask Claude to generate it, or use any "sha256 hash
 // generator" site and paste the result in as a plain lowercase hex string.
-var SITE_PASSWORD_HASH='a383b8b7a6018c7fbe4a844725c24deff8cd6920bc79f8fb5ab337c10157a922'; // set via Claude — do not store the plaintext password here
+var SITE_PASSWORD_HASH='c35fb5a65b13658f3aea3b15d99cd7d7e88bd3d207eb8e6578382f8d5c244230'; // set via Claude — do not store the plaintext password here
 
 function sha256Hex(str){
   return crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)).then(function(buf){
