@@ -3300,7 +3300,7 @@ function getPlayers(){
   var useSeason=!gameImports.length&&seasonImports.length>0;
   var map={};
   source.forEach(function(game,gi){
-    if(game.isSeason) return; // skip season CSV
+    if(game.isSeason&&!useSeason) return; // season CSV only overlays box-score players — unless it's the only data, then it builds the roster
     // Track which players appeared in this game
     var appearedInGame={};
     game.players.forEach(function(p){
@@ -3330,7 +3330,8 @@ function getPlayers(){
       }
       appearedInGame[key]=true;
       map[key].games.push(Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},b));
-      if(p.pitching){
+      // Season totals are never an outing — keep them out of the per-outing log that drives Pitch Smart rest
+      if(p.pitching&&!game.isSeason){
         var pitObj=Object.assign({gameIdx:gi,label:game.label,date:game.date,opp:game.opp},p.pitching);
         // Calculate sp from ns/np when available for accuracy
         if(pitObj.np>0&&pitObj.ns>0){
