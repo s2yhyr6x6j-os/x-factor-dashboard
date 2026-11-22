@@ -1074,6 +1074,9 @@ body.light-mode .re-pos{background:var(--bg1)}
 .re-modal-footer{padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .re-remove{background:none;border:none;color:#fb7185;font-family:var(--ff);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;opacity:.7;transition:opacity .15s}
 .re-remove:hover{opacity:1}
+.roster-hidden-note{font-size:12px;color:var(--sub);padding:2px 0 8px}
+.roster-hidden-line{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:1px}
+.roster-hidden-sub{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;padding:14px 0 4px}
 .re-footer-btns{display:flex;gap:8px}
 .re-cancel{font-family:var(--ff);font-size:13px;font-weight:600;padding:9px 18px;background:transparent;color:var(--sub);border:1px solid var(--border);border-radius:8px;cursor:pointer}
 .re-save{font-family:var(--ff);font-size:13px;font-weight:600;padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px}
@@ -2148,7 +2151,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 
     <!-- Footer -->
     <div class="re-modal-footer">
-      <button class="re-remove" onclick="removeFromRoster()">🗑 Remove from roster</button>
+      <button class="re-remove" onclick="removeFromRoster()">Mark as guest</button>
       <div class="re-footer-btns">
         <button class="re-cancel" onclick="closeRosterEdit()">Cancel</button>
         <button class="re-save" onclick="saveRosterEdit()">✓ Save</button>
@@ -3502,7 +3505,15 @@ function mergeOutingsByDate(pitGames){
   });
 }
 
+// Full-time players only — every stat, chart, leaderboard, lineup and AI insight uses this
 function getPlayers(){
+  return _buildPlayers().filter(function(p){return !isGuest(p.name);});
+}
+// Everyone, guests included (roster management and upload checks only)
+function getAllPlayers(){
+  return _buildPlayers().map(function(p){p.guest=isGuest(p.name);return p;});
+}
+function _buildPlayers(){
   var seasonImports=importedGames.filter(function(g){return g.isSeason;});
   var gameImports=importedGames.filter(function(g){return !g.isSeason;});
   var source=gameImports.length?gameImports:seasonImports;
@@ -3579,8 +3590,7 @@ function getPlayers(){
     return _csvPitMap[low]||_csvPitMap['_last_'+low.split(' ').pop()]||null;
   }
 
-  var GLOBAL_EXCLUDE=['E Smith','E. Smith','Easton Smith'];
-  var _mapped=Object.values(map).filter(function(p){return GLOBAL_EXCLUDE.indexOf(p.name)<0;}).map(function(p){
+  var _mapped=Object.values(map).map(function(p){
     var gs=p.games;
     var gpTotal=useSeason?gs.reduce(function(s,g){return s+(g.gp||1);},0):gs.length;
     var tot={name:p.name,num:p.num,gp:gpTotal,pa:sum(gs,'pa'),ab:sum(gs,'ab'),h:sum(gs,'h'),s1b:sum(gs,'s1b'),d:sum(gs,'d'),t:sum(gs,'t'),hr:sum(gs,'hr'),rbi:sum(gs,'rbi'),r:sum(gs,'run'),bb:sum(gs,'bb'),so:sum(gs,'so'),hbp:sum(gs,'hbp'),sb:sum(gs,'sb'),qab:sum(gs,'qab'),games:gs,pitGames:p.pitGames};
@@ -3744,24 +3754,86 @@ function getPitchers(){return getPlayers().filter(function(p){return p.pit;});}
 function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function escHtml(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
 
-// A player is hidden unless they are the TARGET of a remapTo — remap targets are always shown
-var PERMANENT_GUESTS=['Coe Melcher','Maze Milsap','RJ Vande Hoef','Riley Miller'];
+// ── PLAYER STATUS ──
+// Every player is either 'full-time' (counted in all stats) or 'guest' (left out of all stats).
+// Stored per team in rosterOverrides[name].status. Guest data is kept, so switching a player
+// back to full-time restores their stats without re-uploading anything.
+var LEGACY_GUESTS=['Easton Smith','Coe Melcher','Maze Milsap','RJ Vande Hoef','Riley Miller',
+                   'Kade Rozeboom','Bryan Blomgren','Kooi Fluit','Dean Pugh']; // SBA Red 12U only
 
-function isHidden(name){
-  if(PERMANENT_GUESTS.indexOf(name)>=0) return true;
-  var ov=rosterOverrides[name]||{};
-  if(!ov.hidden){
-    // Also check if a same-last-name entry is hidden (catches spelling variants like Milsap/Millsap)
-    var pLast=name.toLowerCase().split(' ').pop();
-    var variantHidden=Object.keys(rosterOverrides).some(function(k){
-      if(!rosterOverrides[k].hidden) return false;
-      if(rosterOverrides[k].remapTo) return false; // remapped players are not hidden variants
-      return k.toLowerCase().split(' ').pop()===pLast;
-    });
-    if(!variantHidden) return false;
+function _normName(n){return String(n||'').toLowerCase().replace(/\./g,' ').replace(/\s+/g,' ').trim();}
+function _editDist1(a,b){ // true when a and b differ by at most one letter (Milsap / Millsap)
+  if(a===b) return true;
+  if(Math.abs(a.length-b.length)>1) return false;
+  var i=0,j=0,diff=0;
+  while(i<a.length&&j<b.length){
+    if(a[i]===b[j]){i++;j++;continue;}
+    if(++diff>1) return false;
+    if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++;}
   }
-  // Not hidden if this player is a remap target
-  return !Object.keys(rosterOverrides).some(function(k){return rosterOverrides[k].remapTo===name;});
+  return diff+(a.length-i)+(b.length-j)<=1;
+}
+// Same player written differently in a box score: "E Smith", "E. Smith", "Maze Millsap"
+function _sameInitialAndLast(a,b){
+  var x=_normName(a).split(' '),y=_normName(b).split(' ');
+  if(x.length<2||y.length<2||x[0][0]!==y[0][0]) return false;
+  var lx=x.slice(1).join(' '),ly=y.slice(1).join(' ');
+  return lx===ly||(lx.length>=5&&ly.length>=5&&_editDist1(lx,ly));
+}
+// The status saved for this exact name, or for the one tagged player it's clearly a variant of.
+// Returns null for a name nobody has tagged yet.
+function knownStatus(name){
+  var ov=rosterOverrides[name];
+  if(ov&&ov.status) return ov.status;
+  var matches=Object.keys(rosterOverrides).filter(function(k){
+    var o=rosterOverrides[k];
+    return o&&o.status&&!o.remapTo&&k!==name&&_sameInitialAndLast(k,name);
+  });
+  if(!matches.length) return null;
+  var st=rosterOverrides[matches[0]].status;
+  // Only trust the match if every matching player has the same status
+  return matches.every(function(k){return rosterOverrides[k].status===st;})?st:null;
+}
+function playerStatus(name){return knownStatus(name)||'full-time';}
+function isGuest(name){return playerStatus(name)==='guest';}
+function isHidden(name){return isGuest(name);} // older name, still used by some views
+
+function saveRosterOverrides(){
+  try{teamLS.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  if(typeof kvSave==='function') kvSave();
+}
+function setPlayerStatus(name,status){
+  rosterOverrides[name]=rosterOverrides[name]||{};
+  rosterOverrides[name].status=status==='guest'?'guest':'full-time';
+  delete rosterOverrides[name].hidden;
+  saveRosterOverrides();
+}
+
+// One-time conversion from the old guest mechanisms. Safe to run on every load.
+function migrateGuestStatus(){
+  var changed=false;
+  Object.keys(rosterOverrides).forEach(function(k){
+    var o=rosterOverrides[k];
+    if(!o||o.remapTo) return;              // remapped names are aliases, not players
+    if(o.hidden){
+      if(!o.status) o.status='guest';
+      delete o.hidden;changed=true;
+    }
+  });
+  if(CURRENT_TEAM.legacy){
+    LEGACY_GUESTS.forEach(function(n){
+      var o=rosterOverrides[n]=rosterOverrides[n]||{};
+      if(!o.status){o.status='guest';changed=true;}
+    });
+  }
+  // Everyone already in this team's data is full-time unless tagged otherwise,
+  // so the next upload only asks about genuinely new names.
+  getAllPlayers().forEach(function(p){
+    if(knownStatus(p.name)) return;
+    rosterOverrides[p.name]=rosterOverrides[p.name]||{};
+    rosterOverrides[p.name].status='full-time';changed=true;
+  });
+  if(changed) saveRosterOverrides();
 }
 
 function trendBadge(p){
@@ -3804,8 +3876,7 @@ function renderOverview(){
   updateRecord(w,l);
 
   // ── Pitching section ──
-  var _excl=['E Smith','E. Smith','Easton Smith'];
-  var pitchers=getPitchers().filter(function(p){var ov=rosterOverrides[p.name]||{};return _excl.indexOf(p.name)<0&&!isHidden(p.name);});
+  var pitchers=getPitchers().filter(function(p){var ov=rosterOverrides[p.name]||{};return !isHidden(p.name);});
   var tSP=0,tFPS=0,tWhip=0,tip=0;
   if(pitchers.length){
     tip=pitchers.reduce(function(s,p){return s+p.pit.ip},0);
@@ -3902,8 +3973,7 @@ function renderDonut(pitchers){
 }
 
 function renderBatBars(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getPlayers().filter(function(p){return p.ab>0;});
   if(!players.length){var _bb=document.getElementById('bat-bars');if(_bb)_bb.innerHTML='<div class="empty" style="padding:20px 0;text-align:left;font-size:12px">Upload season CSV to populate</div>';return;}
   var sorted=[].concat(players).sort(function(a,b){return b[batTogKey]-a[batTogKey];}).slice(0,8);
   var max=sorted.reduce(function(m,p){return Math.max(m,p[batTogKey]||0);},0)||1;
@@ -4127,15 +4197,14 @@ function buildPosBadges(ov, small){
 }
 
 function renderRoster(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getPlayers().filter(function(p){return p.ab>0;});
   var el=document.getElementById('roster-list');
   if(!players||!el) return;
   if(!players.length){el.innerHTML='<div class="empty roster-empty"><a href="#" class="roster-empty-link" onclick="event.preventDefault();goPage(\'upload\',document.getElementById(\'nav-upload\'))">Upload season CSV to populate roster</a></div>';return;}
 
   // Sort by jersey number
   var sorted=[].concat(players)
-    .filter(function(p){return !(rosterOverrides[p.name]&&rosterOverrides[p.name].hidden)&&PERMANENT_GUESTS.indexOf(p.name)<0;})
+    .filter(function(p){return !(rosterOverrides[p.name]&&rosterOverrides[p.name].remapTo);}) // remapped names are aliases
     .sort(function(a,b){
     var an=parseInt((rosterOverrides[a.name]||{}).num||a.num||'99');
     var bn=parseInt((rosterOverrides[b.name]||{}).num||b.num||'99');
@@ -4365,33 +4434,26 @@ function saveRosterEdit(){
   }
 }
 
-function removeFromRoster(){
+function removeFromRoster(){ // "Mark as guest" in the edit form
   if(!rosterEditTarget) return;
-  if(!confirm('Remove '+rosterEditTarget+' from roster view? This only hides them — it does not delete their stats.')) return;
-  rosterOverrides[rosterEditTarget]=rosterOverrides[rosterEditTarget]||{};
-  rosterOverrides[rosterEditTarget].hidden=true;
-  try{teamLS.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
-  kvSave();
-  var savedTarget=rosterEditTarget;
-  closeRosterEdit();
-  renderRoster();
-  if(window._pdCurrentPlayer===savedTarget){
-    var ov2=rosterOverrides[savedTarget]||{};
-    var pbEl=document.getElementById('pd-pos-badges');
-    if(pbEl){var bh=buildPosBadges(ov2,false);pbEl.innerHTML=bh;pbEl.style.display=bh?'flex':'none';}
-    var p2=getPlayers().find(function(x){return x.name===savedTarget;});
-    if(p2) buildPdXFSection(p2);
-  }
+  var name=rosterEditTarget;
+  var shown=(rosterOverrides[name]&&rosterOverrides[name].displayName)||name;
+  showAppMessage('Mark '+shown+' as a guest?',
+    'Guests are left out of all team stats, leaderboards, the lineup, pitching and AI insights. Their data is kept, so you can make them full-time again from Guest Players on the Roster page.',
+    {action:'Mark as guest',onAction:function(){
+      setPlayerStatus(name,'guest');
+      closeRosterEdit();
+      if(window._pdCurrentPlayer===name&&typeof closePlayer==='function') closePlayer();
+      renderAll();renderRoster();
+    }});
 }
 
 function loadRosterOverrides(){
   try{var r=teamLS.getItem('sba_roster_v1');if(r)rosterOverrides=JSON.parse(r);}catch(e){}
 }
 
-function restorePlayer(key){
-  if(rosterOverrides[key]) delete rosterOverrides[key].hidden;
-  try{teamLS.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
-  kvSave();
+function restorePlayer(key){ // "Make full-time" in Guest Players
+  setPlayerStatus(key,'full-time');
   renderRoster();
   renderAll();
 }
@@ -4417,60 +4479,50 @@ function openRemapModal(key){
 }
 
 function renderRosterHidden(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var el=document.getElementById('roster-hidden-section');
   if(!el) return;
+  var data={};getAllPlayers().forEach(function(p){data[p.name]=p;});
 
-  var seen={}; // dedup by display name
+  // Guests: every player tagged guest for this team
+  var guests=Object.keys(rosterOverrides).filter(function(k){
+    var o=rosterOverrides[k];return o&&o.status==='guest'&&!o.remapTo;
+  }).map(function(k){
+    var o=rosterOverrides[k],p=data[k];
+    return {key:k,name:o.displayName||k,num:o.num!=null?o.num:(p&&p.num)||'',
+      line:p?(p.pa?p.pa+' PA':'')+(p.pit&&p.pit.ip>0?(p.pa?' · ':'')+p.pit.ip+' IP':''):'No stats in current uploads'};
+  }).sort(function(a,b){return a.name.localeCompare(b.name);});
 
-  // 1. Hidden players from getPlayers() output
-  var allPlayers=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
-  allPlayers.forEach(function(p){
-    var ov=rosterOverrides[p.name]||{};
-    if(!isHidden(p.name)) return;
-    var dispName=ov.displayName||p.name;
-    if(seen[dispName]) return;
-    seen[dispName]={key:p.name,name:dispName,num:ov.num!=null?ov.num:p.num};
-  });
+  // Name fixes: box-score spellings remapped onto a real player (not players themselves)
+  var aliases=Object.keys(rosterOverrides).filter(function(k){return rosterOverrides[k]&&rosterOverrides[k].remapTo;})
+    .map(function(k){return {key:k,to:rosterOverrides[k].remapTo};});
 
-  // 2. rosterOverrides keys with hidden=true not already covered above
-  Object.keys(rosterOverrides).forEach(function(k){
-    if(!rosterOverrides[k].hidden||EXCLUDED.indexOf(k)>=0) return;
-    var ov=rosterOverrides[k];
-    var dispName=ov.displayName||k;
-    if(seen[dispName]) return;
-    seen[dispName]={key:k,name:dispName,num:ov.num!=null?ov.num:'?'};
-  });
-
-  // Permanent guests — always shown here regardless of KV state
-  PERMANENT_GUESTS.forEach(function(name){
-    var ov=rosterOverrides[name]||{};
-    var dispName=ov.displayName||name;
-    if(seen[dispName]) return;
-    seen[dispName]={key:name,name:dispName,num:ov.num!=null?ov.num:'?'};
-  });
-
-  var entries=Object.values(seen);
-  if(!entries.length){el.innerHTML='';return;}
+  if(!guests.length&&!aliases.length){el.innerHTML='';return;}
 
   el.innerHTML='<div class="roster-hidden-wrap">'
     +'<div class="roster-hidden-title" onclick="toggleRosterHidden()" id="roster-hidden-title">'
-      +'<span>Guest/Inactive Players ('+entries.length+')</span>'
+      +'<span>Guest Players ('+guests.length+')</span>'
       +'<span class="roster-hidden-chevron">▼</span>'
     +'</div>'
     +'<div class="roster-hidden-list" id="roster-hidden-list">'
-    +entries.map(function(e){
+    +'<div class="roster-hidden-note">Guests are left out of all stats. Their data is kept if you make them full-time.</div>'
+    +guests.map(function(e){
       return '<div class="roster-hidden-row">'
         +'<div class="roster-hidden-left">'
-          +'<span class="roster-hidden-num">'+(e.num!=='?'?'#'+e.num:'—')+'</span>'
-          +'<span class="roster-hidden-name">'+e.name+'</span>'
+          +'<span class="roster-hidden-num">'+(e.num?'#'+escHtml(e.num):'—')+'</span>'
+          +'<span class="roster-hidden-name">'+escHtml(e.name)+'<span class="roster-hidden-line">'+escHtml(e.line)+'</span></span>'
         +'</div>'
         +'<div class="roster-hidden-actions">'
         +'<button class="roster-hidden-btn remap" onclick="openRemapModal(\''+esc(e.key)+'\')">🔄 Remap</button>'
-        +'<button class="roster-hidden-btn restore" onclick="restorePlayer(\''+esc(e.key)+'\')">↩ Restore</button>'
+        +'<button class="roster-hidden-btn restore" onclick="restorePlayer(\''+esc(e.key)+'\')">Make full-time</button>'
         +'</div>'
       +'</div>';
     }).join('')
+    +(aliases.length?'<div class="roster-hidden-sub">Name fixes</div>'+aliases.map(function(a){
+      return '<div class="roster-hidden-row">'
+        +'<div class="roster-hidden-left"><span class="roster-hidden-name">'+escHtml(a.key)+' → '+escHtml(a.to)+'</span></div>'
+        +'<div class="roster-hidden-actions"><button class="roster-hidden-btn remap" onclick="openRemapModal(\''+esc(a.key)+'\')">🔄 Change</button></div>'
+      +'</div>';
+    }).join(''):'')
     +'</div>'
     +'</div>';
 }
@@ -4532,7 +4584,6 @@ function toggleBatLbRow(id){
 }
 
 function renderHittingPage(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var players=getFilteredPlayers(_batFilter);
 
   // Fixed thresholds — same for season and filtered views, no scaling
@@ -5058,8 +5109,8 @@ function buildBoxScore(gl, opp){
     return html;
   }
 
-  var sbaBatters=ig.players.filter(function(p){return p.batting&&p.batting.ab>0;});
-  var sbaPitchers=ig.players.filter(function(p){return p.pitching&&p.pitching.ip>0;});
+  var sbaBatters=ig.players.filter(function(p){return p.batting&&p.batting.ab>0&&!isGuest(p.name);});
+  var sbaPitchers=ig.players.filter(function(p){return p.pitching&&p.pitching.ip>0&&!isGuest(p.name);});
 
   // SBA Batting
   html+='<div class="bs-section">'
@@ -5145,8 +5196,7 @@ function addGame(){
 
 // ── SCOUTING ──
 function renderScouting(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getPlayers().filter(function(p){return p.ab>0;});
   var el=document.getElementById('scouting-grid');
   if(!players.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">Upload season CSV to generate scouting cards</div>';return;}
   el.innerHTML=players.map(function(p){
@@ -5186,8 +5236,7 @@ function scoutingNote(p){
 
 // ── RECOMMENDATIONS ──
 function renderRecs(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0;});
+  var players=getPlayers().filter(function(p){return p.ab>0;});
   var el=document.getElementById('recs-list');
   if(!players.length){el.innerHTML='<div class="empty">Upload season CSV to generate recommendations</div>';return;}
   var recs=[];
@@ -5527,8 +5576,7 @@ function renderCompareModal(){
   var body=document.getElementById('cmp-body');
   if(!body) return;
 
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allP=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var allP=getPlayers().filter(function(p){return p.ab>0&&!isHidden(p.name);});
   var pMap={};allP.forEach(function(p){pMap[p.name]=p;});
 
   // Keep selection in current lineup order
@@ -5619,8 +5667,7 @@ function autoLineup(){
 
   // Use setTimeout so the browser paints the running state before the sync work blocks
   setTimeout(function(){
-    var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-    var allP=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+    var allP=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&!isHidden(p.name);});
     var players=allP.filter(function(p){return isPlayerAvailable(p.name);});
     var unavailable=allP.filter(function(p){return !isPlayerAvailable(p.name);});
     if(players.length){
@@ -5697,8 +5744,7 @@ function toggleLineupNotes(){
 }
 
 function renderLineup(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var players=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&!isHidden(p.name);});
   var ls=document.getElementById('lineup-slots');
   if(!ls) return;
   if(!players.length){ls.innerHTML='<div class="empty" style="padding:40px 0">Upload season CSV to generate lineup</div>';return;}
@@ -5781,8 +5827,7 @@ function renderLineup(){
 }
 
 function renderPitchingPlan(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var pitchers=getPitchers().filter(function(p){var ov=rosterOverrides[p.name]||{};return EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var pitchers=getPitchers().filter(function(p){var ov=rosterOverrides[p.name]||{};return !isHidden(p.name);});
   var el=document.getElementById('pp-ranked-rows');
   if(!el) return; // pp-ranked-rows only exists when renderRotationPage() remaps IDs
   if(!pitchers.length){
@@ -6371,8 +6416,7 @@ function injectKnownGames(){
 function generateAllInsights(){
   var apiKey=getApiKey();
   if(!apiKey&&!(window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&window.location.protocol==='https:')){alert('Set your Anthropic API key in the Upload page first.');return;}
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var players=getPlayers().filter(function(p){return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var players=getPlayers().filter(function(p){return p.ab>0&&!isHidden(p.name);});
   if(!players.length){alert('No player data found. Upload the season CSV first.');return;}
   var btn=document.getElementById('gen-all-btn');
   var progressBar=document.getElementById('gen-progress-bar');
@@ -7064,7 +7108,7 @@ function buildInsightFacts(p,players,opts){
 
   var dataText=L.join('\n');
   var others=[];
-  teammates.concat(players.filter(function(x){return isHidden(x.name);})).forEach(function(x){
+  teammates.concat(getAllPlayers().filter(function(x){return x.guest;})).forEach(function(x){
     x.name.split(/\s+/).forEach(function(part){
       if(part.length>=3&&p.name.split(/\s+/).indexOf(part)<0&&others.indexOf(part)<0) others.push(part);
     });
@@ -7437,7 +7481,7 @@ function syncFromKV(){
   var btn=document.getElementById('kv-sync-btn');
   if(btn){btn.disabled=true;btn.textContent='Syncing...';}
   kvLoad(function(){
-    fixPitchingData();loadRosterOverrides();renderAll();
+    fixPitchingData();loadRosterOverrides();migrateGuestStatus();renderAll();
     if(btn){btn.disabled=false;btn.textContent='↻ Sync';}
   });
 }
@@ -7524,14 +7568,13 @@ function setBatFilter(filter, btn){
 
 // Get player stats filtered to last N games
 function getFilteredPlayers(filter){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allPlayers=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var allPlayers=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&!isHidden(p.name);});
   if(filter==='season') return allPlayers;
 
   // Use uploaded filtered CSV if available
   if(_filteredSeasons[filter]){
     var fs=_filteredSeasons[filter];
-    return fs.filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+    return fs.filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&!isHidden(p.name);});
   }
 
   var n=filter==='last10'?10:filter==='last5'?5:3;
@@ -7572,8 +7615,7 @@ function getFilteredPlayers(filter){
 }
 
 function getSeasonPitchers(){
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
-  var allPlayers=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);});
+  var allPlayers=getPlayers().filter(function(p){var ov=rosterOverrides[p.name]||{};return p.ab>0&&!isHidden(p.name);});
   return allPlayers.filter(function(p){return p.pit&&p.pit.ip>0;});
 }
 
@@ -7757,10 +7799,9 @@ function renderPitchCountPage(){
     nextGameEl.style.display='flex';
   }
 
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
   var pitchers=getPlayers().filter(function(p){
     var ov=rosterOverrides[p.name]||{};
-    return p.pit&&p.pit.ip>0&&EXCLUDED.indexOf(p.name)<0&&!isHidden(p.name);
+    return p.pit&&p.pit.ip>0&&!isHidden(p.name);
   });
 
   // Sort: resting first (most days needed), then available
@@ -7979,7 +8020,7 @@ function processUploadFile(file){
     reader.onload=function(ev){
       var players=parseGameCSV(ev.target.result);
       if(!players||!players.length){showUploadError('Could not parse CSV — check file format.');return;}
-      storeGameImport({players:players,date:null,opp:null,usScore:null,themScore:null,gameResult:null,isSeason:true},file.name,status);
+      checkGuestPlayers({players:players,date:null,opp:null,usScore:null,themScore:null,gameResult:null,isSeason:true},file.name,status);
     };
     reader.readAsText(file,'UTF-8');
   }
@@ -8126,22 +8167,15 @@ function buildPlayersFromVision(data){
     gameResult:usScore!=null&&themScore!=null?(usScore>themScore?'W':usScore<themScore?'L':'T'):null,loc:loc};
 }
 
+// Before saving any upload, ask how to tag players this team hasn't seen yet.
+// Season CSVs default new names to Full-time; box scores default them to Guest.
+function _uploadName(p){return p.name||(p.batting&&p.batting.name)||'';}
 function checkGuestPlayers(result,fileName,status){
-  var seasonImports=importedGames.filter(function(g){return g.isSeason;});
-  var latestSeason=seasonImports.length?seasonImports[seasonImports.length-1]:null;
-  if(!latestSeason||!result.players){storeGameImport(result,fileName,status);return;}
-  var EXCLUDED=['E Smith','E. Smith','Easton Smith'];
+  var seen={};
   var unknown=(result.players||[]).filter(function(p){
-    if(EXCLUDED.indexOf(p.name)>=0) return false;
-    var pLast=p.name.toLowerCase().split(' ').pop();
-    return !latestSeason.players.some(function(cp){
-      var cpLast=cp.batting.name.toLowerCase().split(' ').pop();
-      if(cpLast===pLast) return true;
-      // Prefix match handles Vision abbreviations (e.g. "Hasting" → "Hastings")
-      var shorter=pLast.length<cpLast.length?pLast:cpLast;
-      var longer=pLast.length<cpLast.length?cpLast:pLast;
-      return shorter.length>=4&&longer.startsWith(shorter.slice(0,Math.min(shorter.length,6)));
-    });
+    var n=_uploadName(p);
+    if(!n||seen[n]||knownStatus(n)) return false;
+    seen[n]=true;return true;
   });
   if(!unknown.length){storeGameImport(result,fileName,status);return;}
   showGuestModal(unknown,result,fileName,status);
@@ -8150,58 +8184,59 @@ function checkGuestPlayers(result,fileName,status){
 function showGuestModal(unknown,result,fileName,status){
   var existing=document.getElementById('guest-modal');
   if(existing) existing.remove();
+  var defaultGuest=!result.isSeason;
   var guestMap={};
-  unknown.forEach(function(p){guestMap[p.name]=true;});
+  unknown.forEach(function(p){guestMap[_uploadName(p)]=defaultGuest;});
   var modal=document.createElement('div');
   modal.className='guest-modal';modal.id='guest-modal';
+  var pill='font-size:12px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;font-family:var(--ff);';
+  var on='background:var(--blue);color:#fff;border:1px solid var(--blue)';
+  var off='background:transparent;color:var(--sub);border:1px solid var(--border)';
 
   function render(){
-    modal.innerHTML='<div class="guest-modal-inner">'
-      +'<div class="guest-modal-title">New Players Detected</div>'
-      +'<div class="guest-modal-sub">These players aren\'t on your season roster. Mark as Guest to exclude their stats — or Roster to keep them.</div>'
+    modal.innerHTML='<div class="guest-modal-inner" role="dialog" aria-modal="true">'
+      +'<div class="guest-modal-title">'+(unknown.length===1?'1 new player':unknown.length+' new players')+'</div>'
+      +'<div class="guest-modal-sub">Full-time players count in all stats. Guests are left out of all stats. You can change this later on the Roster page.</div>'
       +unknown.map(function(p){
-        var isGuest=guestMap[p.name];
-        var b=p.batting||{};
-        var statStr=b.h!=null?(b.h+'-'+(b.ab||0)+', '+(b.rbi||0)+' RBI'):'';
-        var pitStr=p.pitching&&p.pitching.ip>0?p.pitching.ip.toFixed(1)+'IP':'';
+        var n=_uploadName(p),isG=guestMap[n],b=p.batting||{};
+        var statStr=b.h!=null?(b.h+'-'+(b.ab||0)+(b.rbi!=null?', '+b.rbi+' RBI':'')):'';
+        var pitStr=p.pitching&&p.pitching.ip>0?(+p.pitching.ip).toFixed(1)+' IP':'';
+        var num=p.num||b.num||'';
         return '<div class="guest-player-row">'
           +'<div>'
-            +'<div style="font-size:14px;font-weight:700;color:var(--hdr)">'+p.name+(p.num?' #'+p.num:'')+'</div>'
-            +'<div style="font-size:12px;color:var(--sub)">'+(statStr||pitStr||'')+'</div>'
+            +'<div style="font-size:14px;font-weight:700;color:var(--hdr)">'+escHtml(n)+(num?' #'+escHtml(num):'')+'</div>'
+            +'<div style="font-size:12px;color:var(--sub)">'+escHtml([statStr,pitStr].filter(Boolean).join(' · '))+'</div>'
           +'</div>'
           +'<div style="display:flex;gap:6px">'
-            +'<button onclick="_guestToggle(\''+esc(p.name)+'\',true)" style="font-size:12px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;font-family:var(--ff);'+(isGuest?'background:#ef4444;color:#fff;border:none':'background:transparent;color:var(--sub);border:1px solid var(--border)')+'">'
-              +'Guest'
-            +'</button>'
-            +'<button onclick="_guestToggle(\''+esc(p.name)+'\',false)" style="font-size:12px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;font-family:var(--ff);'+(!isGuest?'background:#22c55e;color:#fff;border:none':'background:transparent;color:var(--sub);border:1px solid var(--border)')+'">'
-              +'Add to Roster'
-            +'</button>'
+            +'<button onclick="_guestToggle(\''+esc(n)+'\',false)" style="'+pill+(!isG?on:off)+'">Full-time</button>'
+            +'<button onclick="_guestToggle(\''+esc(n)+'\',true)" style="'+pill+(isG?on:off)+'">Guest</button>'
           +'</div>'
         +'</div>';
       }).join('')
       +'<div style="display:flex;gap:10px;margin-top:20px">'
-        +'<button onclick="_guestConfirm()" style="flex:1;font-family:var(--ff);font-size:14px;font-weight:700;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:12px;cursor:pointer">Save Game</button>'
-        +'<button onclick="document.getElementById(\'guest-modal\').remove()" style="font-family:var(--ff);font-size:14px;font-weight:700;padding:14px 18px;background:var(--bg2);color:var(--sub);border:1px solid var(--border);border-radius:12px;cursor:pointer">Cancel</button>'
+        +'<button onclick="_guestConfirm()" style="flex:1;font-family:var(--ff);font-size:14px;font-weight:700;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:12px;cursor:pointer">'+(result.isSeason?'Save stats':'Save game')+'</button>'
+        +'<button onclick="_guestCancel()" style="font-family:var(--ff);font-size:14px;font-weight:700;padding:14px 18px;background:var(--bg2);color:var(--sub);border:1px solid var(--border);border-radius:12px;cursor:pointer">Cancel</button>'
       +'</div>'
     +'</div>';
   }
   render();
   document.body.appendChild(modal);
 
-  window._guestToggle=function(name,isGuest){guestMap[name]=isGuest;render();};
+  window._guestToggle=function(name,isG){guestMap[name]=isG;render();};
+  window._guestCancel=function(){
+    modal.remove();
+    if(status){status.className='up-status';status.textContent='Upload cancelled — nothing was saved.';}
+  };
   window._guestConfirm=function(){
-    var guests=Object.keys(guestMap).filter(function(k){return guestMap[k];});
-    // Mark confirmed guests as hidden so future uploads auto-flag them
-    guests.forEach(function(name){
+    Object.keys(guestMap).forEach(function(name){
       rosterOverrides[name]=rosterOverrides[name]||{};
-      rosterOverrides[name].hidden=true;
+      rosterOverrides[name].status=guestMap[name]?'guest':'full-time';
+      delete rosterOverrides[name].hidden;
     });
-    if(guests.length) kvSave();
-    // Filter guests from result before saving
-    var filtered=JSON.parse(JSON.stringify(result));
-    filtered.players=(result.players||[]).filter(function(p){return !guestMap[p.name];});
-    document.getElementById('guest-modal').remove();
-    storeGameImport(filtered,fileName,status);
+    saveRosterOverrides();
+    modal.remove();
+    // Everyone's data is kept; guests are simply left out of stats
+    storeGameImport(result,fileName,status);
   };
 }
 
@@ -9153,6 +9188,7 @@ function initApp(){
     fixPitchingData();
     // Only load from localStorage if KV didn't provide rosterOverrides
     if(!_kvSynced||Object.keys(rosterOverrides).length===0) loadRosterOverrides();
+    migrateGuestStatus();
     loadCoachNotes();loadIcsSettings();
   // Always ensure all known season games exist in the game log
   var seedGames=[
