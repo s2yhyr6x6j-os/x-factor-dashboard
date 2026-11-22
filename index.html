@@ -141,6 +141,26 @@ body.light-mode .sb-logo-light{display:block}
 .sb-team-text{flex:1;min-width:0}
 .sb-team-name{font-size:15px;font-weight:700;color:var(--hdr);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-team-season{font-size:11px;color:var(--sub);margin-top:1px}
+#sb-team{cursor:pointer;border-radius:10px}
+#sb-team:hover,#sb-team[aria-expanded="true"]{background:var(--bg2)}
+.sb-team-chev{width:16px;height:16px;flex-shrink:0;stroke:var(--sub);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+#sb-team[aria-expanded="true"] .sb-team-chev{transform:rotate(180deg)}
+.team-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:300;background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.45)}
+.team-menu.open{display:block}
+.team-menu-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;background:transparent;border-radius:8px;cursor:pointer;text-align:left;font-family:var(--ff);color:var(--hdr)}
+.team-menu-item:hover{background:var(--bg2)}
+.team-menu-logo{width:28px;height:28px;border-radius:7px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:14px;flex-shrink:0}
+.team-menu-text{flex:1;min-width:0}
+.team-menu-name,.team-menu-season{display:block}
+.team-menu-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-menu-season{font-size:11px;color:var(--sub)}
+.team-menu-check{color:var(--blue);font-weight:800;font-size:14px}
+.team-menu-sep{height:1px;background:var(--border);margin:6px 2px}
+.team-menu-add{color:var(--blue);font-size:13px;font-weight:700}
+.app-msg-field{display:block;margin-bottom:12px}
+.app-msg-field span{display:block;font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.app-msg-field input,.app-msg-field select{width:100%;box-sizing:border-box;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--hdr);font-family:var(--ff);font-size:14px}
+.app-msg-err{color:#ef4444;font-size:12px;min-height:16px;margin:-4px 0 8px}
 .sb-group{margin-bottom:4px}
 .sb-group-label,.sb-team-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);padding:10px 10px 6px;opacity:.6}
 .sb-team-label{font-size:11px;margin-top:10px}
@@ -1619,12 +1639,14 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 <aside class="sidebar" id="sidebar">
   <nav class="sb-nav">
     <div class="sb-team-label">TEAM</div>
-    <div class="sb-team">
-  <div class="sb-team-logo">SBA</div>
+    <div class="sb-team" id="sb-team" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" onclick="toggleTeamMenu(event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTeamMenu(event);}">
+  <div class="sb-team-logo" id="sb-team-logo">SBA</div>
   <div class="sb-team-text">
-    <div class="sb-team-name">SBA Red 12u</div>
-    <div class="sb-team-season">Summer 2026</div>
+    <div class="sb-team-name" id="sb-team-name">SBA Red 12u</div>
+    <div class="sb-team-season" id="sb-team-season">Summer 2026</div>
   </div>
+  <svg class="sb-team-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+  <div class="team-menu" id="team-menu" role="menu"></div>
 </div></div>
     <div class="sb-group">
       <button class="sb-item active" onclick="goPage('home',this)" id="nav-home">
@@ -1690,8 +1712,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <!-- Header bar: team name left, record right -->
   <div class="home-header">
     <div>
-      <div class="home-team-name">SBA Red 12u</div>
-      <div class="home-season">Summer 2026</div>
+      <div class="home-team-name" id="home-team-name">SBA Red 12u</div>
+      <div class="home-season" id="home-season">Summer 2026</div>
     </div>
     <div class="text-right">
       <div class="home-record" id="home-record">—</div>
@@ -2463,7 +2485,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:#51a2ff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93c4.08 4.08 10.06 4.08 14.14 0"/><path d="M4.93 19.07c4.08-4.08 10.06-4.08 14.14 0"/></svg>
     Pitching Rotation
   </div>
-  <div class="pit-page-sub" style="margin-bottom:20px">Eligibility Rules: MLB Pitch Smart Guidelines&#8482; · 12U (85 Pitch Max)</div>
+  <div class="pit-page-sub" id="pc-rules-sub" style="margin-bottom:20px">Eligibility Rules: MLB Pitch Smart Guidelines&#8482; · 12U (85 Pitch Max)</div>
   <div style="display:block;align-items:center;margin-bottom:10px">
     <button class="optimizeRot" onclick="optimizeRotation()">🪄 Optimize Rotation</button>
     <div id="rotation-last-optimized" style="font-size:11px;color:var(--sub);margin-top:6px;"></div>
@@ -3052,6 +3074,192 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
 
 <script>
 // ═══════════════════════════════════════
+//  TEAMS — each team has its own saved data
+// ═══════════════════════════════════════
+// The original team (SBA Red 12U, Summer 2026) keeps the original storage keys,
+// so its existing data is used as-is. Every other team's keys get a "t:<id>:" prefix.
+var TEAMS_KEY='xf_teams_v1';          // team list (shared by all teams)
+var CUR_TEAM_KEY='xf_current_team';   // last team viewed on this device
+var TEAM_DEFAULT_ID='sba-red-12u';
+var _rawLS=window.localStorage;
+var TEAMS=[{id:TEAM_DEFAULT_ID,name:'SBA Red',age:12,season:'Summer 2026',legacy:true}];
+try{
+  var _savedTeams=JSON.parse(_rawLS.getItem(TEAMS_KEY)||'null');
+  if(Array.isArray(_savedTeams)&&_savedTeams.length) TEAMS=_savedTeams;
+}catch(e){}
+if(!TEAMS.some(function(t){return t.legacy;})) TEAMS.unshift({id:TEAM_DEFAULT_ID,name:'SBA Red',age:12,season:'Summer 2026',legacy:true});
+
+function findTeam(id){return TEAMS.filter(function(t){return t.id===id;})[0]||null;}
+var _requestedTeamId=(function(){
+  try{var q=new URLSearchParams(window.location.search).get('team');if(q)return q;}catch(e){}
+  try{return _rawLS.getItem(CUR_TEAM_KEY);}catch(e){return null;}
+})();
+var CURRENT_TEAM=findTeam(_requestedTeamId)||findTeam(TEAM_DEFAULT_ID)||TEAMS[0];
+
+function teamLabel(t){t=t||CURRENT_TEAM;return t.name+' '+t.age+'u';}
+function teamNameSeason(t){t=t||CURRENT_TEAM;return [t.name,t.season].filter(Boolean).join(' · ');}
+function teamUpper(t){return teamLabel(t).replace(/u$/,'U');}           // "SBA Red 12U"
+function teamNameRegexSrc(){return teamUpper().replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/ /g,'\\s+');}
+function teamDefaultAge(){return parseInt(CURRENT_TEAM.age)||12;}
+function teamAgeRange(){var a=teamDefaultAge();return a<=12?'11-12':a<=14?'13-14':a<=16?'15-16':'17-18';}
+
+// Keys that are the same for every team on this device
+function _isGlobalKey(k){
+  return k===TEAMS_KEY||k===CUR_TEAM_KEY||k==='sba_theme'||k==='sba_apikey_v1'||k==='baseline_auth_v1';
+}
+function teamKey(k){
+  if(_isGlobalKey(k)||CURRENT_TEAM.legacy) return k;
+  return 't:'+CURRENT_TEAM.id+':'+k;
+}
+// Drop-in for localStorage that keeps each team's data separate
+var teamLS={
+  getItem:function(k){return _rawLS.getItem(teamKey(k));},
+  setItem:function(k,v){return _rawLS.setItem(teamKey(k),v);},
+  removeItem:function(k){return _rawLS.removeItem(teamKey(k));}
+};
+
+function _saveTeamsLocal(){try{_rawLS.setItem(TEAMS_KEY,JSON.stringify(TEAMS));}catch(e){}}
+
+// Merge the cloud team list into this device's list (a team added on one device shows up on the others)
+function mergeCloudTeams(list){
+  if(!Array.isArray(list)) return false;
+  var changed=false;
+  list.forEach(function(t){
+    if(!t||!t.id) return;
+    var mine=findTeam(t.id);
+    if(!mine){TEAMS.push(t);changed=true;}
+    else if(JSON.stringify(mine)!==JSON.stringify(t)){Object.assign(mine,t);changed=true;}
+  });
+  if(changed) _saveTeamsLocal();
+  return changed;
+}
+
+function switchTeam(id){
+  if(!findTeam(id)||id===CURRENT_TEAM.id){closeTeamMenu();return;}
+  try{_rawLS.setItem(CUR_TEAM_KEY,id);}catch(e){}
+  var go=function(){
+    var url=new URL(window.location.href);
+    url.searchParams.set('team',id);
+    window.location.href=url.toString();
+  };
+  // Let any in-flight save for the current team finish first
+  var p=null;
+  try{if(typeof kvSave==='function'&&_isVercel&&_kvSynced) p=kvSave();}catch(e){}
+  Promise.resolve(p).then(go,go);
+}
+
+function _teamInitials(t){
+  if(t.legacy) return 'SBA';
+  var w=String(t.name||'').trim().split(/\s+/).filter(Boolean);
+  return (w.length>1?w.slice(0,3).map(function(x){return x[0];}).join(''):String(t.name||'?').slice(0,3)).toUpperCase();
+}
+function applyTeamBranding(){
+  var t=CURRENT_TEAM;
+  function set(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;}
+  set('sb-team-name',teamLabel(t));set('sb-team-season',t.season||'');
+  set('home-team-name',teamLabel(t));set('home-season',t.season||'');
+  set('sb-team-logo',_teamInitials(t));
+  set('pc-rules-sub','Eligibility Rules: MLB Pitch Smart Guidelines\u2122 · '+t.age+'U ('+pitchMax(t.age)+' Pitch Max)');
+  // Page subtitles ("SBA Red · Summer 2026", optionally followed by more text)
+  document.querySelectorAll('.pit-page-sub,.up-sub,.sc-card-team').forEach(function(el){
+    if(el.dataset.teamSuffix==null){
+      var m=el.textContent.match(/^SBA Red · Summer 2026(.*)$/);
+      if(!m) return;
+      el.dataset.teamSuffix=m[1];
+    }
+    el.textContent=teamNameSeason(t)+el.dataset.teamSuffix;
+  });
+  document.title=teamLabel(t)+' · Baseline Analytics';
+  renderTeamMenu();
+}
+function renderTeamMenu(){
+  var m=document.getElementById('team-menu');if(!m)return;
+  var esc=function(x){var d=document.createElement('div');d.textContent=x==null?'':String(x);return d.innerHTML;};
+  m.innerHTML=TEAMS.map(function(t){
+    var cur=t.id===CURRENT_TEAM.id;
+    return '<button class="team-menu-item" role="menuitem" onclick="event.stopPropagation();switchTeam(\''+t.id+'\')">'
+      +'<span class="team-menu-logo">'+esc(_teamInitials(t))+'</span>'
+      +'<span class="team-menu-text"><span class="team-menu-name">'+esc(teamLabel(t))+'</span><span class="team-menu-season">'+esc(t.season||'')+'</span></span>'
+      +(cur?'<span class="team-menu-check">✓</span>':'')+'</button>';
+  }).join('')
+  +'<div class="team-menu-sep"></div>'
+  +'<button class="team-menu-item team-menu-add" role="menuitem" onclick="event.stopPropagation();closeTeamMenu();openAddTeam()">+ Add team</button>';
+}
+function toggleTeamMenu(e){
+  if(e) e.stopPropagation();
+  var m=document.getElementById('team-menu'),b=document.getElementById('sb-team');
+  if(!m) return;
+  var open=!m.classList.contains('open');
+  m.classList.toggle('open',open);if(b)b.setAttribute('aria-expanded',open?'true':'false');
+}
+function closeTeamMenu(){
+  var m=document.getElementById('team-menu'),b=document.getElementById('sb-team');
+  if(m)m.classList.remove('open');if(b)b.setAttribute('aria-expanded','false');
+}
+document.addEventListener('click',function(e){
+  var b=document.getElementById('sb-team');
+  if(b&&!b.contains(e.target)) closeTeamMenu();
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeTeamMenu();});
+
+function openAddTeam(){
+  var old=document.getElementById('app-msg');if(old)old.remove();
+  var ages='';for(var a=12;a<=18;a++) ages+='<option value="'+a+'">'+a+'U</option>';
+  var m=document.createElement('div');m.className='app-msg';m.id='app-msg';
+  m.innerHTML='<form class="app-msg-inner" role="dialog" aria-modal="true" aria-labelledby="add-team-title" onsubmit="event.preventDefault();saveNewTeam();">'
+    +'<div class="app-msg-title" id="add-team-title">Add team</div>'
+    +'<label class="app-msg-field"><span>Team name</span><input id="nt-name" maxlength="40" placeholder="e.g. SBA Black" autocomplete="off"></label>'
+    +'<label class="app-msg-field"><span>Age group</span><select id="nt-age">'+ages+'</select></label>'
+    +'<label class="app-msg-field"><span>Season</span><input id="nt-season" maxlength="30" placeholder="e.g. Spring 2027" autocomplete="off"></label>'
+    +'<div class="app-msg-err" id="nt-err"></div>'
+    +'<div class="app-msg-btns"><button type="button" class="app-msg-btn" data-close>Cancel</button><button type="submit" class="app-msg-btn primary">Add team</button></div>'
+    +'</form>';
+  function close(){m.remove();document.removeEventListener('keydown',onKey);}
+  function onKey(e){if(e.key==='Escape')close();}
+  m.addEventListener('click',function(e){if(e.target===m||(e.target.hasAttribute&&e.target.hasAttribute('data-close')))close();});
+  document.addEventListener('keydown',onKey);
+  document.body.appendChild(m);
+  document.getElementById('nt-name').focus();
+}
+function saveNewTeam(){
+  var name=(document.getElementById('nt-name').value||'').trim();
+  var age=parseInt(document.getElementById('nt-age').value)||12;
+  var season=(document.getElementById('nt-season').value||'').trim();
+  var err=document.getElementById('nt-err');
+  if(!name){err.textContent='Enter a team name.';return;}
+  if(TEAMS.some(function(t){return t.name.toLowerCase()===name.toLowerCase()&&+t.age===age&&(t.season||'').toLowerCase()===season.toLowerCase();})){
+    err.textContent='That team already exists.';return;
+  }
+  var slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,24)||'team';
+  var id=slug+'-'+age+'u-'+Date.now().toString(36).slice(-5);
+  TEAMS.push({id:id,name:name,age:age,season:season,created:new Date().toISOString()});
+  _saveTeamsLocal();
+  var done=function(){switchTeam(id);};
+  if(typeof _isVercel!=='undefined'&&_isVercel){
+    err.textContent='';
+    kvSet(TEAMS_KEY,TEAMS).then(done,done);
+  } else done();
+}
+
+// ── Pitch Smart (MLB / USA Baseball) required rest, by age ──
+// Returns days of rest required after throwing np pitches in a day.
+function daysRestRequired(np,age){
+  age=parseInt(age)||teamDefaultAge();
+  if(age>=17){ // 17-18
+    if(np>=81) return 4; if(np>=61) return 3; if(np>=46) return 2; if(np>=31) return 1; return 0;
+  }
+  if(age>=15){ // 15-16
+    if(np>=76) return 4; if(np>=61) return 3; if(np>=46) return 2; if(np>=31) return 1; return 0;
+  }
+  // 7-14
+  if(np>=66) return 4; if(np>=51) return 3; if(np>=36) return 2; if(np>=21) return 1; return 0;
+}
+function playerAge(name){
+  var ov=(typeof rosterOverrides!=='undefined'&&rosterOverrides[name])||{};
+  return ov.age!=null?ov.age:teamDefaultAge();
+}
+
+// ═══════════════════════════════════════
 //  DATA
 // ═══════════════════════════════════════
 // ═══════════════════════════════════════
@@ -3124,12 +3332,12 @@ var LS={games:'sba_games_v2',gamelog:'sba_gl_v2',lineup:'sba_lineup_v2',apikey:'
 var importedGames=[],gameLog=[],lineupOrder=[];
 var pendingCSVPlayers=null,pendingCSVFilename=null;
 
-function save(){try{localStorage.setItem(LS.games,JSON.stringify(importedGames));localStorage.setItem(LS.gamelog,JSON.stringify(gameLog));localStorage.setItem(LS.lineup,JSON.stringify(lineupOrder));}catch(e){}kvSave();}
+function save(){try{teamLS.setItem(LS.games,JSON.stringify(importedGames));teamLS.setItem(LS.gamelog,JSON.stringify(gameLog));teamLS.setItem(LS.lineup,JSON.stringify(lineupOrder));}catch(e){}kvSave();}
 function load(){
   try{
-    var g=localStorage.getItem(LS.games);if(g)importedGames=JSON.parse(g);
-    var l=localStorage.getItem(LS.gamelog);if(l)gameLog=JSON.parse(l);
-    var ln=localStorage.getItem(LS.lineup);if(ln)lineupOrder=JSON.parse(ln);
+    var g=teamLS.getItem(LS.games);if(g)importedGames=JSON.parse(g);
+    var l=teamLS.getItem(LS.gamelog);if(l)gameLog=JSON.parse(l);
+    var ln=teamLS.getItem(LS.lineup);if(ln)lineupOrder=JSON.parse(ln);
   }catch(e){}
   // Migration: fix stored data issues
   var changed=false;
@@ -3181,12 +3389,12 @@ function load(){
   });
 
   if(changed){
-    try{localStorage.setItem(LS.games,JSON.stringify(importedGames));}catch(e){}
-    try{localStorage.setItem(LS.gamelog,JSON.stringify(gameLog));}catch(e){}
+    try{teamLS.setItem(LS.games,JSON.stringify(importedGames));}catch(e){}
+    try{teamLS.setItem(LS.gamelog,JSON.stringify(gameLog));}catch(e){}
   }
 }
-function saveApiKey(val){try{localStorage.setItem(LS.apikey,val.trim());updateApiKeyUI();}catch(e){}}
-function getApiKey(){try{return localStorage.getItem(LS.apikey)||'';}catch(e){return '';}}
+function saveApiKey(val){try{teamLS.setItem(LS.apikey,val.trim());updateApiKeyUI();}catch(e){}}
+function getApiKey(){try{return teamLS.getItem(LS.apikey)||'';}catch(e){return '';}}
 function updateApiKeyUI(){
   // Hide API key input when on Vercel (key is server-side)
   var isVercel=window.location.hostname!=='localhost'&&
@@ -3937,7 +4145,7 @@ function renderRoster(){
     var ov=rosterOverrides[p.name]||{};
     var dispName=ov.displayName||p.name;
     var num=ov.num!=null?ov.num:p.num;
-    var age=ov.age!=null?ov.age:12;
+    var age=ov.age!=null?ov.age:teamDefaultAge();
     var pm=pitchMax(age);
     // Real pitch availability from last outing — uses the SAME canonical rest
     // calculation as the Pitch Count page (daysRestRequired/pcDaysUntilEligible),
@@ -3947,7 +4155,7 @@ function renderRoster(){
       var _merged=mergeOutingsByDate(p.pitGames||[]).sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
       var _lastPG=_merged[0]||null;
       if(_lastPG&&_lastPG.date&&_lastPG.np){
-        var _daysLeft=pcDaysUntilEligible(_lastPG.date,_lastPG.np);
+        var _daysLeft=pcDaysUntilEligible(_lastPG.date,_lastPG.np,age);
         pitchAvail=_daysLeft>0
           ?'<span class="roster-pitch-avail warn">⏱ '+_daysLeft+'d rest</span>'
           :'<span class="roster-pitch-avail ok">💪 Arm Ready</span>';
@@ -4068,7 +4276,7 @@ function openRosterEdit(name, event){
   document.getElementById('re-first').value=parts[0]||'';
   document.getElementById('re-last').value=parts.slice(1).join(' ')||'';
   document.getElementById('re-num').value=ov.num!=null?ov.num:(p.num||'');
-  var age=ov.age!=null?ov.age:12;
+  var age=ov.age!=null?ov.age:teamDefaultAge();
   document.getElementById('re-age').value=age;
   document.getElementById('re-speed').value=ov.speed||'';
   document.getElementById('re-arm-str').value=ov.armStr||'';
@@ -4133,7 +4341,7 @@ function saveRosterEdit(){
   rosterOverrides[rosterEditTarget]={
     displayName:displayName,
     num:document.getElementById('re-num').value.trim(),
-    age:parseInt(document.getElementById('re-age').value)||12,
+    age:parseInt(document.getElementById('re-age').value)||teamDefaultAge(),
     speed:document.getElementById('re-speed').value,
     armStr:document.getElementById('re-arm-str').value,
     armHealth:reArmHealth,
@@ -4142,7 +4350,7 @@ function saveRosterEdit(){
     tags:{batting:[].concat(reTags.batting),pitching:[].concat(reTags.pitching),general:[].concat(reTags.general)},
     xfactor:xfData
   };
-  try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  try{teamLS.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
   var savedTarget=rosterEditTarget;
   closeRosterEdit();
@@ -4161,7 +4369,7 @@ function removeFromRoster(){
   if(!confirm('Remove '+rosterEditTarget+' from roster view? This only hides them — it does not delete their stats.')) return;
   rosterOverrides[rosterEditTarget]=rosterOverrides[rosterEditTarget]||{};
   rosterOverrides[rosterEditTarget].hidden=true;
-  try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  try{teamLS.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
   var savedTarget=rosterEditTarget;
   closeRosterEdit();
@@ -4176,12 +4384,12 @@ function removeFromRoster(){
 }
 
 function loadRosterOverrides(){
-  try{var r=localStorage.getItem('sba_roster_v1');if(r)rosterOverrides=JSON.parse(r);}catch(e){}
+  try{var r=teamLS.getItem('sba_roster_v1');if(r)rosterOverrides=JSON.parse(r);}catch(e){}
 }
 
 function restorePlayer(key){
   if(rosterOverrides[key]) delete rosterOverrides[key].hidden;
-  try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  try{teamLS.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
   renderRoster();
   renderAll();
@@ -4201,7 +4409,7 @@ function openRemapModal(key){
   } else {
     delete rosterOverrides[key].remapTo;
   }
-  try{localStorage.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
+  try{teamLS.setItem('sba_roster_v1',JSON.stringify(rosterOverrides));}catch(e){}
   kvSave();
   renderRoster();
   renderAll();
@@ -5583,12 +5791,6 @@ function renderPitchingPlan(){
 
   var today=new Date();
 
-  // Pitch Smart rest rules (12u)
-  function daysRest(np){
-    if(np>=66) return 4; if(np>=51) return 3;
-    if(np>=36) return 2; if(np>=21) return 1;
-    return 0;
-  }
 
   function pitcherStatus(p){
     var games=mergeOutingsByDate(p.pitGames||[]);
@@ -5596,7 +5798,7 @@ function renderPitchingPlan(){
     var last=[].concat(games).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');})[0];
     if(!last||!last.date||!last.np) return {status:'ok',daysNeeded:0,lastNP:0,lastDate:null};
     var daysSince=Math.floor((today-new Date(last.date+'T12:00:00'))/86400000);
-    var needed=daysRest(last.np);
+    var needed=daysRestRequired(last.np,playerAge(p.name));
     return daysSince>=needed
       ?{status:'ok',daysNeeded:0,lastNP:last.np,lastDate:last.date}
       :{status:'rest',daysNeeded:needed-daysSince,lastNP:last.np,lastDate:last.date};
@@ -5674,7 +5876,7 @@ function renderPitchingPlan(){
     var sc=compositeScore(p);
     var st=pitcherStatus(p);
     var ov=rosterOverrides[p.name]||{};
-    var pm=pitchMax(ov.age||12);
+    var pm=pitchMax(ov.age||teamDefaultAge());
     var absent=!isPlayerAvailable(p.name);
     return {p:p, sc:sc, st:st, pm:pm, num:ov.num||p.num||'—', absent:absent};
   }).sort(function(a,b){
@@ -5989,16 +6191,16 @@ function toggleIcsInstructions(){
 
 
 function saveIcsUrl(val){
-  try{localStorage.setItem('sba_ics_url',val.trim());}catch(e){}
+  try{teamLS.setItem('sba_ics_url',val.trim());}catch(e){}
 }
 
 function loadIcsSettings(){
   try{
-    var url=localStorage.getItem('sba_ics_url');
+    var url=teamLS.getItem('sba_ics_url');
     if(url){var el=document.getElementById('ics-url-input');if(el)el.value=url;}
-    var last=localStorage.getItem('sba_ics_last');
+    var last=teamLS.getItem('sba_ics_last');
     if(last){var el2=document.getElementById('ics-last-sync');if(el2)el2.textContent='Last synced: '+last;}
-    var sched=localStorage.getItem('sba_schedule');
+    var sched=teamLS.getItem('sba_schedule');
     if(sched){gcSchedule=JSON.parse(sched);renderNextGame();}
     kvGet('sba_availability').then(function(v){if(v){_playerAvailability=typeof v==='string'?JSON.parse(v):v;}});
   }catch(e){}
@@ -6038,9 +6240,9 @@ function syncIcsSchedule(){
     var now=new Date();
     var ts=now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+' at '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     try{
-      localStorage.setItem('sba_schedule',JSON.stringify(gcSchedule.map(function(e){return{summary:e.summary,date:e.date.toISOString(),location:e.location};})));
-      localStorage.setItem('sba_ics_last',ts);
-      localStorage.setItem('sba_ics_url',url);
+      teamLS.setItem('sba_schedule',JSON.stringify(gcSchedule.map(function(e){return{summary:e.summary,date:e.date.toISOString(),location:e.location};})));
+      teamLS.setItem('sba_ics_last',ts);
+      teamLS.setItem('sba_ics_url',url);
     }catch(e){}
     var el=document.getElementById('ics-last-sync');if(el)el.textContent='Last synced: '+ts;
     renderNextGame();
@@ -6117,7 +6319,7 @@ function renderNextGame(){
   var timeStr=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'});
   var summary=next.summary||'';
   // Remove own team name if present (e.g. "SBA Red 12U @ Harrisburg Tigers 12U")
-  summary=summary.replace(/SBA Red 12U\s*/gi,'').trim();
+  summary=summary.replace(new RegExp(teamNameRegexSrc()+'\\s*','gi'),'').trim();
   var isAway=/^(@|at\s)/i.test(summary.trim());
   var prefix=isAway?'@ ':'vs ';
   var opp=summary.replace(/^(vs\.?\s*|@\s*|at\s*)/i,'').trim();
@@ -6220,7 +6422,7 @@ function generateAllInsights(){
       .then(function(insights){
         var stored={insights:insights,generatedAt:new Date().toISOString(),player:p.name};
         playerInsights[p.name]=stored;
-        try{localStorage.setItem('sba_insights_'+p.name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
+        try{teamLS.setItem('sba_insights_'+p.name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
         kvSave();
         done++;updateProgress();
       })
@@ -6241,12 +6443,12 @@ function generateAllInsights(){
 }
 
 
-var _rotLastOptimized=localStorage.getItem('sba_rot_optimized')||null;
+var _rotLastOptimized=teamLS.getItem('sba_rot_optimized')||null;
 
 function optimizeRotation(){
   renderRotationPage();
   _rotLastOptimized=new Date().toISOString();
-  try{localStorage.setItem('sba_rot_optimized',_rotLastOptimized);}catch(e){}
+  try{teamLS.setItem('sba_rot_optimized',_rotLastOptimized);}catch(e){}
   var el=document.getElementById('rotation-last-optimized');
   if(el){if(getRotationStale()){el.innerHTML='Last Optimized: '+formatOptimizedTime(_rotLastOptimized)+' &nbsp;<span style="color:#f59e0b;font-weight:700">⚠ Optimization recommended</span>';}else{el.textContent='Last Optimized: '+formatOptimizedTime(_rotLastOptimized);}}
 }
@@ -6311,7 +6513,7 @@ function sharePlayerCard(){
   if(!_scPlayer) return;
 
   // Load saved settings
-  try{var s=localStorage.getItem('sba_sc_'+name.replace(/\s+/g,'_'));if(s){var saved=JSON.parse(s);_scSettings=Object.assign(_scSettings,saved);}}catch(e){}
+  try{var s=teamLS.getItem('sba_sc_'+name.replace(/\s+/g,'_'));if(s){var saved=JSON.parse(s);_scSettings=Object.assign(_scSettings,saved);}}catch(e){}
 
   // Update header
   document.getElementById('sc-hdr-sub').textContent=name+' · #'+((_scPlayer.num)||'—');
@@ -6351,7 +6553,7 @@ function saveShareSettings(){
   ['sp','fps','whip','fip','ip','k','kbb'].forEach(function(k){var el=document.getElementById('sc-chk-'+k);pit[k]=el?el.checked:true;});
   var noteEl=document.getElementById('sc-note-input');
   _scSettings={note:noteEl?noteEl.value:'',bat:bat,pit:pit};
-  try{localStorage.setItem('sba_sc_'+(_scPlayer.name||'').replace(/\s+/g,'_'),JSON.stringify(_scSettings));}catch(e){}
+  try{teamLS.setItem('sba_sc_'+(_scPlayer.name||'').replace(/\s+/g,'_'),JSON.stringify(_scSettings));}catch(e){}
   renderSCPreview();
   setSCTab('preview');
 }
@@ -6462,7 +6664,7 @@ var LOGIN_TOKEN_KEY='baseline_auth_v1';
 
 function showLoginGate(){
   try{
-    if(localStorage.getItem(LOGIN_TOKEN_KEY)===SITE_PASSWORD_HASH){initApp();return;}
+    if(teamLS.getItem(LOGIN_TOKEN_KEY)===SITE_PASSWORD_HASH){initApp();return;}
   }catch(e){}
   document.getElementById('login-gate').classList.remove('hidden');
   var input=document.getElementById('login-password-input');
@@ -6479,7 +6681,7 @@ function checkLoginPassword(){
   }
   sha256Hex(input.value).then(function(hash){
     if(hash===SITE_PASSWORD_HASH){
-      try{localStorage.setItem(LOGIN_TOKEN_KEY,hash);}catch(e){}
+      try{teamLS.setItem(LOGIN_TOKEN_KEY,hash);}catch(e){}
       document.getElementById('login-gate').classList.add('hidden');
       initApp();
     }else{
@@ -6491,7 +6693,7 @@ function checkLoginPassword(){
 }
 
 function signOut(){
-  try{localStorage.removeItem(LOGIN_TOKEN_KEY);}catch(e){}
+  try{teamLS.removeItem(LOGIN_TOKEN_KEY);}catch(e){}
   window.location.reload();
 }
 
@@ -6525,7 +6727,7 @@ function renderSCVCard(data){
   var html='<div class="sc-inner-card">'
     +'<div class="sc-card-topbar"><div class="sc-card-brand">⚾<span>Baseline Analytics</span></div><div class="sc-card-season">Season Stats</div></div>'
     +'<div class="sc-card-hero"><div class="sc-card-name">#'+escHtml(num||'0')+' '+escHtml(name)+'</div>'
-    +'<div class="sc-card-team">SBA Red · Summer 2026</div></div>'
+    +'<div class="sc-card-team">'+escHtml(teamNameSeason())+'</div></div>'
     +'</div>';
 
   function statCellsHtml(list){
@@ -6625,7 +6827,7 @@ function nativeShare(){
   var p=_scPlayer;
   if(!el||!el.value||!p) return;
   if(navigator.share){
-    navigator.share({title:p.name+' — SBA Red Stats',text:'Check out '+p.name+'\'s stats card:',url:el.value}).catch(function(){});
+    navigator.share({title:p.name+' — '+CURRENT_TEAM.name+' Stats',text:'Check out '+p.name+'\'s stats card:',url:el.value}).catch(function(){});
   } else {
     copyShareLink();
   }
@@ -6666,14 +6868,24 @@ var AI_MODEL='claude-sonnet-5-5';
 var AI_MIN_PA=15;   // below this, batting rates are "early season" — never praised
 var AI_MIN_IP=5;    // below this, pitching rates are "early season" — never praised
 
+var AI_TEAM=teamLabel().replace(/u$/,'U');          // e.g. "SBA Red 12U"
+var AI_AGE=teamDefaultAge(), AI_AGES=teamAgeRange();  // e.g. 12, "11-12"
+var AI_LEVEL=AI_AGE+'U';
+// Pitch Smart: breaking pitches only for 15+ once fastball and changeup are consistent; kept off entirely for 14 and under
+var AI_YOUNG_ARMS=AI_AGE<=14;
+var AI_PITCH_RULE=AI_YOUNG_ARMS
+  ?'no curveballs, sliders or other breaking pitches (fastball command and changeup only); '
+  :'introduce a breaking pitch only for a player who already has a consistent fastball and changeup; ';
+var AI_BANNED_DRILL=AI_YOUNG_ARMS?/curve|slider|breaking ball|weighted ball|max[- ]effort/i:/weighted ball|max[- ]effort/i;
+
 var AI_INSIGHT_SYSTEM=[
-'You write coaching insight cards for players on SBA Red, a 12U travel baseball team. The player (age 11-12) and their parents read these cards.',
+'You write coaching insight cards for players on '+AI_TEAM.replace(/ \d+U$/,'')+', a '+AI_LEVEL+' travel baseball team. The player (age '+AI_AGES+') and their parents read these cards.',
 '',
-'VOICE: a coach who knows this kid. Punchy, specific titles. Warm, honest, encouraging. Celebrate process (working counts, throwing strikes) as much as results. Plain words a 12-year-old understands.',
+'VOICE: a coach who knows this kid. Punchy, specific titles. Warm, honest, encouraging. Celebrate process (working counts, throwing strikes) as much as results. Plain words a '+AI_AGE+'-year-old understands.',
 '',
 'ACCURACY RULES (these override style):',
 '1. Use ONLY numbers that appear in DATA, written exactly as DATA shows them. Do not calculate new stats, percentages, ratios, per-inning rates or "X-for-X" lines. Do not turn a number into a fraction or phrase like "half the time".',
-'2. Compare ONLY to the teammates\' averages and team ranks in DATA. Never claim how a stat compares to 12-year-olds in general, other teams, high school or MLB (no "rare at this age", "elite for a 12-year-old"). For age context, explain why the skill matters for a player\'s development at 12U instead.',
+'2. Compare ONLY to the teammates\' averages and team ranks in DATA. Never claim how a stat compares to '+AI_AGE+'-year-olds in general, other teams, high school, college or MLB (no "rare at this age", "elite for a '+AI_AGE+'-year-old"). For age context, explain why the skill matters for a player\'s development at '+AI_LEVEL+' instead.',
 '3. Praise ONLY stats listed under PRAISE-ELIGIBLE. Never praise ERA. Never praise a stat marked (small sample).',
 '4. Never mention any other player by name. Never describe effort, attitude, health or personality unless COACH NOTES say it.',
 '5. Put the \u2197 arrow only on a card about a stat listed under TRENDING UP. If TRENDING UP says none, use no arrows.',
@@ -6685,13 +6897,13 @@ var AI_INSIGHT_SYSTEM=[
 'DRILL RULES:',
 '- Named, real, age-appropriate drills a coach or parent can run with a bucket of balls, a tee, a net or a partner.',
 '- Each drill has a measurable target (reps, a count to hit, or a percentage) and step-by-step instructions.',
-'- Pitching drills follow MLB Pitch Smart for 11-12 year olds: no curveballs, sliders or other breaking pitches (fastball command and changeup only); no weighted balls; no max-effort long toss; any drill thrown from the mound is 25 pitches or fewer and only on a day the player is not pitching in a game and is not on required rest.',
+'- Pitching drills follow MLB Pitch Smart for '+AI_AGES+' year olds: '+AI_PITCH_RULE+'no weighted balls; no max-effort long toss; any drill thrown from the mound is 25 pitches or fewer and only on a day the player is not pitching in a game and is not on required rest.',
 '',
 'Return ONLY valid JSON in the requested shape. No markdown, no commentary.'
 ].join('\n');
 
 var AI_COACH_SYSTEM=[
-'You are a lineup assistant for the coaches of SBA Red, a 12U travel baseball team. Coaches are busy: be direct, brief and accurate.',
+'You are a lineup assistant for the coaches of '+AI_TEAM.replace(/ \d+U$/,'')+', a '+AI_LEVEL+' travel baseball team. Coaches are busy: be direct, brief and accurate.',
 'Use only the stats and rules provided. Quote numbers exactly as given; do not compute new ones.',
 'Never invent reasons that are not in the data (speed, attitude, handedness, defense, "clutch") unless the coach notes say them.',
 'If the data does not clearly support a slot, say so plainly — an honest answer is more useful than a defense of the lineup.',
@@ -6847,14 +7059,14 @@ function buildInsightPrompt(p,players,opts){
     +'DATA (the only source of numbers):\n'+f.dataText+'\n\n'
     +(AI_FOCUS_TEXT[opts.focus]?'FOCUS REQUEST: '+AI_FOCUS_TEXT[opts.focus]+'\n\n':'')
     +'STYLE EXAMPLES — for voice and structure only. "Alex" is not a real player and these numbers are not '+fn+'\u2019s:\n'
-    +'"Pounding the Zone" — Alex throws strikes at a 64.1% rate, ahead of the teammates\u2019 average of 58.9%. Getting ahead in the count means hitters have to chase his pitch, not the other way around. At 12U, throwing strikes is the single biggest thing that separates pitchers who can go deep into games. [badge: 64.1% S%]\n'
+    +'"Pounding the Zone" — Alex throws strikes at a 64.1% rate, ahead of the teammates\u2019 average of 58.9%. Getting ahead in the count means hitters have to chase his pitch, not the other way around. At '+AI_LEVEL+', throwing strikes is the single biggest thing that separates pitchers who can go deep into games. [badge: 64.1% S%]\n'
     +'"Seeing the Ball Early \u2197" — Alex has raised his average from .231 in his first 3 games to .455 in his last 3. He\u2019s squaring up more pitches and the hard work in the cage is showing. Building a repeatable swing now sets him up as pitching gets faster each season. [badge: .455 AVG]\n'
     +'"Tough Out" — Alex\u2019s .489 OBP is 1st on the team. He gets on base and gives the hitters behind him chances to drive him in. Learning to take a walk is a skill many young hitters don\u2019t develop until much later. [badge: .489 OBP]\n\n'
     +'CARD RULES:\n'
     +'- Praise tab: 2-3 cards, each about a different PRAISE-ELIGIBLE stat. If fewer than 2 are eligible, write 1-2 cards about the best-ranked stats or a trend, framed as progress, without calling them strengths of the team. If none at all, write 1 card on what the data shows he is building (e.g. games played, at-bats, contact), honestly and kindly.\n'
-    +'- Card text: sentence 1 = the stat and teammates\u2019 average or team rank from DATA. Sentence 2 = what it means in a game. Sentence 3 = why it matters for development at 12U.\n'
+    +'- Card text: sentence 1 = the stat and teammates\u2019 average or team rank from DATA. Sentence 2 = what it means in a game. Sentence 3 = why it matters for development at '+AI_LEVEL+'.\n'
     +'- badge_val = the card\u2019s number exactly as in DATA. badge_lbl = the stat label (4 chars max).\n'
-    +'- Focus tab: 1 area from FOCUS CANDIDATES, with the stat in the title. 3 bullets: the stat vs teammates\u2019 average, why it matters at 12U, and a concrete thing to work on. 2 drills.\n'
+    +'- Focus tab: 1 area from FOCUS CANDIDATES, with the stat in the title. 3 bullets: the stat vs teammates\u2019 average, why it matters at '+AI_LEVEL+', and a concrete thing to work on. 2 drills.\n'
     +'- Plan tab: 2 drills that build on the Praise strengths or round out the game (different from the Focus drills).\n\n'
     +'Return ONLY this JSON:\n'
     +'{"celebrate":{"title":"What '+fn+' Is Doing Well","insights":[{"badge_val":"","badge_lbl":"","title":"","text":""}]},'
@@ -6870,9 +7082,9 @@ function _aiNumbers(text){
   return out;
 }
 function _aiNumberOK(tok,allowed,text){
-  // Small counts ("2 games", "3 outings") and the 12U / 12-year-old label are always fine
+  // Small counts ("2 games", "3 outings") and the age-group label ("14U", "14-year-old") are always fine
   if(tok.dec===0&&tok.n<=6) return true;
-  if(tok.n===12&&/^\s*(U|-year|\s*year)/i.test(text.slice(tok.i+tok.t.length,tok.i+tok.t.length+6))) return true;
+  if(tok.dec===0&&tok.n>=7&&tok.n<=18&&/^\s*(U|-year|\s*year)/i.test(text.slice(tok.i+tok.t.length,tok.i+tok.t.length+6))) return true;
   var tol=0.5*Math.pow(10,-tok.dec)+1e-9;
   return allowed.some(function(a){return Math.abs(a-tok.n)<=tol;});
 }
@@ -6893,8 +7105,8 @@ function validateInsights(json,built){
     if(probs.length) issues.push(where+' uses numbers not in DATA: '+probs.join(', ')+'.');
     var names=_aiNameHit(text,f.otherNames);
     if(names.length) issues.push(where+' mentions another player ('+names.join(', ')+').');
-    var ageClaim=/(for a|for an|at this|for his|for her)\s+(12|11|twelve|eleven)?[- ]?(year[- ]old|age)|rare at this|elite for/i.test(text);
-    if(ageClaim) issues.push(where+' compares him to 12-year-olds in general — compare only to teammates.');
+    var ageClaim=/(for a|for an|at this|for his|for her)\s+(\d{1,2}|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen)?[- ]?(year[- ]old|age)|rare at this|elite for/i.test(text);
+    if(ageClaim) issues.push(where+' compares him to '+AI_AGE+'-year-olds in general — compare only to teammates.');
     return probs.length||names.length||ageClaim;
   }
   json.celebrate.insights.forEach(function(ins,i){
@@ -6905,7 +7117,7 @@ function validateInsights(json,built){
   [json.focus.drills,json.plan.drills].forEach(function(ds,k){
     ds.forEach(function(d,i){
       var t=[d.name,d.goal,d.instructions].join(' ');
-      if(/curve|slider|breaking ball|weighted ball|max[- ]effort/i.test(t)) issues.push((k?'Plan':'Focus')+' drill '+(i+1)+' breaks Pitch Smart rules for 12U (no breaking pitches, weighted balls or max-effort throws).');
+      if(AI_BANNED_DRILL.test(t)) issues.push((k?'Plan':'Focus')+' drill '+(i+1)+' breaks Pitch Smart rules for '+AI_LEVEL+(AI_YOUNG_ARMS?' (no breaking pitches, weighted balls or max-effort throws).':' (no weighted balls or max-effort throws).'));
       if(_aiNameHit(t,f.otherNames).length) issues.push((k?'Plan':'Focus')+' drill '+(i+1)+' mentions another player.');
     });
   });
@@ -6926,7 +7138,7 @@ function cleanInsights(json,check,built){
   if(check.bad.focusTitle&&f.focus[0]) json.focus.title='Next Step: '+f.focus[0].label;
   // Pitch Smart violations are never shown
   [json.focus,json.plan].forEach(function(sec){
-    sec.drills=sec.drills.filter(function(d){return !/curve|slider|breaking ball|weighted ball|max[- ]effort/i.test([d.name,d.goal,d.instructions].join(' '));});
+    sec.drills=sec.drills.filter(function(d){return !AI_BANNED_DRILL.test([d.name,d.goal,d.instructions].join(' '));});
   });
   return json;
 }
@@ -6988,10 +7200,10 @@ var _isVercel=(window.location.hostname!=='localhost'&&
                window.location.protocol==='https:');
 var _kvSynced=false;
 var _filteredSeasons={last3:null,last5:null,last10:null};
-try{['last3','last5','last10'].forEach(function(k){var d=localStorage.getItem('sba_filt_'+k);if(d)_filteredSeasons[k]=JSON.parse(d);});}catch(e){}
+try{['last3','last5','last10'].forEach(function(k){var d=teamLS.getItem('sba_filt_'+k);if(d)_filteredSeasons[k]=JSON.parse(d);});}catch(e){}
 
 function kvGet(key){
-  return fetch('/api/kv-get?key='+encodeURIComponent(key)+'&t='+Date.now())
+  return fetch('/api/kv-get?key='+encodeURIComponent(teamKey(key))+'&t='+Date.now())
     .then(function(r){return r.json();})
     .then(function(d){return d.value||null;})
     .catch(function(){return null;});
@@ -7001,7 +7213,7 @@ function kvSet(key,value){
   return fetch('/api/kv-set',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({key:key,value:value})
+    body:JSON.stringify({key:teamKey(key),value:value})
   }).then(function(r){return r.json();}).catch(function(e){console.error('kvSet error',key,e);});
 }
 
@@ -7017,8 +7229,8 @@ function kvSave(){
     kvSet('sba_insights_v1', playerInsights)
   ];
   if(gcSchedule&&gcSchedule.length) saves.push(kvSet('sba_schedule', gcSchedule));
-  var icsUrl=localStorage.getItem('sba_ics_url');
-  var icsLast=localStorage.getItem('sba_ics_last');
+  var icsUrl=teamLS.getItem('sba_ics_url');
+  var icsLast=teamLS.getItem('sba_ics_last');
   if(icsUrl) saves.push(kvSet('sba_ics_url', icsUrl));
   if(icsLast) saves.push(kvSet('sba_ics_last', icsLast));
   return Promise.all(saves)
@@ -7028,6 +7240,14 @@ function kvSave(){
 
 function kvLoad(callback){
   if(!_isVercel){callback();return;}
+  kvGet(TEAMS_KEY).then(function(v){
+    var list=v;if(typeof v==='string'){try{list=JSON.parse(v);}catch(e){list=null;}}
+    if(mergeCloudTeams(list)){
+      // A team linked or last viewed on another device just arrived — open it
+      if(_requestedTeamId&&_requestedTeamId!==CURRENT_TEAM.id&&findTeam(_requestedTeamId)){switchTeam(_requestedTeamId);return;}
+      renderTeamMenu();
+    }
+  });
   var keys=['sba_games_v2','sba_gl_v2','sba_roster_v1','sba_notes_v1','sba_lineup_v2','sba_schedule','sba_ics_url','sba_ics_last','sba_insights_v1'];
   Promise.all(keys.map(kvGet)).then(function(vals){
     try{
@@ -7044,8 +7264,8 @@ function kvLoad(callback){
       var sc=parse(vals[5]); if(sc&&Array.isArray(sc)){
         gcSchedule=sc.map(function(e){return{summary:e.summary,date:new Date(e.date),location:e.location};});
       }
-      var iu=vals[6]; if(iu){try{localStorage.setItem('sba_ics_url',iu);}catch(e){}}
-      var il=vals[7]; if(il){try{localStorage.setItem('sba_ics_last',il);}catch(e){}}
+      var iu=vals[6]; if(iu){try{teamLS.setItem('sba_ics_url',iu);}catch(e){}}
+      var il=vals[7]; if(il){try{teamLS.setItem('sba_ics_last',il);}catch(e){}}
       var pi=parse(vals[8]); if(pi) playerInsights=pi;
       // Safety guards — ensure arrays
       if(!Array.isArray(importedGames)) importedGames=[];
@@ -7376,7 +7596,7 @@ function parseFilteredCSV(text, filterKey){
   }
 
   _filteredSeasons[filterKey]=players;
-  try{localStorage.setItem('sba_filt_'+filterKey,JSON.stringify(players));}catch(e){}
+  try{teamLS.setItem('sba_filt_'+filterKey,JSON.stringify(players));}catch(e){}
   return true;
 }
 
@@ -7386,11 +7606,11 @@ var _availOpen=true;
 var _playerAvailability={}; // {playerName: {gameKey: 'confirmed'|'absent'|'unknown'}}
 
 function loadAvailability(){
-  try{var d=localStorage.getItem('sba_availability');if(d)_playerAvailability=JSON.parse(d);}catch(e){}
+  try{var d=teamLS.getItem('sba_availability');if(d)_playerAvailability=JSON.parse(d);}catch(e){}
 }
 
 function saveAvailability(){
-  try{localStorage.setItem('sba_availability',JSON.stringify(_playerAvailability));}catch(e){}
+  try{teamLS.setItem('sba_availability',JSON.stringify(_playerAvailability));}catch(e){}
   if(typeof kvSet==='function'&&_isVercel) kvSet('sba_availability',_playerAvailability);
 }
 
@@ -7426,7 +7646,7 @@ function getUpcomingGames(){
   }).slice(0,8).map(function(g){
     var d=new Date(g.date);
     var opp=g.summary||'Game';
-    opp=opp.replace(/SBA Red 12U\s*vs?\.?\s*/i,'').replace(/\s*vs?\.?\s*SBA Red 12U/i,'').trim();
+    opp=opp.replace(new RegExp(teamNameRegexSrc()+'\\s*vs?\\.?\\s*','i'),'').replace(new RegExp('\\s*vs?\\.?\\s*'+teamNameRegexSrc(),'i'),'').trim();
     var dateStr=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     var key=g.date+(opp||'');
     return {opp:opp,dateStr:dateStr,key:key,date:d};
@@ -7456,14 +7676,9 @@ function buildAvailabilityCard(playerName){
 
 // ── PITCH COUNT PAGE ──
 
-function daysRestRequired(np){
-  if(np>=66) return 4; if(np>=51) return 3;
-  if(np>=36) return 2; if(np>=21) return 1;
-  return 0;
-}
 
-function pcEligibleDate(lastDate, np){
-  var needed=daysRestRequired(np);
+function pcEligibleDate(lastDate, np, age){
+  var needed=daysRestRequired(np, age);
   if(!needed) return 'Eligible Today';
   var d=new Date(lastDate+'T12:00:00');
   // Eligible on the day AFTER the required rest days
@@ -7477,8 +7692,8 @@ function pcEligibleDate(lastDate, np){
   return 'Eligible '+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 
-function pcDaysUntilEligible(lastDate, np){
-  var needed=daysRestRequired(np);
+function pcDaysUntilEligible(lastDate, np, age){
+  var needed=daysRestRequired(np, age);
   if(!needed) return 0;
   var d=new Date(lastDate+'T12:00:00');
   d.setDate(d.getDate()+needed+1);
@@ -7522,8 +7737,8 @@ function renderPitchCountPage(){
     var aG=mergeOutingsByDate(a.pitGames||[]),bG=mergeOutingsByDate(b.pitGames||[]);
     var aLast=aG.length?[].concat(aG).sort(function(x,y){return(y.date||'').localeCompare(x.date||'');})[0]:null;
     var bLast=bG.length?[].concat(bG).sort(function(x,y){return(y.date||'').localeCompare(x.date||'');})[0]:null;
-    var aDays=aLast&&aLast.date?pcDaysUntilEligible(aLast.date,aLast.np||0):0;
-    var bDays=bLast&&bLast.date?pcDaysUntilEligible(bLast.date,bLast.np||0):0;
+    var aDays=aLast&&aLast.date?pcDaysUntilEligible(aLast.date,aLast.np||0,playerAge(a.name)):0;
+    var bDays=bLast&&bLast.date?pcDaysUntilEligible(bLast.date,bLast.np||0,playerAge(b.name)):0;
     if(bDays!==aDays) return bDays-aDays;
     return (b.pit.np||0)-(a.pit.np||0);
   });
@@ -7536,7 +7751,7 @@ function renderPitchCountPage(){
 
   listEl.innerHTML=pitchers.map(function(p,idx){
     var ov=rosterOverrides[p.name]||{};
-    var age=ov.age||12;
+    var age=ov.age||teamDefaultAge();
     var pm=pitchMax(age);
     var totalNP=p.pit.np||0;
     var seasonIP=p.pit.ip||0;
@@ -7548,9 +7763,9 @@ function renderPitchCountPage(){
     var last=games[0]||null;
     var lastNP=last?last.np||0:0;
     var lastDate=last?last.date:null;
-    var daysUntil=lastDate?pcDaysUntilEligible(lastDate,lastNP):0;
-    var daysNeeded=lastDate?daysRestRequired(lastNP):0;
-    var eligStr=lastDate?pcEligibleDate(lastDate,lastNP):'';
+    var daysUntil=lastDate?pcDaysUntilEligible(lastDate,lastNP,age):0;
+    var daysNeeded=lastDate?daysRestRequired(lastNP,age):0;
+    var eligStr=lastDate?pcEligibleDate(lastDate,lastNP,age):'';
     var hitLimit=lastNP>=pm;
 
     if(daysUntil>0) restCount++;
@@ -7604,7 +7819,7 @@ function renderPitchCountPage(){
       var gOpp=(g.opp||g.label||'').replace(/^@?\s*/,'').substring(0,14);
       var gNP=g.np||0;
       var gNC=g.np&&g.sp?Math.round(g.np*g.sp/100):0;
-      var gRest=daysRestRequired(gNP);
+      var gRest=daysRestRequired(gNP,age);
       var spDisp=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1)+'%':g.sp>0?g.sp.toFixed(1)+'%':'—';
       return '<div class="pc-hist-row">'
         +'<span>'+gDate+'</span>'
@@ -7749,8 +7964,8 @@ function parsePDFWithVision(file,apiKey,callback){
   reader.onload=function(ev){
     var b64=btoa(new Uint8Array(ev.target.result).reduce(function(d,b){return d+String.fromCharCode(b);},''));
 
-    var prompt=`You are parsing a GameChanger baseball box score PDF for the team "SBA Red 12U".
-Extract ONLY SBA Red 12U players. Do NOT include any opponent players.
+    var prompt=`You are parsing a GameChanger baseball box score PDF for the team "${teamUpper()}".
+Extract ONLY ${teamUpper()} players. Do NOT include any opponent players.
 
 Return ONLY a valid JSON object — no markdown, no explanation, no extra text:
 {
@@ -8204,7 +8419,7 @@ function loadCachedInsights(name){
     var obj=playerInsights[name];
     if(!obj){
       // Fallback for insights generated before KV sync was added
-      var stored=localStorage.getItem('sba_insights_'+name.replace(/\s+/g,'_'));
+      var stored=teamLS.getItem('sba_insights_'+name.replace(/\s+/g,'_'));
       if(!stored) return false;
       obj=JSON.parse(stored);
     }
@@ -8227,7 +8442,7 @@ function openPlayer(name){
   if(!p) return;
   window._pdCurrentPlayer=name;
   var ov=rosterOverrides[name]||{};
-  var age=ov.age||12;
+  var age=ov.age||teamDefaultAge();
   var pm=pitchMax(age);
   var isP=!!p.pit&&p.pit.ip>0;
 
@@ -8343,7 +8558,7 @@ function buildPdPcChart(p,pm){
   var d=pdChartDefaults();
   var labels=games.map(function(g){var prefix=g.loc==='A'?'@ ':'vs ';return prefix+(g.opp||'').split(' ').slice(0,2).join(' ')+' '+formatGameDate(g.date);});
   var npData=games.map(function(g){return g.np||0;});
-  document.getElementById('pd-pc-sub').textContent='Pitches thrown · '+pm+'P daily limit (age '+(rosterOverrides[window._pdCurrentPlayer]||{age:12}).age+')';
+  document.getElementById('pd-pc-sub').textContent='Pitches thrown · '+pm+'P daily limit (age '+playerAge(window._pdCurrentPlayer)+')';
   _pdCharts.pc=new Chart(document.getElementById('pd-pc-chart').getContext('2d'),{
     type:'bar',
     data:{labels:labels,datasets:[{data:npData,backgroundColor:'rgba(139,92,246,.5)',borderColor:'#7c3aed',borderWidth:1,borderRadius:4,label:'#P'}]},
@@ -8597,19 +8812,19 @@ function addCoachNote(){
   if(!_pdCoachNotes[name])_pdCoachNotes[name]={game:[],dev:[]};
   _pdCoachNotes[name][_pdNoteTab].push({text:text,ts:Date.now()});
   input.value='';
-  try{localStorage.setItem('sba_notes_v1',JSON.stringify(_pdCoachNotes));}catch(e){}
+  try{teamLS.setItem('sba_notes_v1',JSON.stringify(_pdCoachNotes));}catch(e){}
   renderPdNoteList(name);
 }
 
 function deleteNote(name,idx){
   if(!_pdCoachNotes[name]||!_pdCoachNotes[name][_pdNoteTab]) return;
   _pdCoachNotes[name][_pdNoteTab].splice(idx,1);
-  try{localStorage.setItem('sba_notes_v1',JSON.stringify(_pdCoachNotes));}catch(e){}
+  try{teamLS.setItem('sba_notes_v1',JSON.stringify(_pdCoachNotes));}catch(e){}
   renderPdNoteList(name);
 }
 
 function loadCoachNotes(){
-  try{var n=localStorage.getItem('sba_notes_v1');if(n)_pdCoachNotes=JSON.parse(n);}catch(e){}
+  try{var n=teamLS.getItem('sba_notes_v1');if(n)_pdCoachNotes=JSON.parse(n);}catch(e){}
 }
 
 document.addEventListener('keydown',function(e){
@@ -8750,7 +8965,7 @@ function regenerateInsights(){
     var now=new Date();
     var stored={insights:_pdInsights,generatedAt:now.toISOString(),player:name};
     playerInsights[name]=stored;
-    try{localStorage.setItem('sba_insights_'+name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
+    try{teamLS.setItem('sba_insights_'+name.replace(/\s+/g,'_'),JSON.stringify(stored));}catch(e){}
     kvSave();
     document.getElementById('pd-insights-when').textContent='Generated: Today'+(customContext?' · with your context':'');
     var tabsEl2=document.getElementById('pd-insight-tabs');
@@ -8793,14 +9008,14 @@ function toggleTheme(){
   // In light mode: show moon = "switch to dark"
   document.getElementById('theme-icon-sun').style.display=isLight?'none':'block';
   document.getElementById('theme-icon-moon').style.display=isLight?'block':'none';
-  try{localStorage.setItem('sba_theme',isLight?'light':'dark');}catch(e){}
+  try{teamLS.setItem('sba_theme',isLight?'light':'dark');}catch(e){}
   // Redraw both donuts so segment border color updates immediately
   renderOverview();
   renderHittingPage();
 }
 function loadTheme(){
   try{
-    var t=localStorage.getItem('sba_theme');
+    var t=teamLS.getItem('sba_theme');
     if(t==='light'){
       document.body.classList.add('light-mode');
       document.getElementById('theme-icon-sun').style.display='none';
@@ -8900,6 +9115,7 @@ function initApp(){
   var batEl=document.getElementById('batTrendChart');
   if(spEl)ro.observe(spEl.parentElement);
   if(batEl)ro.observe(batEl.parentElement);
+  applyTeamBranding();
   load();loadTheme();loadAvailability();
   // Load from KV first (cross-device sync), then proceed with init
   kvLoad(function(){
@@ -8925,8 +9141,8 @@ function initApp(){
     {dateVal:'2026-04-18',opp:'Central Nebraska Baseball 12U',us:3,them:4,loc:'A'},
   ];
   var changed=false;
-  // Only seed if no data was loaded from KV (fresh install)
-  if(!_kvSynced){
+  // Only seed if no data was loaded from KV (fresh install) — and only for SBA Red, whose season these are
+  if(!_kvSynced&&CURRENT_TEAM.legacy){
   seedGames.forEach(function(sg){
     // Check if this exact game already exists
     var exists=gameLog.find(function(g){
@@ -9059,7 +9275,7 @@ function exportPlayerPDF(){
   function wrapPage(innerHtml,pageNum){
     return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+CSS+'</style></head><body>'
       +'<div class="page">'+innerHtml
-      +'<div class="pdf-footer"><span>SBA Red 12U · '+(ov.displayName||name)+' · '+dateStr+'</span><span>Page '+pageNum+'</span></div>'
+      +'<div class="pdf-footer"><span>'+escHtml(teamUpper())+' · '+(ov.displayName||name)+' · '+dateStr+'</span><span>Page '+pageNum+'</span></div>'
       +'</div></body></html>';
   }
 
@@ -9093,11 +9309,11 @@ function exportPlayerPDF(){
       +'<div><div class="pdf-header-left">'
         +'<div class="pdf-jersey">#'+(ov.num||p.num||'0')+'</div>'
         +'<div><div class="pdf-name">'+(ov.displayName||name)+'</div>'
-          +'<div class="pdf-meta">Age '+(ov.age||12)+' · '+(isP?'Pitcher / ':'')+'Batter · '+p.gp+' GP</div>'
+          +'<div class="pdf-meta">Age '+(ov.age||teamDefaultAge())+' · '+(isP?'Pitcher / ':'')+'Batter · '+p.gp+' GP</div>'
           +posRow
         +'</div>'
       +'</div></div>'
-      +'<div class="pdf-header-right"><div class="pdf-team">SBA Red 12U</div><div class="pdf-date">'+dateStr+'</div></div>'
+      +'<div class="pdf-header-right"><div class="pdf-team">'+escHtml(teamUpper())+'</div><div class="pdf-date">'+dateStr+'</div></div>'
     +'</div>';
   }
 
@@ -9316,7 +9532,7 @@ function exportPlayerPDF(){
         +'<div class="chart-wrap"><div class="chart-sub">Per-game S% · 3-game rolling avg · Season '+(pit.sp||0).toFixed(1)+'% S%</div>'
           +'<img src="'+chartImgs.sp+'"/></div>'
         +'<div class="section-title">Pitch Count per Outing</div>'
-        +'<div class="chart-wrap"><div class="chart-sub">Pitches thrown · 85-pitch max (12U)</div>'
+        +'<div class="chart-wrap"><div class="chart-sub">Pitches thrown · '+pitchMax(playerAge(name))+'-pitch max (age '+playerAge(name)+')</div>'
           +'<img src="'+chartImgs.pc+'"/></div>'
         +'<div class="section-title">Pitching Log</div>'
         +'<table class="log-table"><thead><tr><th>Game</th><th>IP</th><th>#P</th><th>S%</th><th>BB</th><th>K</th></tr></thead>'
