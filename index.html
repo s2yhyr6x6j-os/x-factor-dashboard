@@ -6264,15 +6264,15 @@ function syncIcsSchedule(){
       if(sc){sc.className='ics-status-card error';sc.style.display='block';document.getElementById('ics-status-icon').textContent='❌';document.getElementById('ics-status-title').textContent='Sync failed';document.getElementById('ics-status-detail').textContent='GameChanger blocked the request. Try re-syncing or check your URL.';}
       return;
     }
-    fetch(proxies[idx])
-      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
+    fetch(proxies[idx],{credentials:'same-origin'})
+      .then(function(r){if(r.status===401){onAuthExpired();resetBtn();throw {stop:true};}if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
       .then(function(text){
         var icsText=text;
         if(text.trim().charAt(0)==='{'){try{icsText=JSON.parse(text).contents||text;}catch(e){}}
         if(!icsText||icsText.indexOf('BEGIN:VCALENDAR')<0)throw new Error('Not valid ICS');
         saveAndRender(icsText);
       })
-      .catch(function(){tryProxy(idx+1);});
+      .catch(function(e){if(e&&e.stop)return;tryProxy(idx+1);});
   }
   tryProxy(0);
 }
