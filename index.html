@@ -6647,54 +6647,79 @@ function checkSharedView(){
 }
 
 // ── LOGIN GATE ──
-// Client-side deterrent only — the check runs in the browser, so it keeps
-// casual visitors out but isn't real protection against a determined one.
-// CHANGE THE PASSWORD: replace SITE_PASSWORD_HASH with the SHA-256 hex digest
-// of your new password. Ask Claude to generate it, or use any "sha256 hash
-// generator" site and paste the result in as a plain lowercase hex string.
-var SITE_PASSWORD_HASH='c35fb5a65b13658f3aea3b15d99cd7d7e88bd3d207eb8e6578382f8d5c244230'; // set via Claude — do not store the plaintext password here
-
-function sha256Hex(str){
-  return crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)).then(function(buf){
-    return Array.prototype.map.call(new Uint8Array(buf),function(b){return b.toString(16).padStart(2,'0');}).join('');
-  });
+// The password is checked on the server (/api/login), which sets a signed,
+// HttpOnly session cookie. Every /api route rejects requests without it.
+// CHANGE THE PASSWORD: in Vercel → Settings → Environment Variables, set
+// SITE_PASSWORD_HASH to the SHA-256 hex of the new password, then redeploy.
+// That also signs everyone out. Nothing about the password lives in this page.
+function _serverMode(){
+  var h=window.location.hostname;
+  return window.location.protocol==='https:'&&h!=='localhost'&&h!=='127.0.0.1';
 }
+var _authExpired=false;
+try{window.localStorage.removeItem('baseline_auth_v1');}catch(e){} // old browser-only sign-in token
 
-var LOGIN_TOKEN_KEY='baseline_auth_v1';
-
-function showLoginGate(){
-  try{
-    if(teamLS.getItem(LOGIN_TOKEN_KEY)===SITE_PASSWORD_HASH){initApp();return;}
-  }catch(e){}
+function showLoginGate(msg){
+  // Running from a local file: there is no server and no cloud data, so nothing to protect
+  if(!_serverMode()){initApp();return;}
+  if(msg===undefined){
+    fetch('/api/session',{cache:'no-store',credentials:'same-origin'})
+      .then(function(r){return r.json().then(function(d){return {code:r.status,d:d};});})
+      .then(function(x){
+        if(x.d&&x.d.signedIn){initApp();return;}
+        _openLoginGate(x.code===500?(x.d&&x.d.error)||'Sign-in isn’t set up on the server yet.':'');
+      })
+      .catch(function(){_openLoginGate('Couldn’t reach the server. Check your connection and try again.');});
+    return;
+  }
+  _openLoginGate(msg);
+}
+function _openLoginGate(msg){
   document.getElementById('login-gate').classList.remove('hidden');
+  var err=document.getElementById('login-error');if(err)err.textContent=msg||'';
   var input=document.getElementById('login-password-input');
   if(input) setTimeout(function(){input.focus();},50);
 }
 
+// Called when any /api request comes back 401 (session expired or signed out elsewhere)
+function onAuthExpired(){
+  if(_authExpired) return;
+  _authExpired=true;
+  _openLoginGate('Your session has ended. Sign in again to keep working.');
+}
+
+var _loginBusy=false;
 function checkLoginPassword(){
   var input=document.getElementById('login-password-input');
   var err=document.getElementById('login-error');
   if(!input.value){err.textContent='Enter a password.';return;}
-  if(!window.crypto||!window.crypto.subtle){
-    err.textContent='This browser can\'t verify the password here (requires HTTPS).';
-    return;
-  }
-  sha256Hex(input.value).then(function(hash){
-    if(hash===SITE_PASSWORD_HASH){
-      try{teamLS.setItem(LOGIN_TOKEN_KEY,hash);}catch(e){}
-      document.getElementById('login-gate').classList.add('hidden');
-      initApp();
-    }else{
-      err.textContent='Incorrect password. Try again.';
-      input.value='';
-      input.focus();
-    }
-  });
+  if(_loginBusy) return;
+  _loginBusy=true;err.textContent='Checking…';
+  fetch('/api/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:input.value})})
+    .then(function(r){return r.json().catch(function(){return {};}).then(function(d){return {code:r.status,d:d};});})
+    .then(function(x){
+      _loginBusy=false;
+      if(x.code===200){
+        input.value='';
+        // After an expired session, reload so everything reloads cleanly with the new session
+        if(_authExpired){window.location.reload();return;}
+        err.textContent='';
+        document.getElementById('login-gate').classList.add('hidden');
+        initApp();
+        return;
+      }
+      err.textContent=x.code===429?'Too many attempts. Try again in 15 minutes.'
+        :x.code===401?'Incorrect password. Try again.'
+        :(x.d&&x.d.error)||'Sign-in failed. Try again.';
+      input.value='';input.focus();
+    })
+    .catch(function(){_loginBusy=false;err.textContent='Couldn’t reach the server. Check your connection and try again.';});
 }
 
 function signOut(){
-  try{teamLS.removeItem(LOGIN_TOKEN_KEY);}catch(e){}
-  window.location.reload();
+  var done=function(){window.location.reload();};
+  if(!_serverMode()){done();return;}
+  fetch('/api/logout',{method:'POST',credentials:'same-origin'}).then(done,done);
 }
 
 function toggleLoginPwVisible(){
@@ -6843,9 +6868,13 @@ function callClaude(body){
   if(isVercel){
     return fetch('/api/claude',{
       method:'POST',
+      credentials:'same-origin',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(body)
-    }).then(function(r){return r.json();});
+    }).then(function(r){
+      if(r.status===401){onAuthExpired();throw new Error('Signed out');}
+      return r.json();
+    });
   } else {
     var apiKey=getApiKey();
     if(!apiKey) return Promise.reject(new Error('No API key set'));
@@ -7203,8 +7232,8 @@ var _filteredSeasons={last3:null,last5:null,last10:null};
 try{['last3','last5','last10'].forEach(function(k){var d=teamLS.getItem('sba_filt_'+k);if(d)_filteredSeasons[k]=JSON.parse(d);});}catch(e){}
 
 function kvGet(key){
-  return fetch('/api/kv-get?key='+encodeURIComponent(teamKey(key))+'&t='+Date.now())
-    .then(function(r){return r.json();})
+  return fetch('/api/kv-get?key='+encodeURIComponent(teamKey(key))+'&t='+Date.now(),{credentials:'same-origin'})
+    .then(function(r){if(r.status===401){onAuthExpired();return {};}return r.json();})
     .then(function(d){return d.value||null;})
     .catch(function(){return null;});
 }
@@ -7212,9 +7241,10 @@ function kvGet(key){
 function kvSet(key,value){
   return fetch('/api/kv-set',{
     method:'POST',
+    credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({key:teamKey(key),value:value})
-  }).then(function(r){return r.json();}).catch(function(e){console.error('kvSet error',key,e);});
+  }).then(function(r){if(r.status===401){onAuthExpired();return {};}return r.json();}).catch(function(e){console.error('kvSet error',key,e);});
 }
 
 function kvSave(){
