@@ -1497,6 +1497,7 @@ body.light-mode .guest-modal-inner{background:#fff}
 .app-msg-btns{display:flex;gap:8px;justify-content:flex-end}
 .app-msg-btn{font-family:var(--ff);font-size:13px;font-weight:700;padding:8px 16px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--sub)}
 .app-msg-btn.primary{background:var(--blue);border:none;color:#fff}
+.app-msg-btn:focus{outline:none}
 body.light-mode .app-msg-inner{background:#fff}
 .bs-result-game{font-size:13px;font-weight:600;color:var(--hdr);margin:4px 0 16px;line-height:1.5}
 .bs-result-section{margin-bottom:16px}
@@ -8378,7 +8379,7 @@ function fixPitchingData(){
   var seasonImps=importedGames.filter(function(g){return g.isSeason;});
   if(!seasonImps.length){
     showAppMessage('No season stats yet','Upload season CSV from GameChanger to populate the dashboard',
-      {action:'Go to Upload',onAction:function(){goPage('upload',document.getElementById('nav-upload'));}});
+      {action:'Upload Now',onAction:function(){goPage('upload',document.getElementById('nav-upload'));}});
     return;
   }
   var csvMap={};
