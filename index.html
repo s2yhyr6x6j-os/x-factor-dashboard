@@ -137,7 +137,8 @@ body.light-mode .sb-logo-light{display:block}
 .sb-nav{flex:1;padding:12px 10px;overflow-y:auto}
 .sb-team{position:relative;padding:6px 4px 6px 7px;margin:0 0 20px;border:0;display:flex;
   align-items: center;gap: 10px;}
-.sb-team-logo{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--fh);font-size:20px;color:#fff;letter-spacing:.04em}
+.sb-team-logo{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
+.team-ball{width:70%;height:70%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .sb-team-text{flex:1;min-width:0}
 .sb-team-name{font-size:15px;font-weight:700;color:var(--hdr);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-team-season{font-size:11px;color:var(--sub);margin-top:1px}
@@ -149,7 +150,7 @@ body.light-mode .sb-logo-light{display:block}
 .team-menu.open{display:block}
 .team-menu-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;background:transparent;border-radius:8px;cursor:pointer;text-align:left;font-family:var(--ff);color:var(--hdr)}
 .team-menu-item:hover{background:var(--bg2)}
-.team-menu-logo{width:28px;height:28px;border-radius:7px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:14px;flex-shrink:0}
+.team-menu-logo{width:28px;height:28px;border-radius:7px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .team-menu-text{flex:1;min-width:0}
 .team-menu-name,.team-menu-season{display:block}
 .team-menu-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -160,6 +161,7 @@ body.light-mode .sb-logo-light{display:block}
 .app-msg-field{display:block;margin-bottom:12px}
 .app-msg-field span{display:block;font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .app-msg-field input,.app-msg-field select{width:100%;box-sizing:border-box;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--hdr);font-family:var(--ff);font-size:14px}
+.app-msg-hint{display:block;font-style:normal;font-size:11px;color:var(--sub);margin-top:5px}
 .app-msg-err{color:#ef4444;font-size:12px;min-height:16px;margin:-4px 0 8px}
 .sb-group{margin-bottom:4px}
 .sb-group-label,.sb-team-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);padding:10px 10px 6px;opacity:.6}
@@ -1644,9 +1646,9 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <nav class="sb-nav">
     <div class="sb-team-label">TEAM</div>
     <div class="sb-team" id="sb-team" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" onclick="toggleTeamMenu(event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTeamMenu(event);}">
-  <div class="sb-team-logo" id="sb-team-logo">SBA</div>
+  <div class="sb-team-logo" id="sb-team-logo"><svg class="team-ball" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M6.3 5.1c1.9 1.7 3 4.2 3 6.9s-1.1 5.2-3 6.9"/><path d="M17.7 5.1c-1.9 1.7-3 4.2-3 6.9s1.1 5.2 3 6.9"/><path d="M7.6 7.3l1.3-.6M8.7 10l1.4-.2M8.7 14l1.4.2M7.6 16.7l1.3.6M16.4 7.3l-1.3-.6M15.3 10l-1.4-.2M15.3 14l-1.4.2M16.4 16.7l-1.3.6"/></svg></div>
   <div class="sb-team-text">
-    <div class="sb-team-name" id="sb-team-name">SBA Red 12u</div>
+    <div class="sb-team-name" id="sb-team-name"></div>
     <div class="sb-team-season" id="sb-team-season">Summer 2026</div>
   </div>
   <svg class="sb-team-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1716,7 +1718,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   <!-- Header bar: team name left, record right -->
   <div class="home-header">
     <div>
-      <div class="home-team-name" id="home-team-name">SBA Red 12u</div>
+      <div class="home-team-name" id="home-team-name"></div>
       <div class="home-season" id="home-season">Summer 2026</div>
     </div>
     <div class="text-right">
@@ -2489,7 +2491,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:#51a2ff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93c4.08 4.08 10.06 4.08 14.14 0"/><path d="M4.93 19.07c4.08-4.08 10.06-4.08 14.14 0"/></svg>
     Pitching Rotation
   </div>
-  <div class="pit-page-sub" id="pc-rules-sub" style="margin-bottom:20px">Eligibility Rules: MLB Pitch Smart Guidelines&#8482; · 12U (85 Pitch Max)</div>
+  <div class="pit-page-sub" id="pc-rules-sub" style="margin-bottom:20px">Eligibility Rules: MLB Pitch Smart Guidelines&#8482;</div>
   <div style="display:block;align-items:center;margin-bottom:10px">
     <button class="optimizeRot" onclick="optimizeRotation()">🪄 Optimize Rotation</button>
     <div id="rotation-last-optimized" style="font-size:11px;color:var(--sub);margin-top:6px;"></div>
@@ -2540,7 +2542,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
         <button class="game-form-close" onclick="cancelAddGame()" aria-label="Cancel">✕</button>
         <div class="form-row">
           <div class="field"><label>Date</label><input type="date" id="f-date"></div>
-          <div class="field"><label>Opponent</label><input type="text" id="f-opp" placeholder="e.g. Omaha Tigers 12U"></div>
+          <div class="field"><label>Opponent</label><input type="text" id="f-opp" placeholder="e.g. Omaha Tigers"></div>
           <div class="field"><label>SBA</label><input type="number" id="f-us" placeholder="0" min="0"></div>
           <div class="field"><label>OPP</label><input type="number" id="f-them" placeholder="0" min="0"></div>
           <div class="field"><label>Location</label>
@@ -2802,20 +2804,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
   </div>
   <div id="pc-pitcher-list"></div>
   <div class="pc-ll-rules">
-    <div class="pc-ll-title">MLB Pitch Smart Guidelines: 12U</div>
-    <div class="pc-ll-grid">
-      <div>
-        <div class="pc-ll-row"><span class="pc-ll-label">1–20 pitches</span><span class="pc-ll-val">0 days rest</span></div>
-        <div class="pc-ll-row"><span class="pc-ll-label">21–35 pitches</span><span class="pc-ll-val">1 day rest</span></div>
-        <div class="pc-ll-row"><span class="pc-ll-label">36–50 pitches</span><span class="pc-ll-val">2 days rest</span></div>
-        <div class="pc-ll-row"><span class="pc-ll-label">51–65 pitches</span><span class="pc-ll-val">3 days rest</span></div>
-        <div class="pc-ll-row"><span class="pc-ll-label">66+ pitches</span><span class="pc-ll-val">4 days rest</span></div>
-      </div>
-      <div>
-        <div class="pc-ll-row"><span class="pc-ll-label">Age 11–12 max</span><span class="pc-ll-val">85 pitches / day</span></div>
-        <div class="pc-ll-row"><span class="pc-ll-label">3 consecutive days</span><span class="pc-ll-val">Never allowed</span></div>
-      </div>
-    </div>
+    <div class="pc-ll-title" id="pc-ll-title">MLB Pitch Smart Guidelines</div>
+    <div class="pc-ll-grid" id="pc-ll-grid"></div>
   </div>
 </div>
 
@@ -3100,7 +3090,7 @@ var _requestedTeamId=(function(){
 })();
 var CURRENT_TEAM=findTeam(_requestedTeamId)||findTeam(TEAM_DEFAULT_ID)||TEAMS[0];
 
-function teamLabel(t){t=t||CURRENT_TEAM;return t.name+' '+t.age+'u';}
+function teamLabel(t){t=t||CURRENT_TEAM;return t.name+' '+t.age+'U';}
 function teamNameSeason(t){t=t||CURRENT_TEAM;return [t.name,t.season].filter(Boolean).join(' · ');}
 function teamUpper(t){return teamLabel(t).replace(/u$/,'U');}           // "SBA Red 12U"
 function teamNameRegexSrc(){return teamUpper().replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/ /g,'\\s+');}
@@ -3152,18 +3142,35 @@ function switchTeam(id){
   Promise.resolve(p).then(go,go);
 }
 
-function _teamInitials(t){
-  if(t.legacy) return 'SBA';
-  var w=String(t.name||'').trim().split(/\s+/).filter(Boolean);
-  return (w.length>1?w.slice(0,3).map(function(x){return x[0];}).join(''):String(t.name||'?').slice(0,3)).toUpperCase();
+var TEAM_BALL_SVG='<svg class="team-ball" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M6.3 5.1c1.9 1.7 3 4.2 3 6.9s-1.1 5.2-3 6.9"/><path d="M17.7 5.1c-1.9 1.7-3 4.2-3 6.9s1.1 5.2 3 6.9"/><path d="M7.6 7.3l1.3-.6M8.7 10l1.4-.2M8.7 14l1.4.2M7.6 16.7l1.3.6M16.4 7.3l-1.3-.6M15.3 10l-1.4-.2M15.3 14l-1.4.2M16.4 16.7l-1.3.6"/></svg>';
+
+// Rest table + daily max for the team's age group, generated from daysRestRequired()
+function renderPitchSmartRules(){
+  var age=teamDefaultAge(),max=pitchMax(age),rows=[],start=1,cur=daysRestRequired(1,age);
+  for(var n=2;n<=max+1;n++){
+    var d=n<=max?daysRestRequired(n,age):-1;
+    if(d!==cur){
+      var label=(n-1>=max&&start<max)?start+'–'+max+' pitches':(start===n-1?start+' pitches':start+'–'+(n-1)+' pitches');
+      rows.push('<div class="pc-ll-row"><span class="pc-ll-label">'+label+'</span><span class="pc-ll-val">'+cur+' day'+(cur===1?'':'s')+' rest</span></div>');
+      start=n;cur=d;
+    }
+  }
+  var band=age<=12?'11–12':age<=14?'13–14':age<=16?'15–16':'17–18';
+  var t=document.getElementById('pc-ll-title');if(t)t.textContent='MLB Pitch Smart Guidelines: '+age+'U';
+  var g=document.getElementById('pc-ll-grid');
+  if(g) g.innerHTML='<div>'+rows.join('')+'</div><div>'
+    +'<div class="pc-ll-row"><span class="pc-ll-label">Age '+band+' max</span><span class="pc-ll-val">'+max+' pitches / day</span></div>'
+    +(age<=12?'<div class="pc-ll-row"><span class="pc-ll-label">3 consecutive days</span><span class="pc-ll-val">Never allowed</span></div>':'')
+    +'</div>';
 }
+
 function applyTeamBranding(){
   var t=CURRENT_TEAM;
   function set(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;}
   set('sb-team-name',teamLabel(t));set('sb-team-season',t.season||'');
   set('home-team-name',teamLabel(t));set('home-season',t.season||'');
-  set('sb-team-logo',_teamInitials(t));
-  set('pc-rules-sub','Eligibility Rules: MLB Pitch Smart Guidelines\u2122 · '+t.age+'U ('+pitchMax(t.age)+' Pitch Max)');
+  set('pc-rules-sub','Eligibility Rules: MLB Pitch Smart Guidelines™ · '+t.age+'U ('+pitchMax(t.age)+' Pitch Max)');
+  renderPitchSmartRules();
   // Page subtitles ("SBA Red · Summer 2026", optionally followed by more text)
   document.querySelectorAll('.pit-page-sub,.up-sub,.sc-card-team').forEach(function(el){
     if(el.dataset.teamSuffix==null){
@@ -3182,12 +3189,13 @@ function renderTeamMenu(){
   m.innerHTML=TEAMS.map(function(t){
     var cur=t.id===CURRENT_TEAM.id;
     return '<button class="team-menu-item" role="menuitem" onclick="event.stopPropagation();switchTeam(\''+t.id+'\')">'
-      +'<span class="team-menu-logo">'+esc(_teamInitials(t))+'</span>'
+      +'<span class="team-menu-logo">'+TEAM_BALL_SVG+'</span>'
       +'<span class="team-menu-text"><span class="team-menu-name">'+esc(teamLabel(t))+'</span><span class="team-menu-season">'+esc(t.season||'')+'</span></span>'
       +(cur?'<span class="team-menu-check">✓</span>':'')+'</button>';
   }).join('')
   +'<div class="team-menu-sep"></div>'
-  +'<button class="team-menu-item team-menu-add" role="menuitem" onclick="event.stopPropagation();closeTeamMenu();openAddTeam()">+ Add team</button>';
+  +'<button class="team-menu-item team-menu-add" role="menuitem" onclick="event.stopPropagation();closeTeamMenu();openTeamForm(\'edit\')">Edit '+esc(teamLabel(CURRENT_TEAM))+'</button>'
+  +'<button class="team-menu-item team-menu-add" role="menuitem" onclick="event.stopPropagation();closeTeamMenu();openTeamForm(\'add\')">+ Add team</button>';
 }
 function toggleTeamMenu(e){
   if(e) e.stopPropagation();
@@ -3206,44 +3214,68 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeTeamMenu();});
 
-function openAddTeam(){
+// mode 'add' creates a team; mode 'edit' changes the current team's name, age group or season
+function openTeamForm(mode){
+  var editing=mode==='edit',t=editing?CURRENT_TEAM:{name:'',age:12,season:''};
   var old=document.getElementById('app-msg');if(old)old.remove();
-  var ages='';for(var a=12;a<=18;a++) ages+='<option value="'+a+'">'+a+'U</option>';
+  var ages='';for(var a=12;a<=18;a++) ages+='<option value="'+a+'"'+(+t.age===a?' selected':'')+'>'+a+'U</option>';
   var m=document.createElement('div');m.className='app-msg';m.id='app-msg';
-  m.innerHTML='<form class="app-msg-inner" role="dialog" aria-modal="true" aria-labelledby="add-team-title" onsubmit="event.preventDefault();saveNewTeam();">'
-    +'<div class="app-msg-title" id="add-team-title">Add team</div>'
+  m.innerHTML='<form class="app-msg-inner" role="dialog" aria-modal="true" aria-labelledby="team-form-title" onsubmit="event.preventDefault();saveTeamForm(\''+(editing?'edit':'add')+'\');">'
+    +'<div class="app-msg-title" id="team-form-title">'+(editing?'Edit team':'Add team')+'</div>'
     +'<label class="app-msg-field"><span>Team name</span><input id="nt-name" maxlength="40" placeholder="e.g. SBA Black" autocomplete="off"></label>'
-    +'<label class="app-msg-field"><span>Age group</span><select id="nt-age">'+ages+'</select></label>'
+    +'<label class="app-msg-field"><span>Age group</span><select id="nt-age">'+ages+'</select>'
+      +(editing?'<em class="app-msg-hint">Sets the default Pitch Smart limits for players without their own age.</em>':'')+'</label>'
     +'<label class="app-msg-field"><span>Season</span><input id="nt-season" maxlength="30" placeholder="e.g. Spring 2027" autocomplete="off"></label>'
     +'<div class="app-msg-err" id="nt-err"></div>'
-    +'<div class="app-msg-btns"><button type="button" class="app-msg-btn" data-close>Cancel</button><button type="submit" class="app-msg-btn primary">Add team</button></div>'
+    +'<div class="app-msg-btns"><button type="button" class="app-msg-btn" data-close>Cancel</button><button type="submit" class="app-msg-btn primary" id="nt-save">'+(editing?'Save':'Add team')+'</button></div>'
     +'</form>';
+  m.querySelector('#nt-name').value=t.name||'';
+  m.querySelector('#nt-season').value=t.season||'';
   function close(){m.remove();document.removeEventListener('keydown',onKey);}
   function onKey(e){if(e.key==='Escape')close();}
   m.addEventListener('click',function(e){if(e.target===m||(e.target.hasAttribute&&e.target.hasAttribute('data-close')))close();});
   document.addEventListener('keydown',onKey);
   document.body.appendChild(m);
-  document.getElementById('nt-name').focus();
+  var nameInput=document.getElementById('nt-name');nameInput.focus();nameInput.select();
 }
-function saveNewTeam(){
-  var name=(document.getElementById('nt-name').value||'').trim();
+function openAddTeam(){openTeamForm('add');}
+
+function saveTeamForm(mode){
+  var editing=mode==='edit';
+  var name=(document.getElementById('nt-name').value||'').trim().replace(/\s+/g,' ');
   var age=parseInt(document.getElementById('nt-age').value)||12;
   var season=(document.getElementById('nt-season').value||'').trim();
   var err=document.getElementById('nt-err');
   if(!name){err.textContent='Enter a team name.';return;}
-  if(TEAMS.some(function(t){return t.name.toLowerCase()===name.toLowerCase()&&+t.age===age&&(t.season||'').toLowerCase()===season.toLowerCase();})){
-    err.textContent='That team already exists.';return;
+  if(TEAMS.some(function(t){
+    return (!editing||t.id!==CURRENT_TEAM.id)&&t.name.toLowerCase()===name.toLowerCase()&&+t.age===age&&(t.season||'').toLowerCase()===season.toLowerCase();
+  })){err.textContent='That team already exists.';return;}
+
+  var id;
+  if(editing){
+    var t=findTeam(CURRENT_TEAM.id);
+    if(t.name===name&&+t.age===age&&(t.season||'')===season){document.getElementById('app-msg').remove();return;}
+    // The id never changes, so the team's saved data stays where it is
+    t.name=name;t.age=age;t.season=season;t.updated=new Date().toISOString();
+    id=t.id;
+  } else {
+    var slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,24)||'team';
+    id=slug+'-'+age+'u-'+Date.now().toString(36).slice(-5);
+    TEAMS.push({id:id,name:name,age:age,season:season,created:new Date().toISOString()});
   }
-  var slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,24)||'team';
-  var id=slug+'-'+age+'u-'+Date.now().toString(36).slice(-5);
-  TEAMS.push({id:id,name:name,age:age,season:season,created:new Date().toISOString()});
   _saveTeamsLocal();
-  var done=function(){switchTeam(id);};
+  // Reload so names, Pitch Smart limits and AI wording all pick up the change
+  var done=editing?function(){window.location.reload();}:function(){switchTeam(id);};
   if(typeof _isVercel!=='undefined'&&_isVercel){
-    err.textContent='';
-    kvSet(TEAMS_KEY,TEAMS).then(done,done);
+    var btn=document.getElementById('nt-save');if(btn)btn.disabled=true;
+    err.textContent='Saving…';
+    kvSet(TEAMS_KEY,TEAMS).then(function(r){
+      if(r&&r.ok===false||r&&r.error){err.textContent='Couldn’t save to the cloud. Check your connection and try again.';if(btn)btn.disabled=false;return;}
+      done();
+    },function(){err.textContent='Couldn’t save to the cloud. Check your connection and try again.';if(btn)btn.disabled=false;});
   } else done();
 }
+function saveNewTeam(){saveTeamForm('add');}
 
 // ── Pitch Smart (MLB / USA Baseball) required rest, by age ──
 // Returns days of rest required after throwing np pitches in a day.
@@ -6134,7 +6166,7 @@ var metLbConfig={
     getVal:function(p){return p.dash;},
     fmt:function(v){return v.toFixed(1)+'s'},
     color:function(v){return v<=4.25?'#a855f7':v<=4.5?'#22c55e':v<=5.0?'#f59e0b':'#ef4444'}},
-  ev:{label:'Exit Velo',sub:'Sorted by Exit Velo (EV)',hint:'Bat speed measurement. 70+ mph is elite for 12U.',
+  ev:{label:'Exit Velo',sub:'Sorted by Exit Velo (EV)',hint:'Bat speed measurement.'+(teamDefaultAge()===12?' 70+ mph is elite for 12U.':''),
     target:65,fixedMax:80,goodLow:false,
     getVal:function(p){return p.ev;},
     fmt:function(v){return v+' mph'},
@@ -6144,7 +6176,7 @@ var metLbConfig={
     getVal:function(p){return p.pull;},
     fmt:function(v){return v+' mph'},
     color:function(v){return v>=70?'#a855f7':v>=65?'#22c55e':v>=60?'#f59e0b':'#ef4444'}},
-  pop:{label:'Pop Time',sub:'Pop time to 2B · lower is better',hint:'How quickly can the Catcher get the ball to 2B. Sub-2.0s is elite at 12U.',
+  pop:{label:'Pop Time',sub:'Pop time to 2B · lower is better',hint:'How quickly can the Catcher get the ball to 2B.'+(teamDefaultAge()===12?' Sub-2.0s is elite at 12U.':''),
     target:2.0,fixedMax:2.5,goodLow:true,
     getVal:function(p){return p.pop;},
     fmt:function(v){return v.toFixed(2)+'s'},
@@ -8794,7 +8826,7 @@ function buildPdPitLog(p){
   var html='<thead><tr><th>GAME</th><th>IP</th><th>BB</th><th>K</th><th>#P</th><th>S%</th></tr></thead><tbody>';
   games.forEach(function(g){
     var prefix=g.loc==='A'?'@ ':'vs ';
-    var oppShort=(g.opp||'').replace(' 12U','');
+    var oppShort=(g.opp||'').replace(/\s+\d{1,2}U\b/i,'');
     var date=formatGameDate(g.date,'long');
     // Calculate actual S% from pitch counts if available, fall back to stored sp
     var gameSP=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1):
@@ -8827,7 +8859,7 @@ function buildPdBatLog(p){
   var html='<thead><tr><th>GAME</th><th>AB</th><th>H</th><th>RBI</th><th>BB</th><th>K</th><th>OPS</th></tr></thead><tbody>';
   games.forEach(function(g){
     var prefix=g.loc==='A'?'@ ':'vs ';
-    var oppShort=(g.opp||'').replace(' 12U','');
+    var oppShort=(g.opp||'').replace(/\s+\d{1,2}U\b/i,'');
     var date=formatGameDate(g.date,'long');
     var ops=g.ops||0;
     var opsColor=ops>=1.5?'var(--purple)':ops>=0.8?'var(--green)':ops>=0.5?'var(--amber)':'var(--red)';
@@ -9388,7 +9420,7 @@ function exportPlayerPDF(){
   function batLogRows(games){
     return (games||[]).slice(-10).map(function(g){
       var pre=g.loc==='A'?'@ ':'vs ';
-      var opp=(g.opp||'').replace(' 12U','');
+      var opp=(g.opp||'').replace(/\s+\d{1,2}U\b/i,'');
       var date=formatGameDate(g.date,'long');
       var ops=g.ops||0;
       var oc=ops>=0.8?'good':ops>=0.5?'warn':'bad';
@@ -9403,7 +9435,7 @@ function exportPlayerPDF(){
   function pitLogRows(games){
     return (games||[]).slice(-10).map(function(g){
       var pre=g.loc==='A'?'@ ':'vs ';
-      var opp=(g.opp||'').replace(' 12U','');
+      var opp=(g.opp||'').replace(/\s+\d{1,2}U\b/i,'');
       var date=formatGameDate(g.date,'long');
       var gameSP=g.np>0&&g.ns>0?+(g.ns/g.np*100).toFixed(1):g.sp||0;
       var sc=pcls('sp',gameSP);
