@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Baseline Analytics</title>
+<title>Clubhouse Analytics</title>
 <link rel="icon" type="image/x-icon" href="/public/favicon/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon/favicon-alt-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon/favicon-alt-16x16.png">
@@ -115,10 +115,7 @@ html,body{background:var(--bg1);color:var(--hdr);font-family:var(--ff);min-heigh
   background:#101828;
 }
 .sb-logo{width:40px;height:48px;display:flex}
-.sb-logo img{height:100%}
-.sb-logo-light{display:none}
-body.light-mode .sb-logo-dark{display:none}
-body.light-mode .sb-logo-light{display:block}
+.app-mark{display:block;width:100%;height:100%;color:var(--hdr)}
 .sb-header-text{flex:1;min-width:0;font-style:italic}
 .sb-team-name{font-size:15px;font-weight:700;color:var(--hdr);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
 .sb-season{font-size:11px;color:var(--sub);}
@@ -1334,10 +1331,7 @@ body.light-mode .scv-overlay{background:#f5f5f5}
 .login-gate{display:flex;position:fixed;top:0;right:0;bottom:0;left:0;background:var(--bg1);z-index:10000;align-items:center;justify-content:center;padding:20px}
 .login-gate.hidden{display:none}
 .login-card{max-width:340px;width:100%;text-align:center}
-.login-logo-dark,.login-logo-light{height:40px;margin:0 auto 12px;display:block}
-.login-logo-light{display:none}
-body.light-mode .login-logo-dark{display:none}
-body.light-mode .login-logo-light{display:block}
+.login-mark{width:40px;height:48px;margin:0 auto 12px}
 .login-sub{font-size:15px;font-weight:700;color:var(--sub);margin-bottom:20px}
 .login-field-wrap{position:relative;margin-bottom:10px}
 .login-input{width:100%;font-family:var(--ff);font-size:16px;padding:12px 44px 12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--hdr);outline:none;box-sizing:border-box;transition:border-color .2s}
@@ -1628,11 +1622,10 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
     <!-- Previous home plate SVG logo — kept here in case we revert
     <svg viewBox="0 0 100 105" xmlns="http://www.w3.org/2000/svg" width="40" height="42"><path d="M5 5 L95 5 L95 65 L50 100 L5 65 Z" fill="#1a1a1a" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><line x1="28" y1="22" x2="72" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/><line x1="72" y1="22" x2="28" y2="76" stroke="#fff" stroke-width="11" stroke-linecap="round"/></svg>
     -->
-    <img class="sb-logo-dark" src="/public/baseline-logo-dm.png" alt="Baseline Analytics">
-    <img class="sb-logo-light" src="/public/baseline-logo-lm.png" alt="Baseline Analytics">
+    <svg class="app-mark" viewBox="0 0 40 48" role="img" aria-label="Clubhouse Analytics"><path d="M20 2.5 L37.5 16 V45.5 H2.5 V16 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="20" cy="30" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.2 22.6c1.6 2.1 2.4 4.6 2.4 7.4s-.8 5.3-2.4 7.4M24.8 22.6c-1.6 2.1-2.4 4.6-2.4 7.4s.8 5.3 2.4 7.4" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"/></svg>
   </div>
   <div class="sb-header-text">
-    <div class="sb-team-name">Baseline</div>
+    <div class="sb-team-name">Clubhouse</div>
     <div class="sb-season">Analytics</div>
   </div>
   <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"><svg id="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg><svg id="theme-icon-moon" viewBox="0 0 24 24" class="svg-hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
@@ -1702,7 +1695,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Sign Out
     </button>
-    <div class="power">⚾ Powered by Baseline Analytics</div>
+    <div class="power">⚾ Powered by Clubhouse Analytics</div>
   </div>
 </aside>
 
@@ -1914,9 +1907,8 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
        in the browser, so it keeps casual visitors out but not a determined one. -->
   <div class="login-gate hidden" id="login-gate">
     <div class="login-card">
-      <img class="login-logo-dark" src="/public/baseline-logo-dm.png" alt="Baseline Analytics">
-      <img class="login-logo-light" src="/public/baseline-logo-lm.png" alt="Baseline Analytics">
-      <div class="login-sub">BASELINE ANALYTICS</div>
+      <svg class="app-mark login-mark" viewBox="0 0 40 48" role="img" aria-label="Clubhouse Analytics"><path d="M20 2.5 L37.5 16 V45.5 H2.5 V16 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="20" cy="30" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.2 22.6c1.6 2.1 2.4 4.6 2.4 7.4s-.8 5.3-2.4 7.4M24.8 22.6c-1.6 2.1-2.4 4.6-2.4 7.4s.8 5.3 2.4 7.4" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="login-sub">CLUBHOUSE ANALYTICS</div>
       <div class="login-field-wrap">
         <input type="password" class="login-input" id="login-password-input" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')checkLoginPassword()">
         <button class="login-eye" id="login-eye-btn" onclick="toggleLoginPwVisible()" aria-label="Show password" type="button">
@@ -1962,7 +1954,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <!-- Hero card: brand + player name -->
           <div class="sc-inner-card">
             <div class="sc-card-topbar">
-              <div class="sc-card-brand">⚾<span>Baseline Analytics</span></div>
+              <div class="sc-card-brand">⚾<span>Clubhouse Analytics</span></div>
               <div class="sc-card-season">Season Stats</div>
             </div>
             <div class="sc-card-hero">
@@ -1976,7 +1968,7 @@ body.light-mode .pc-bar-track-inner{background:rgba(0,0,0,.08);border-radius:4px
           <div id="sc-card-pitching-section"></div>
           <!-- Coach note card -->
           <div id="sc-card-note-section"></div>
-          <div class="sc-card-attribution">Powered by Baseline Analytics ⚾</div>
+          <div class="sc-card-attribution">Powered by Clubhouse Analytics ⚾</div>
         </div>
         <!-- Fixed footer: link + share buttons -->
         <div class="sc-preview-footer">
@@ -3180,7 +3172,7 @@ function applyTeamBranding(){
     }
     el.textContent=teamNameSeason(t)+el.dataset.teamSuffix;
   });
-  document.title=teamLabel(t)+' · Baseline Analytics';
+  document.title=teamLabel(t)+' · Clubhouse Analytics';
   renderTeamMenu();
 }
 function renderTeamMenu(){
@@ -5531,7 +5523,7 @@ function askCoach(name, slot){
 
   _aiAsk({model:AI_MODEL,max_tokens:500,temperature:0.2,system:AI_COACH_SYSTEM,messages:[{role:'user',content:prompt}]})
     .then(function(text){
-      btn.innerHTML='💬 Why?';btn.disabled=false;
+      btn.innerHTML='💬 Ask Coach';btn.disabled=false;
       var html=text
         .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
         .split(/\n\n+/)
@@ -5542,7 +5534,7 @@ function askCoach(name, slot){
       drop.innerHTML=result;
     })
     .catch(function(){
-      btn.innerHTML='💬 Why?';btn.disabled=false;
+      btn.innerHTML='💬 Ask Coach';btn.disabled=false;
       drop.innerHTML='<div class="lc-loading">Couldn\'t reach Claude — check your API key in Settings.</div>'+hideBtn;
     });
 }
@@ -5551,7 +5543,7 @@ function collapseCoach(slot){
   var drop=document.getElementById('lu-drop-'+slot);
   var btn=document.getElementById('lu-askbtn-'+slot);
   if(drop) drop.classList.remove('open');
-  if(btn){btn.classList.remove('active');btn.innerHTML='💬 Why?';}
+  if(btn){btn.classList.remove('active');btn.innerHTML='💬 Ask Coach';}
 }
 
 // ── PLAYER COMPARISON ──
@@ -5844,7 +5836,7 @@ function renderLineup(){
         +'</div>'
         +'<div class="lu-row-right">'
           +'<div class="lu-gp">'+p.gp+'g</div>'
-          +'<button class="lu-ask-btn" id="'+btnId+'" onclick="event.stopPropagation();askCoach(\''+esc(nm)+'\','+i+')">💬 Why?</button>'
+          +'<button class="lu-ask-btn" id="'+btnId+'" onclick="event.stopPropagation();askCoach(\''+esc(nm)+'\','+i+')">💬 Ask Coach</button>'
         +'</div>'
       +'</div>'
       +'<div class="lu-coach-drop" id="'+dropId+'"></div>'
@@ -6827,7 +6819,7 @@ function renderSCVCard(data){
   }
 
   var html='<div class="sc-inner-card">'
-    +'<div class="sc-card-topbar"><div class="sc-card-brand">⚾<span>Baseline Analytics</span></div><div class="sc-card-season">Season Stats</div></div>'
+    +'<div class="sc-card-topbar"><div class="sc-card-brand">⚾<span>Clubhouse Analytics</span></div><div class="sc-card-season">Season Stats</div></div>'
     +'<div class="sc-card-hero"><div class="sc-card-name">#'+escHtml(num||'0')+' '+escHtml(name)+'</div>'
     +'<div class="sc-card-team">'+escHtml(teamNameSeason())+'</div></div>'
     +'</div>';
@@ -6857,7 +6849,7 @@ function renderSCVCard(data){
   if(note){
     html+='<div class="sc-inner-card"><div class="sc-coach-note">"'+escHtml(note)+'"</div></div>';
   }
-  html+='<div class="sc-card-attribution">Powered by Baseline Analytics ⚾</div>';
+  html+='<div class="sc-card-attribution">Powered by Clubhouse Analytics ⚾</div>';
   document.getElementById('scv-content').innerHTML=html;
 }
 
