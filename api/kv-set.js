@@ -3,7 +3,7 @@ import { requireAuth, sameOrigin, KEY_RE } from '../lib/auth.js';
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).end();
-  if (!sameOrigin(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!sameOrigin(req)) return res.status(403).json({ error: 'Forbidden (request came from another site)' });
   if (!requireAuth(req, res)) return;
 
   const { key, value } = req.body || {};
@@ -15,20 +15,19 @@ export default async function handler(req, res) {
   if (!url || !token) return res.status(500).json({ error: 'KV not configured' });
 
   try {
-    // Send the whole command as a JSON array so Upstash stores exactly this string.
-    // (The old version posted "value=<url-encoded>" as the body, which Upstash
-    // stores literally — so saved data could never be read back as JSON.)
+    // Upstash REST: POST /set/<key> with the value as the raw request body.
+    // This is the format that made cross-device sync work in May.
     const stored = typeof value === 'string' ? value : JSON.stringify(value);
-    const r = await fetch(url, {
+    const r = await fetch(`${url}/set/${encodeURIComponent(key)}`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(['SET', key, stored])
+      headers: { Authorization: `Bearer ${token}` },
+      body: stored
     });
     const data = await r.json().catch(() => ({}));
-    if (!r.ok || data.error || data.result !== 'OK') {
-      return res.status(502).json({ error: data.error || `Upstash returned ${r.status}` });
+    if (!r.ok || data.error) {
+      return res.status(502).json({ error: 'Upstash: ' + (data.error || `HTTP ${r.status}`) });
     }
-    return res.status(200).json({ ok: true, bytes: stored.length });
+    return res.status(200).json({ ok: true, result: data.result, bytes: stored.length });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
