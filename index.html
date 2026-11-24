@@ -161,6 +161,10 @@ body.light-mode .sb-logo-light{display:block}
 .app-msg-field{display:block;margin-bottom:12px}
 .app-msg-field span{display:block;font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .app-msg-field input,.app-msg-field select{width:100%;box-sizing:border-box;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--hdr);font-family:var(--ff);font-size:14px}
+#sync-warning{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9998;display:flex;align-items:center;gap:12px;max-width:calc(100% - 32px);padding:10px 12px 10px 14px;background:#3b1d1d;border:1px solid #ef4444;border-radius:10px;color:#fecaca;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#sync-warning button{flex-shrink:0;font-family:var(--ff);font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;border:1px solid #fecaca;background:transparent;color:#fecaca;cursor:pointer}
+body.light-mode #sync-warning{background:#fef2f2;color:#991b1b;border-color:#fca5a5}
+body.light-mode #sync-warning button{color:#991b1b;border-color:#991b1b}
 .app-msg-hint{display:block;font-style:normal;font-size:11px;color:var(--sub);margin-top:5px}
 .app-msg-err{color:#ef4444;font-size:12px;min-height:16px;margin:-4px 0 8px}
 .sb-group{margin-bottom:4px}
@@ -3379,6 +3383,7 @@ function load(){
   }catch(e){}
   // Migration: fix stored data issues
   var changed=false;
+  if(dropOldSeasonImports()) changed=true; // earlier versions kept every season upload
 
   // 0. Re-number game labels sequentially (fixes gaps/duplicates)
   var gameCounter=0;
@@ -7323,7 +7328,25 @@ function kvSet(key,value){
     credentials:'same-origin',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({key:teamKey(key),value:value})
-  }).then(function(r){if(r.status===401){onAuthExpired();return {};}return r.json();}).catch(function(e){console.error('kvSet error',key,e);});
+  }).then(function(r){
+    if(r.status===401){onAuthExpired();return {ok:false};}
+    return r.json().catch(function(){return {};}).then(function(d){
+      if(!r.ok||!d||d.ok!==true) return {ok:false,error:(d&&d.error)||('HTTP '+r.status)};
+      return d;
+    });
+  }).catch(function(e){console.error('kvSet error',key,e);return {ok:false,error:String(e)};});
+}
+
+// Visible warning when the cloud save fails, so nothing is lost silently
+function showSyncWarning(failed){
+  var el=document.getElementById('sync-warning');
+  if(!failed){if(el)el.remove();return;}
+  if(!el){
+    el=document.createElement('div');el.id='sync-warning';el.setAttribute('role','alert');
+    el.innerHTML='<span>⚠️ Couldn’t save to the cloud. Your changes are only on this device for now.</span>'
+      +'<button type="button" onclick="kvSave()">Try again</button>';
+    document.body.appendChild(el);
+  }
 }
 
 function kvSave(){
@@ -7343,15 +7366,32 @@ function kvSave(){
   if(icsUrl) saves.push(kvSet('sba_ics_url', icsUrl));
   if(icsLast) saves.push(kvSet('sba_ics_last', icsLast));
   return Promise.all(saves)
-    .then(function(){console.log('KV saved: games='+importedGames.length+', gl='+gameLog.length);})
-    .catch(function(e){console.error('KV save error:',e);});
+    .then(function(results){
+      var bad=results.filter(function(r){return !r||r.ok!==true;});
+      if(bad.length){
+        console.error('KV save failed for '+bad.length+' item(s):',bad.map(function(r){return r&&r.error;}));
+        showSyncWarning(true);
+        return false;
+      }
+      showSyncWarning(false);
+      console.log('KV saved: games='+importedGames.length+', gl='+gameLog.length);
+      return true;
+    })
+    .catch(function(e){console.error('KV save error:',e);showSyncWarning(true);return false;});
 }
 
 function kvLoad(callback){
   if(!_isVercel){callback();return;}
   kvGet(TEAMS_KEY).then(function(v){
     var list=v;if(typeof v==='string'){try{list=JSON.parse(v);}catch(e){list=null;}}
-    if(mergeCloudTeams(list)){
+    // If this device knows a team the cloud list is missing (e.g. it was overwritten from
+    // another device while cloud saves were broken), put it back so every device sees it.
+    var cloudIds=(Array.isArray(list)?list:[]).map(function(t){return t&&t.id;});
+    var merged=mergeCloudTeams(list);
+    if(TEAMS.some(function(t){return cloudIds.indexOf(t.id)<0;})){
+      kvSet(TEAMS_KEY,TEAMS).then(function(r){if(!r||r.ok!==true)showSyncWarning(true);});
+    }
+    if(merged){
       // A team linked or last viewed on another device just arrived — open it
       if(_requestedTeamId&&_requestedTeamId!==CURRENT_TEAM.id&&findTeam(_requestedTeamId)){switchTeam(_requestedTeamId);return;}
       renderTeamMenu();
@@ -7383,7 +7423,9 @@ function kvLoad(callback){
       if(typeof rosterOverrides!=='object'||Array.isArray(rosterOverrides)) rosterOverrides={};
       if(typeof _pdCoachNotes!=='object'||Array.isArray(_pdCoachNotes)) _pdCoachNotes={};
       if(typeof playerInsights!=='object'||Array.isArray(playerInsights)) playerInsights={};
+      var _cleaned=dropOldSeasonImports(); // earlier versions kept every season upload
       _kvSynced=true;
+      if(_cleaned) save();
       console.log('KV loaded: games='+importedGames.length+', gl='+gameLog.length);
       if(gcSchedule.length) renderNextGame();
       // Show sync status briefly on screen
@@ -8274,6 +8316,20 @@ function showGuestModal(unknown,result,fileName,status){
   };
 }
 
+// Remove older season uploads, keeping game-log links pointing at the same uploads
+function dropOldSeasonImports(keep){
+  var refs=gameLog.map(function(g){return g.importIdx!=null?importedGames[g.importIdx]:null;});
+  var seasons=importedGames.filter(function(g){return g.isSeason;});
+  var newest=keep||seasons[seasons.length-1];
+  var before=importedGames.length;
+  importedGames=importedGames.filter(function(g){return !g.isSeason||g===newest;});
+  if(importedGames.length===before) return false;
+  gameLog.forEach(function(g,i){
+    if(refs[i]){var at=importedGames.indexOf(refs[i]);if(at>=0)g.importIdx=at;else delete g.importIdx;}
+  });
+  return true;
+}
+
 function storeGameImport(result,fileName,status){
   var isSeason=result.isSeason||false;
   var gameNum=importedGames.filter(function(g){return !g.isSeason;}).length+1;
@@ -8283,7 +8339,11 @@ function storeGameImport(result,fileName,status){
     usScore:result.usScore,themScore:result.themScore,gameResult:result.gameResult,
     isSeason:isSeason};
   importedGames.push(entry);
+  if(isSeason) dropOldSeasonImports(entry); // a new season CSV replaces the previous one
+  // Sort, keeping game-log links attached to the same uploads
+  var _refs=gameLog.map(function(g){return g.importIdx!=null?importedGames[g.importIdx]:null;});
   importedGames.sort(function(a,b){return a.date.localeCompare(b.date);});
+  gameLog.forEach(function(g,i){if(_refs[i]){var at=importedGames.indexOf(_refs[i]);if(at>=0)g.importIdx=at;}});
   // Get the index AFTER sort
   var importIdx=importedGames.indexOf(entry);
 
