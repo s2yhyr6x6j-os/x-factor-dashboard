@@ -15,17 +15,20 @@ export default async function handler(req, res) {
   if (!url || !token) return res.status(500).json({ error: 'KV not configured' });
 
   try {
-    // Store as plain string — value is already JSON stringified by client
-    const r = await fetch(`${url}/set/${encodeURIComponent(key)}`, {
+    // Send the whole command as a JSON array so Upstash stores exactly this string.
+    // (The old version posted "value=<url-encoded>" as the body, which Upstash
+    // stores literally — so saved data could never be read back as JSON.)
+    const stored = typeof value === 'string' ? value : JSON.stringify(value);
+    const r = await fetch(url, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: 'value=' + encodeURIComponent(typeof value === 'string' ? value : JSON.stringify(value))
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['SET', key, stored])
     });
-    const data = await r.json();
-    return res.status(200).json({ ok: true, result: data.result });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data.error || data.result !== 'OK') {
+      return res.status(502).json({ error: data.error || `Upstash returned ${r.status}` });
+    }
+    return res.status(200).json({ ok: true, bytes: stored.length });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

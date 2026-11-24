@@ -27,6 +27,11 @@ export default async function handler(req, res) {
     const data = await r.json();
     let value = data.result;
 
+    // Recover values saved by the old kv-set, which stored "value=<url-encoded JSON>" literally
+    if (typeof value === 'string' && value.startsWith('value=')) {
+      try { value = decodeURIComponent(value.slice(6)); } catch (e) {}
+    }
+
     if (typeof value === 'string') {
       try { value = JSON.parse(value); } catch(e) {}
       if (typeof value === 'string') {
